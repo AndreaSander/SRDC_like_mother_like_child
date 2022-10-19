@@ -9,22 +9,56 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+library(here)
+library(tidyverse)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#------- 1. Load anonymized data sets ---------#
+```{r}
+
+LEQ_data<- load(here("anonymized_data/LEQ_data.Rda"))
+
+demographic_data <- load(here("anonymized_data/LEQ_data.Rda"))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+#--------2. Clean datasets to allow merging -------#
+```{r}
+#gets gender under a unified scale, as it had different scales for different studies
+demographic_data <- demographic_data %>%
+  mutate(gender=case_when(
+    gender %in% c("male", "M") ~ "male",
+    gender %in% c("female", "F") ~ "female",
+    gender == 1 ~ "male",
+    gender == 0 ~ "female")) 
+
+#renames studies to make paralell to the way they are named in the LEQ data.
+demographic_data <- demographic_data %>%
+  mutate(study = tolower(study)) %>%
+  mutate(study = case_when(study =="cogmisp" ~ "cogmisp24",
+                           study=="faceprince-12"~"faceprince12",
+                           study=="faceprince-18"~"faceprince18",
+                           study=="littlemix-8"~"littlemix8",
+                           study=="many_babies_12"~"manybabies12",
+                           study=="many_babies_6"~"manybabies6",
+                           study=="segment_8"~"segment8",
+                   TRUE ~ study)) %>% 
+  mutate(unique_id = paste(anon_baby_id, study, sep="_")) #creates a unique identifier per each baby per each study
+
+
+
+#adding unique identifier to LEQ data
+LEQ_data <-
+  LEQ_data %>%
+  mutate(study = tolower(study)) %>% 
+  mutate(unique_id = paste(anon_baby_id, study, sep="_"))
+```
+
+#------3. Merge demographics and LEQ data 
+```{r}
+final_data <-
+  right_join(final_fam_str, demog_anonym, by= "unique_id")
+```
+
