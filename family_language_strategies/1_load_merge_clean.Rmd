@@ -79,6 +79,12 @@ final_data <- final_data %>%
 
 #------5. Exclusions and save
 ```{r}
+
+#?duplicates
+duplicates <- final_data %>%
+  add_count(unique_id) %>%
+  filter(n>1)
+
 final_data <- final_data %>%
   group_by(unique_id, exp_l1, exp_l2)%>%
    mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%
