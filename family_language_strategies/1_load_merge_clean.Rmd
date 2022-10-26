@@ -52,7 +52,10 @@ demographic_data <- demographic_data %>%
                    TRUE ~ study)) %>% 
   mutate(unique_id = paste(anon_baby_id, study, sep="_")) #creates a unique identifier per each baby per each study
 
-
+#gets rid of duplicated demographic data 
+demographic_data <- demographic_data %>%
+  add_count(unique_id) %>%
+  filter(n==1)
 
 #adding unique identifier to LEQ data
 LEQ_data <-
@@ -64,7 +67,7 @@ LEQ_data <-
 #------3. Merge demographics and LEQ data 
 ```{r}
 final_data <-
-  right_join( LEQ_data ,demographic_data , by= "unique_id")
+  right_join(demographic_data, LEQ_data ,  by= "unique_id")
 
 
 ```
@@ -80,16 +83,13 @@ final_data <- final_data %>%
 #------5. Exclusions and save
 ```{r}
 
-#?duplicates
-duplicates <- final_data %>%
-  add_count(unique_id) %>%
-  filter(n>1)
+
 
 final_data <- final_data %>%
   group_by(unique_id, exp_l1, exp_l2)%>%
    mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%
   ungroup() %>%
-  filter(total_l1_l2_exp>=90) #60 exclusions for more than 10% exposure to a third language
+  filter(total_l1_l2_exp>=90) #59 exclusions for more than 10% exposure to a third language
 
 save(final_data, file=here("anonymized_data/final_merged_data.Rda"))
 ```
