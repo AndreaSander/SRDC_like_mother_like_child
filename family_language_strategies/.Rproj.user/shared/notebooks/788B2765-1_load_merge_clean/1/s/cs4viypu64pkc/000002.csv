@@ -1,6 +1,10 @@
-"0","#?duplicates
-duplicates <- final_data %>%
-  add_count(unique_id) %>%
-  filter(n>1)
-"
-"2","Storing counts in `nn`, as `n` already present in input"
+"0",""
+"0",""
+"0",""
+"0","final_data <- final_data %>%"
+"0","  group_by(unique_id, exp_l1, exp_l2)%>%"
+"0","   mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%"
+"0","  ungroup() %>%"
+"0","  filter(total_l1_l2_exp>=90) #59 exclusions for more than 10% exposure to a third language"
+"0",""
+"0","save(final_data, file=here(""anonymized_data/final_merged_data.Rda""))"

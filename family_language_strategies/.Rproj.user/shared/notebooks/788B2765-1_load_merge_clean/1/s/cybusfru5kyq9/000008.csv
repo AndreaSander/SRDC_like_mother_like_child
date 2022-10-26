@@ -1,3 +1,6 @@
+"0",""
+"0","final_data$do_birth<-as.Date(as.character(final_data$do_birth))"
+"0","final_data$leq_date<-as.Date(as.character(final_data$leq_date))"
 "0","final_data <- final_data %>%"
 "0","  mutate(age= interval(start= do_birth, end=leq_date)/                      "
 "0","           duration(n=1, unit=""months""))"

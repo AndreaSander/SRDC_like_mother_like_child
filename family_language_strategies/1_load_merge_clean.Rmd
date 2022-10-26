@@ -74,6 +74,9 @@ final_data <-
 
 #------4. Create an age column
 ```{r}
+
+final_data$do_birth<-as.Date(as.character(final_data$do_birth))
+final_data$leq_date<-as.Date(as.character(final_data$leq_date))
 final_data <- final_data %>%
   mutate(age= interval(start= do_birth, end=leq_date)/                      
            duration(n=1, unit="months"))
