@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(here)
 library(tidyverse)
+library(lubridate)
 ```
 
 
@@ -19,9 +20,13 @@ library(tidyverse)
 #------- 1. Load anonymized data sets ---------#
 ```{r}
 
-LEQ_data<- load(here("anonymized_data/LEQ_data.Rda"))
+load(here("anonymized_data/LEQ_data.Rda"))
 
-demographic_data <- load(here("anonymized_data/LEQ_data.Rda"))
+ load(here("anonymized_data/demographic_data.Rda"))
+ 
+#rename
+ LEQ_data <- final_fam_str
+ demographic_data <- demog_anonym
 ```
 
 #--------2. Clean datasets to allow merging -------#
@@ -59,6 +64,27 @@ LEQ_data <-
 #------3. Merge demographics and LEQ data 
 ```{r}
 final_data <-
-  right_join(final_fam_str, demog_anonym, by= "unique_id")
+  right_join( LEQ_data ,demographic_data , by= "unique_id")
+
+
+```
+
+#------4. Create an age column
+```{r}
+final_data <- final_data %>%
+  mutate(age= interval(start= do_birth, end=leq_date)/                      
+           duration(n=1, unit="months"))
+```
+
+
+#------5. Exclusions and save
+```{r}
+final_data <- final_data %>%
+  group_by(unique_id, exp_l1, exp_l2)%>%
+   mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%
+  ungroup() %>%
+  filter(total_l1_l2_exp>=90) #60 exclusions for more than 10% exposure to a third language
+
+save(final_data, file=here("anonymized_data/final_merged_data.Rda"))
 ```
 

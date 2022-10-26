@@ -1,0 +1,12 @@
+"0","final_data <- final_data %>%
+  mutate(age= interval(start= birth_date, end=leq_date)/                      
+           duration(n=1, unit=""months""))
+"
+"1","[1m[33mError[39m in [38;5;232m`mutate()`[39m:[22m
+[38;5;232m[33m![38;5;232m Problem while computing `age = interval(start = birth_date, end = leq_date) / ...`.[39m
+[1mCaused by error in [38;5;232m`interval()`[39m:[22m
+[33m![39m object 'birth_date' not found
+Backtrace:
+[90m 1. [39mfinal_data %>% ...
+[90m 7. [39m[1mlubridate[22m::interval(start = birth_date, end = leq_date)
+"
