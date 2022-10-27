@@ -35,7 +35,7 @@ gender<- final_data %>%
   tally()
 #16 na for gender I think from LEQs withouth associated demographics
 
-range(final_data$age, na.rm = T) #cogcontrol7 s32 has a wrong either leq date or birthdate so to check. 8/7/2016- 3/28/2017
+range(final_data$age, na.rm = T) #4.33 - 30.9 months so 4 - 31 if we round.
 ```
 
 
@@ -130,8 +130,11 @@ group_by(strategy) %>%
 ```
 
 
-#---------- longitudinal data 
+#---------- create and save longitudinal data frame
 ```{r}
-
+#keeps only data where the baby participated more than once
+longitudinal_data<- final_data %>%
+  add_count(anon_baby_id) %>%
+  filter(nn>1)
 ```
 

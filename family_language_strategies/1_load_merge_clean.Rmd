@@ -67,7 +67,7 @@ LEQ_data <-
 #------3. Merge demographics and LEQ data 
 ```{r}
 final_data <-
-  right_join(demographic_data, LEQ_data ,  by= "unique_id")
+  right_join(demographic_data, LEQ_data ,  by= c("unique_id", "study", "anon_baby_id"))
 
 
 #clean date of birth error in one participant
