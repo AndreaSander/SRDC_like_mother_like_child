@@ -136,5 +136,7 @@ group_by(strategy) %>%
 longitudinal_data<- final_data %>%
   add_count(anon_baby_id) %>%
   filter(nn>1)
+
+save(longitudinal_data, file=here("anonymized_data/longitudinal_data.Rda"))
 ```
 
