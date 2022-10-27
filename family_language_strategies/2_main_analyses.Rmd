@@ -123,3 +123,15 @@ group_by(strategy) %>%
 
 ```
 
+
+#-------- goodness of fit cat analyses
+```{r}
+
+```
+
+
+#---------- longitudinal data 
+```{r}
+
+```
+
