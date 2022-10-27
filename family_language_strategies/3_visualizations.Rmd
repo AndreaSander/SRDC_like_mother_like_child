@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(here)
 library(tidyverse)
 library(ggplot2)
+library(ggsankey)
 ```
 
 
@@ -20,5 +21,15 @@ library(ggplot2)
 
 ```{r}
 load(here("anonymized_data/longitudinal_data.Rda"))
+
+#select only relevant variables
+longitudinal_data <- longitudinal_data %>%
+  select(age, strategy, unique_id, anon_baby_id)
+
+longitudinal_data<- longitudinal_data %>%
+  arrange(anon_baby_id, age) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit = row_number()) %>%
+  ungroup()
 ```
 
