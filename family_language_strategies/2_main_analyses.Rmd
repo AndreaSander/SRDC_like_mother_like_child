@@ -35,7 +35,7 @@ gender<- final_data %>%
   tally()
 #16 na for gender I think from LEQs withouth associated demographics
 
-range(final_data$age, na.rm = T) #cogcontrol7 s32 has a wrong either leq date or birthdate so to check.
+range(final_data$age, na.rm = T) #cogcontrol7 s32 has a wrong either leq date or birthdate so to check. 8/7/2016- 3/28/2017
 ```
 
 
