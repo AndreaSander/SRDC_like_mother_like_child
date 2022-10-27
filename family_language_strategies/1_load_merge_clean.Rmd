@@ -70,6 +70,11 @@ final_data <-
   right_join(demographic_data, LEQ_data ,  by= "unique_id")
 
 
+#clean date of birth error in one participant
+final_data <- final_data %>%
+  mutate(leq_date = as.character(leq_date))
+
+final_data$leq_date[final_data$leq_date== "2016-08-07"] <- "2017-03-28"
 ```
 
 #------4. Create an age column
