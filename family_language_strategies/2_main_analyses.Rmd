@@ -42,7 +42,7 @@ range(final_data$age, na.rm = T) #4.33 - 30.9 months so 4 - 31 if we round.
 
 #-----3. categorize LEQ data into family language strategies
 ```{r}
-final_data <- final_data %>%
+final_data_strat <- final_data %>%
   mutate(strategy=case_when(
     
   #OPOL_S: Each parent speaks only one language and both parents don't speak the same language
@@ -115,11 +115,12 @@ final_data <- final_data %>%
     
 
 #Calculate the proportion for the different strategies
-prop_strategy<-final_data%>%
+prop_strategy<-final_data_strat%>%
 group_by(strategy) %>%
   tally() %>%
   mutate(prop = n/sum(n))
 
+save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
 
 ```
 

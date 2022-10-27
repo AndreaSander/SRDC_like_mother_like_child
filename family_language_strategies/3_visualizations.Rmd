@@ -30,6 +30,35 @@ longitudinal_data<- longitudinal_data %>%
   arrange(anon_baby_id, age) %>%
   group_by(anon_baby_id) %>%
   mutate(visit = row_number()) %>%
-  ungroup()
+  ungroup() #%>%
+ # mutate(strategy_2 = strategy)
+
+wider_longitudinal <- pivot_wider(longitudinal_data,
+                                names_from = visit, values_from = strategy ) %>%
+  rename(visit_1 = "1", visit_2 = "2", visit_3 ="3", visit_4 ="4" ) 
+
+
+
+#I want to plot change how many of the children who started with opol changed to other strategy
+
+
+
+```
+
+```{r}
+
+load(here("anonymized_data/final_data_strat.Rda"))
+
+for_sankey_2 <- final_data_strat %>%
+  make_long(visit, strategy) #ideas add like exposure bins so sankey of strategy to exposure bins or something I think sankey makes sense for stuff like that
+
+ggplot(for_sankey_2, aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node)), na.rm=T) +
+  geom_sankey()
+
+
 ```
 
