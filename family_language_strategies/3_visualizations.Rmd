@@ -37,6 +37,8 @@ wider_longitudinal <- pivot_wider(longitudinal_data,
                                 names_from = visit, values_from = strategy ) %>%
   rename(visit_1 = "1", visit_2 = "2", visit_3 ="3", visit_4 ="4" ) 
 
+b<-
+
 
 
 #I want to plot change how many of the children who started with opol changed to other strategy
