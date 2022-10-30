@@ -33,34 +33,61 @@ longitudinal_data<- longitudinal_data %>%
   ungroup() #%>%
  # mutate(strategy_2 = strategy)
 
-wider_longitudinal <- pivot_wider(longitudinal_data,
+wider_longitudinal <- longitudinal_data %>%
+  select(anon_baby_id, visit, strategy)
+
+wider_longitudinal <- pivot_wider(wider_longitudinal,
                                 names_from = visit, values_from = strategy ) %>%
   rename(visit_1 = "1", visit_2 = "2", visit_3 ="3", visit_4 ="4" ) 
 
-b<-
 
 
+for_sankey <- wider_longitudinal %>%
+  make_long(visit_1, visit_2, visit_3, visit_4) 
 
-#I want to plot change how many of the children who started with opol changed to other strategy
 
+p1<- ggplot(for_sankey, aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node)) +
+  geom_sankey()
 
+p1<- p1 + 
+  geom_sankey_label(size=3, color="black", fill="white")+
+  theme_bw()+
+  theme(legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank()) 
 
+print(p1)
 ```
 
 ```{r}
 
 load(here("anonymized_data/final_data_strat.Rda"))
 
-for_sankey_2 <- final_data_strat %>%
-  make_long(visit, strategy) #ideas add like exposure bins so sankey of strategy to exposure bins or something I think sankey makes sense for stuff like that
+final_data_strat <- final_data_strat %>%
+  mutate(dom_lang_exp = case_when( exp_l1 >= 45 & exp_l1 <= 60 ~"45-60",
+                              exp_l1 >= 60.1 & exp_l1 <=75 ~"60-75",
+                              exp_l1 >=75.1 & exp_l1 <= 90 ~"75-90",
+                              exp_l1 >=90.1 & exp_l1 <=100 ~"90-100"))
+    
 
-ggplot(for_sankey_2, aes(x = x, 
+for_sankey_2 <- final_data_strat %>%
+  make_long(strategy, dom_lang_exp) 
+
+p2<- ggplot(for_sankey_2, aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
-               fill = factor(node)), na.rm=T) +
-  geom_sankey()
+               fill = factor(node), label=node)) +
+  geom_sankey() 
 
 
+p2<- p2 + 
+  geom_sankey_label(size=3, color="black", fill="white")+
+  theme_bw()+
+  theme(legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank()) 
+
+print(p2)
 ```
 
