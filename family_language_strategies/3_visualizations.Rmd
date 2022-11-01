@@ -30,11 +30,11 @@ longitudinal_data<- longitudinal_data %>%
   arrange(anon_baby_id, age) %>%
   group_by(anon_baby_id) %>%
   mutate(visit = row_number()) %>%
-  ungroup() #%>%
- # mutate(strategy_2 = strategy)
+  ungroup() 
 
 wider_longitudinal <- longitudinal_data %>%
-  select(anon_baby_id, visit, strategy)
+  select(anon_baby_id, visit, strategy) %>%
+  filter(str_detect(strategy, "single-parent", negate=T))
 
 wider_longitudinal <- pivot_wider(wider_longitudinal,
                                 names_from = visit, values_from = strategy ) %>%
@@ -43,20 +43,22 @@ wider_longitudinal <- pivot_wider(wider_longitudinal,
 
 
 for_sankey <- wider_longitudinal %>%
-  make_long(visit_1, visit_2, visit_3, visit_4) 
-
+  make_long(visit_1, visit_2) 
 
 p1<- ggplot(for_sankey, aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
-  geom_sankey()
+  geom_sankey() +
+  scale_colour_brewer(palette = "Dark2")
 
 p1<- p1 + 
   geom_sankey_label(size=3, color="black", fill="white")+
   theme_bw()+
-  theme(legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank()) 
+  theme(legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank())
+  
+
 
 print(p1)
 ```
