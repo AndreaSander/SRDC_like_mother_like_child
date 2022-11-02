@@ -3,7 +3,7 @@
     "path": "~/Research/family_language_strategies/family_language_strategies/3_visualizations.Rmd",
     "project_path": "3_visualizations.Rmd",
     "type": "r_markdown",
-    "hash": "1996320009",
+    "hash": "3177990456",
     "contents": "",
     "dirty": false,
     "created": 1667327772349.0,
@@ -13,15 +13,15 @@
         "source_window_id": "",
         "Source": "Source",
         "last_setup_crc32": "B3BB55A7bb338d19",
-        "cursorPosition": "68,36",
-        "scrollLine": "66"
+        "cursorPosition": "134,0",
+        "scrollLine": "130"
     },
     "folds": "",
-    "lastKnownWriteTime": 1667327677,
+    "lastKnownWriteTime": 1667334015,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1667328884843,
+    "last_content_update": 1667334015469,
     "read_only": false,
     "read_only_alternatives": []
 }
