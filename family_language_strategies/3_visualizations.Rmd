@@ -16,12 +16,61 @@ library(ggplot2)
 library(ggsankey)
 ```
 
+##------Load necessary data sets
+
+```{r}
+
+load(here("anonymized_data/longitudinal_data.Rda"))
+load(here("anonymized_data/final_data_strat.Rda"))
+
+```
+
+
+##----Descriptive graphs
+```{r}
+#Descriptive graphs: 1 proportion of use statistic.
+
+prop_strategy<-final_data_strat%>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) 
+
+prop_strategy<- prop_strategy %>%
+  mutate(strategy = fct_reorder(prop_strategy$strategy, prop_strategy$prop, .desc=F))
+
+ggplot(prop_strategy, aes(x="", y=prop, fill=strategy)) +
+  geom_bar (stat= "identity")+
+  scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+  labs(x="")+
+  theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
+  theme_bw() 
+
+#strategy by L2 exposure
+
+final_data_strat <- final_data_strat %>%
+  mutate(dom_lang_exp = case_when( exp_l1 >= 45 & exp_l1 <= 60 ~"45-60",
+                              exp_l1 >= 60.1 & exp_l1 <=75 ~"60-75",
+                              exp_l1 >=75.1 & exp_l1 <= 90 ~"75-90",
+                              exp_l1 >=90.1 & exp_l1 <=100 ~"90-100"))
+
+prop_strategy_balance<-final_data_strat%>%
+group_by(dom_lang_exp, strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(strategy = fct_relevel(strategy, "single-parent", "one-parent-one-lang-strict","one-parent-one-lang-flex","one-language-at-home","one-parent-bilingual", "both-parents-bilingual"))
+
+
+ggplot(prop_strategy_balance,aes( x=dom_lang_exp , y= prop, fill = strategy )) +
+  geom_col() +
+   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+  theme_bw()
+```
+
 
 ##----- Sankey graph
 
 ```{r}
 load(here("anonymized_data/longitudinal_data.Rda"))
-
 #select only relevant variables
 longitudinal_data <- longitudinal_data %>%
   select(age, strategy, unique_id, anon_baby_id)
@@ -62,7 +111,7 @@ p2<- p2 +
   geom_sankey_label(size=3, color="black", fill="white")+
   theme_bw()+
   theme(legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank()) +
-  labs(title="Stability of Family Strategies Across Visit")
+  labs(title="Stability of Family Strategies Across Visit", x="")
   
 
 print(p2)
@@ -70,9 +119,10 @@ print(p2)
 
 ``` 
 
+
+##----Exploratory graph not for manuscript
 ```{r}
 #Probably not going to use in paper.
-load(here("anonymized_data/final_data_strat.Rda"))
 
 final_data_strat <- final_data_strat %>%
   mutate(dom_lang_exp = case_when( exp_l1 >= 45 & exp_l1 <= 60 ~"45-60",
@@ -98,47 +148,5 @@ p3<- p3 +
   theme(legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank()) 
 
 print(p3)
-```
-
-```{r}
-#Descriptive graphs: 1 proportion of use statistic.
-
-load(here("anonymized_data/final_data_strat.Rda"))
-
-prop_strategy<-final_data_strat%>%
-group_by(strategy) %>%
-  tally() %>%
-  mutate(prop = n/sum(n)) 
-
-prop_strategy<- prop_strategy %>%
-  mutate(strategy = fct_reorder(prop_strategy$strategy, prop_strategy$prop, .desc=F))
-
-ggplot(prop_strategy, aes(x="", y=prop, fill=strategy)) +
-  geom_bar (stat= "identity")+
-  scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
-  labs(x="")+
-  theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
-  theme_bw() 
-```
-```{r}
-#strategy by L2 exposure
-
-final_data_strat <- final_data_strat %>%
-  mutate(dom_lang_exp = case_when( exp_l1 >= 45 & exp_l1 <= 60 ~"45-60",
-                              exp_l1 >= 60.1 & exp_l1 <=75 ~"60-75",
-                              exp_l1 >=75.1 & exp_l1 <= 90 ~"75-90",
-                              exp_l1 >=90.1 & exp_l1 <=100 ~"90-100"))
-
-prop_strategy_balance<-final_data_strat%>%
-group_by(dom_lang_exp, strategy) %>%
-  tally() %>%
-  mutate(prop = n/sum(n)) %>%
-  mutate(strategy = fct_relevel(strategy, "single-parent", "one-parent-one-lang-strict","one-parent-one-lang-flex","one-language-at-home","one-parent-bilingual", "both-parents-bilingual"))
-
-
-ggplot(prop_strategy_balance,aes( x=dom_lang_exp , y= prop, fill = strategy )) +
-  geom_col() +
-   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
-  theme_bw()
 ```
 
