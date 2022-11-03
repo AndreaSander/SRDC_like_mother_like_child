@@ -41,7 +41,7 @@ prop_strategy<- prop_strategy %>%
 ggplot(prop_strategy, aes(x="", y=prop, fill=strategy)) +
   geom_bar (stat= "identity")+
   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
-  labs(x="")+
+  labs(x="", title = "Proportion of Use of Family Strategies")+
   theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
   theme_bw() 
 
@@ -63,14 +63,14 @@ group_by(dom_lang_exp, strategy) %>%
 ggplot(prop_strategy_balance,aes( x=dom_lang_exp , y= prop, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
-  theme_bw()
+  theme_bw() +
+  labs(title= "Proportion of Use of Family Strategies by Dominant Language Exposure Bin")
 ```
 
 
 ##----- Sankey graph
 
 ```{r}
-load(here("anonymized_data/longitudinal_data.Rda"))
 #select only relevant variables
 longitudinal_data <- longitudinal_data %>%
   select(age, strategy, unique_id, anon_baby_id)
