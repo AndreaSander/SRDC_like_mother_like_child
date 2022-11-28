@@ -166,10 +166,12 @@ m1 <- lmer(exp_l1 ~ strategy + (1|anon_baby_id), data=final_data_strat) #can't w
 summary(m1)
 #some significant effects by strategy.
 #quite a bit of variance from the by-subject random intercept = balacedeness has to do also with individual variability than langauge strategy.
+#take out the single parent language
+#Maybe collapse the OPOL groups?
 
 m1.1 <- lmer(exp_l1 ~ strategy + lang_status + (1|anon_baby_id), data=final_data_strat) 
 summary(m1.1)
-
+#L1 is many language code everything relative to French as the official language. 
 
 m1.2 <- lmer(exp_l1 ~ strategy * lang_status + (1|anon_baby_id), data=final_data_strat) 
 summary(m1.2)
@@ -183,10 +185,14 @@ summary(test) #maybe monolinguals are driving the effect. Which makes sense beca
 
 #prediction of French exposure
 m2 <- lmer(fre_exp ~ strategy + (1|anon_baby_id), data=final_data_strat) 
+m2.2<- lmer(fre_exp ~ strategy * lang_status + (1|anon_baby_id), data=final_data_strat) 
+summary(m2.2)
 summary(m2)
 #Both parents bilingual and opol-strict marginally
 
-
+#Look at heritage language speakers and look at the french exposure. 
+#visualization more similar to analyses. Mean l1 exposure by strategy l1 exp in y.
+#Do we just want to do t-tests instead .. order the strategies by how much l1 exposure they give you. And then heritage vs non heritage.
 
 ```
 
