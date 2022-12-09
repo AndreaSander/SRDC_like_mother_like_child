@@ -67,6 +67,42 @@ ggplot(prop_strategy_balance,aes( x=dom_lang_exp , y= prop, fill = strategy )) +
   labs(title= "Proportion of Use of Family Strategies by Dominant Language Exposure Bin")
 ```
 
+##----- mean l1 exposure by strategy
+```{r}
+
+l1_by_strategy <- final_data_strat %>%
+  select(c(strategy, exp_l1)) %>%
+  group_by(strategy) %>%
+  summarise(mean(exp_l1))
+
+#columns
+ggplot(l1_by_strategy,aes( x=strategy , y=`mean(exp_l1)`, fill = strategy )) +
+  geom_col() +
+   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+  theme_bw() +
+  labs(title= "Mean l1 exposure by strategy")
+
+```
+##----- mean french exposure by strategy
+```{r}
+final_data_fre <- final_data_strat %>%
+  mutate(fre_exp = case_when(l1 == "French" ~ exp_l1,
+                             l2 == "French"~ exp_l2,
+                             TRUE ~ 0))
+
+fre_by_strategy <- final_data_fre  %>%
+  select(c(strategy, fre_exp)) %>%
+  group_by(strategy) %>%
+  summarise(mean(fre_exp))
+
+
+ggplot(fre_by_strategy, aes( x=strategy , y=`mean(fre_exp)`, fill = strategy )) +
+  geom_col() +
+   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+  theme_bw() +
+  labs(title= "Mean french exposure by strategy")
+```
+
 
 ##----- Sankey graph
 
