@@ -41,11 +41,35 @@ gender<- final_data %>%
 range(final_data$age, na.rm = T) #4.33 - 30.9 months so 4 - 31 if we round.
 ```
 
+#------ 4, Recode l1 exposure to be relative to french as it is the official language
+
+```{r}
+
+vars<-c("exp_l3", "exp_l4")
+
+final_data_french_coded <-
+  final_data %>%
+ mutate_at(vars, as.numeric) %>%
+  mutate(l3 = replace(l3, l3=="NA", "no lang")) %>%
+  mutate(l4 = replace(l4, l4=="NA", "no lang")) %>%
+  mutate(fre_exp = case_when(l1=="French"~ exp_l1,
+                                l2=="French"~ exp_l2,
+                                l3=="French"~ exp_l3,
+                                l4=="French"~ exp_l4,
+                                TRUE~ 0)) %>%
+    mutate(eng_exp = case_when(l1=="English"~ exp_l1,
+                                l2=="English"~ exp_l2,
+                                l3=="English"~ exp_l3,
+                                l4=="English"~ exp_l4,
+                                TRUE~ 0)) 
+
+
+```
 
 
 #-----3. categorize LEQ data into family language strategies
 ```{r}
-final_data_strat <- final_data %>%
+final_data_strat <- final_data_french_coded %>%
   mutate(strategy=case_when(
     
   #one-parent-one-lang-strict: Each parent speaks only one language and both parents don't speak the same language
@@ -134,30 +158,109 @@ final_data_strat <- final_data_strat %>%
   mutate(lang_status = case_when(
     l2=="NA" ~ "monolingual",
     exp_l2== 0 ~ "monolingual",
-    l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "maj",
-    TRUE ~ "min"
+    l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "both_maj",
+     l1 %in% c("French", "English") & !(l2 %in% c("French", "English")) ~ "one_maj",
+    !(l1 %in% c("French", "English")) & l2 %in% c("French", "English") ~ "one_maj",
+    TRUE ~ "both_min"
   ))
 
+#do check that the monolinguals are actually monolinguals and not both min
+
 ```
 
-#------ getting french language exposure
+#------ Group 1: When both l1 and l2 are majority languages
 
 ```{r}
 
-final_data_strat <- final_data_strat %>%
-  mutate(fre_exp = case_when(l1 == "French" ~ exp_l1,
-                             l2 == "French"~ exp_l2,
-                             TRUE ~ 0)) # if it is not l1 or 2 the exposure is less than 10, I can't get it somehow. Will try to figure out.
+both_maj_data<- final_data_strat %>%
+  filter(lang_status == "both_maj")
+#355 observations
+
+
+#Calculate the proportion for the different strategies in this group
+prop_strategy_group1<-both_maj_data %>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n))
+
+print(prop_strategy_group1)
+
+for_t_tests_g1<- both_maj_data %>%
+  select(c(strategy, lang_status, fre_exp, eng_exp))
+
+
+pwc_fre_exp_g1 <- for_t_tests_g1 %>% 
+  pairwise_t_test(
+    fre_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    )
+pwc_fre_exp_g1
+
+
+pwc_eng_exp_g1 <- for_t_tests_g1 %>% 
+  pairwise_t_test(
+    eng_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    )
+pwc_eng_exp_g1
+
 
 ```
 
 
-#-------- goodness of fit cat analyses
+#------ Group 2: When only l1 or 2 are a majority language, and the other pair is a minority lang
+
 ```{r}
+one_maj_data<- final_data_strat %>%
+  filter(lang_status == "one_maj")
+
+#80 observations
+
+prop_strategy_group2<-one_maj_data %>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n))
+
+print(prop_strategy_group2)
+
+#the cell sizes are a bit small... but it does give a different story about which strategies are the most used than when both languages are majority
+
+#get the minority language exposure
+one_maj_data<- one_maj_data %>%
+  mutate(min_exp = case_when (!(l1 %in% c("French", "English"))& l2 %in% c("French", "English") ~ exp_l1,
+                              !(l2 %in% c("French", "English")) & l1 %in% c("French", "English") ~ exp_l2,
+                              TRUE ~ 0
+                              ))
+
+for_t_tests_g2<- one_maj_data %>%
+  select(c(strategy, lang_status, fre_exp, eng_exp, min_exp))
+
+
+pwc_fre_exp_g2 <- for_t_tests_g2 %>% 
+  pairwise_t_test(
+    fre_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    )
+pwc_fre_exp_g2
+
+
+pwc_eng_exp_g2 <- for_t_tests_g2 %>% 
+  pairwise_t_test(
+    eng_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    )
+pwc_eng_exp_g2
+
+
+pwc_min_exp_g2 <- for_t_tests_g2 %>% 
+  pairwise_t_test(
+    min_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    )
+pwc_min_exp_g2
 
 
 ```
-
 
 #--------- linear mixed models
 ```{r}
