@@ -188,7 +188,7 @@ print(prop_strategy_group1)
 for_t_tests_g1<- both_maj_data %>%
   select(c(strategy, lang_status, fre_exp, eng_exp))
 
-
+#french exposure
 pwc_fre_exp_g1 <- for_t_tests_g1 %>% 
   pairwise_t_test(
     fre_exp~strategy, pool.sd = FALSE,
@@ -196,7 +196,7 @@ pwc_fre_exp_g1 <- for_t_tests_g1 %>%
     )
 pwc_fre_exp_g1
 
-
+#english exposure
 pwc_eng_exp_g1 <- for_t_tests_g1 %>% 
   pairwise_t_test(
     eng_exp~strategy, pool.sd = FALSE,
@@ -235,7 +235,7 @@ one_maj_data<- one_maj_data %>%
 for_t_tests_g2<- one_maj_data %>%
   select(c(strategy, lang_status, fre_exp, eng_exp, min_exp))
 
-
+#french exposure
 pwc_fre_exp_g2 <- for_t_tests_g2 %>% 
   pairwise_t_test(
     fre_exp~strategy, pool.sd = FALSE,
@@ -243,7 +243,7 @@ pwc_fre_exp_g2 <- for_t_tests_g2 %>%
     )
 pwc_fre_exp_g2
 
-
+#english exposure
 pwc_eng_exp_g2 <- for_t_tests_g2 %>% 
   pairwise_t_test(
     eng_exp~strategy, pool.sd = FALSE,
@@ -251,7 +251,7 @@ pwc_eng_exp_g2 <- for_t_tests_g2 %>%
     )
 pwc_eng_exp_g2
 
-
+#minority exposure
 pwc_min_exp_g2 <- for_t_tests_g2 %>% 
   pairwise_t_test(
     min_exp~strategy, pool.sd = FALSE,
