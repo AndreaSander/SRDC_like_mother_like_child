@@ -1,0 +1,4 @@
+"0","age_min <- min(final_data$age, na.rm = T, .round)
+"
+"2","Error: object '.round' not found
+"

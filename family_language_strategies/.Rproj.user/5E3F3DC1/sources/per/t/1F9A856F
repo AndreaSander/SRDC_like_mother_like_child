@@ -3,7 +3,7 @@
     "path": "~/Research/family_language_strategies/family_language_strategies/1_load_merge_clean.Rmd",
     "project_path": "1_load_merge_clean.Rmd",
     "type": "r_markdown",
-    "hash": "1139671076",
+    "hash": "3867293242",
     "contents": "",
     "dirty": false,
     "created": 1666189655705.0,
@@ -13,16 +13,16 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "78,52",
+        "cursorPosition": "78,0",
         "scrollLine": "0",
         "last_setup_crc32": ""
     },
     "folds": "",
-    "lastKnownWriteTime": 1666810697,
+    "lastKnownWriteTime": 1667502653,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1666810697591,
+    "last_content_update": 1673633605766,
     "read_only": false,
     "read_only_alternatives": []
 }
