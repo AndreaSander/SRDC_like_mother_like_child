@@ -85,6 +85,12 @@ final_data$leq_date<-as.Date(as.character(final_data$leq_date))
 final_data <- final_data %>%
   mutate(age= interval(start= do_birth, end=leq_date)/                      
            duration(n=1, unit="months"))
+
+#save data before exclusions
+
+final_data_no_exc<- final_data
+
+save(final_data_no_exc, file=here("anonymized_data/final_data_no_exc.Rda"))
 ```
 
 

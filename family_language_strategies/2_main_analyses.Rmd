@@ -16,6 +16,8 @@ library(dplyr)
 library(lme4)
 library(lmerTest)
 library(rstatix)
+library(broom)
+library(janitor)
 ```
 
 
@@ -61,7 +63,11 @@ final_data_french_coded <-
                                 l2=="English"~ exp_l2,
                                 l3=="English"~ exp_l3,
                                 l4=="English"~ exp_l4,
-                                TRUE~ 0)) 
+                                TRUE~ 0)) %>%
+  mutate(min_exp = case_when (!(l1 %in% c("French", "English"))& l2 %in% c("French", "English") ~ exp_l1,
+                              !(l2 %in% c("French", "English")) & l1 %in% c("French", "English") ~ exp_l2,
+                              TRUE ~ 0
+                              ))
 
 
 ```
@@ -168,6 +174,35 @@ final_data_strat <- final_data_strat %>%
 
 ```
 
+```{r}
+for_t_tests<- final_data_strat %>%
+  select(c(strategy, lang_status, fre_exp, eng_exp, min_exp)) 
+
+pwc_exp_fre <- for_t_tests %>% 
+  pairwise_t_test(
+    fre_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    ) 
+
+pwc_exp_eng <- for_t_tests %>% 
+  pairwise_t_test(
+    eng_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    ) 
+
+pwc_exp_min <- for_t_tests %>% 
+  pairwise_t_test(
+    min_exp~strategy, pool.sd = FALSE,
+    p.adjust.method = "bonferroni"
+    ) 
+
+save(pwc_exp_fre, file=here("results/t_fre.Rda"))
+save(pwc_exp_eng, file=here("results/t_eng.Rda"))
+save(pwc_exp_min, file=here("results/t_min.Rda"))
+```
+
+
+#####----------------- BY GROUP ANALYSES--------------------####
 #------ Group 1: When both l1 and l2 are majority languages
 
 ```{r}

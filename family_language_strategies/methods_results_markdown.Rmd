@@ -16,30 +16,107 @@ library(dplyr)
 library(lme4)
 library(lmerTest)
 library(rstatix)
+library(papeR)
+library(knitr)
 load(here("anonymized_data/final_merged_data.Rda"))
+load(here("anonymized_data/final_data_no_exc.Rda"))
 ```
 
 ## Methods
 
 ### Participants
 ```{r participants information}
+#Exclusions count
+total_excluded<- final_data_no_exc %>%
+    group_by(unique_id, exp_l1, exp_l2)%>%
+   mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%
+  ungroup() %>%
+  filter(total_l1_l2_exp>=90) %>%
+  distinct(unique_id)%>%
+  tally()
+
+#after exclusions
 n <- final_data %>%
   distinct(unique_id) %>%
   tally()
 
 age_min <- min(final_data$age, na.rm = T)
 age_max<- max(final_data$age, na.rm = T)
+age_mean<- mean(final_data$age, na.rm = T)
+age_sd<- sd(final_data$age, na.rm = T)
+
+female<- final_data %>%
+  filter(gender=="female")%>%
+  distinct(unique_id)%>%
+  tally()
+
+twice_visit <- final_data %>%
+  add_count(anon_baby_id) %>%
+  filter(nn==2)%>%
+  distinct(unique_id)%>%
+  tally()
+
+three_visit <- final_data %>%
+  add_count(anon_baby_id) %>%
+  filter(nn==3)%>%
+  distinct(unique_id)%>%
+  tally()
+
+four_visit <- final_data %>%
+  add_count(anon_baby_id) %>%
+  filter(nn>3)%>%
+  distinct(unique_id)%>%
+  tally()
 
 ```
 
  Participants for each study were recruited from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events. 
  
- The final sample consisted of data from `r n` aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female.
+ The final sample consisted of data from `r n` aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. Some participants contributed data twice at different time points (n=`r twice_visit`), three times at different time points (n=`r three_visit`), and four or more times at different time points (n=`r four_visit`). A further `r total_excluded` children contributed data but were excluded due to hearing more than 10% of a third language. There were no other exclusion criteria.
+
+### Instrument
+  Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. LEQ with MAPLE has high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
+
+### Procedure
+  Families were recruited through convenience sampling and visited the Concordia Infant Research Laboratory between 2013 and 2020. Caregivers were then asked to fill out a series of questionnaires as part of the lab standard practice, one (LEQ, described above) of which was the focus of the present study. At the time, the infants also participated in different experimental studies, but these are not the focus of this research. All parents signed a consent form (Appendix B), and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
  
+## Results 
 
 ### Data Pre-Processing
 
   All the relevant LEQ data were manually entered from LEQ forms into excel spredsheets. The data were entered twice by two different researchers to minimize human errors. Demographic data were exported from Filemaker. LEQ and demographic data were merged together using a unique identifier per child per study, as some children participated in more than one study. 
 
+### Analytic approach
+  We described the family strategies (See Figure). The most common strategy was. We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant. 
+  
+  
+  We conducted t-test pairwise comparisons to explore the relation between different family language strategies and the amount of French exposure children were getting (See Table 2). French is the majority language in the province of Quebec. We then repeated the process for amount of English exposure (See Table 3). English is not considered a majority language in the province of Quebec, but it is one of Canada's official languages and thus it holds a high linguistic status. We finally repeated the process for amount of minority language exposure (See Table 4). There are many minority languages aside from English that are spoken in the province of Quebec, however they tend to have a lower linguistic status than English.    
 
-## Results
+
+```{r}
+load(here("results/t_fre.Rda"))
+load(here("results/t_eng.Rda"))
+load(here("results/t_min.Rda"))
+
+t_fre<- as.data.frame(pwc_exp_fre)
+t_eng<- as.data.frame(pwc_exp_eng)
+t_min<- as.data.frame(pwc_exp_min)
+```
+###Table 2
+```{r}
+kable(t_fre)
+```
+##Table 3
+```{r}
+
+kable(t_eng)
+
+```
+
+##Table 4
+```{r}
+kable(t_min)
+
+```
+
+  We also subseted the data to include only the families that had provided data for more than one data point (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure) to determine thew stability of family strategy use across time.   
