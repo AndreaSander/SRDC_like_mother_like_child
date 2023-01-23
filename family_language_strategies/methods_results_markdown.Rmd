@@ -9,7 +9,7 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r data call in}
+```{r data call in, include=FALSE}
 library(here)
 library(tidyverse)
 library(dplyr)
@@ -20,12 +20,14 @@ library(papeR)
 library(knitr)
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
+load(here("anonymized_data/final_data_strat.Rda"))
+
 ```
 
 ## Methods
 
 ### Participants
-```{r participants information}
+```{r participants information, include=FALSE}
 #Exclusions count
 total_excluded<- final_data_no_exc %>%
     group_by(unique_id, exp_l1, exp_l2)%>%
@@ -72,7 +74,7 @@ four_visit <- final_data %>%
 
  Participants for each study were recruited from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events. 
  
- The final sample consisted of data from `r n` aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. Some participants contributed data twice at different time points (n=`r twice_visit`), three times at different time points (n=`r three_visit`), and four or more times at different time points (n=`r four_visit`). A further `r total_excluded` children contributed data but were excluded due to hearing more than 10% of a third language. There were no other exclusion criteria.
+ The final sample consisted of data from `r n` participants aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. Some participants contributed data twice at different time points (n=`r twice_visit`), three times at different time points (n=`r three_visit`), and four or more times at different time points (n=`r four_visit`). A further `r total_excluded` children contributed data but were excluded due to hearing more than 10% of a third language. There were no other exclusion criteria.
 
 ### Instrument
   Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. LEQ with MAPLE has high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
@@ -87,13 +89,45 @@ four_visit <- final_data %>%
   All the relevant LEQ data were manually entered from LEQ forms into excel spredsheets. The data were entered twice by two different researchers to minimize human errors. Demographic data were exported from Filemaker. LEQ and demographic data were merged together using a unique identifier per child per study, as some children participated in more than one study. 
 
 ### Analytic approach
-  We described the family strategies (See Figure). The most common strategy was. We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant. 
-  
+  We described the family strategies (See Figure). The most common strategy was. We also compared the use of family language strategies across exposure to French bins.
+ 
+
+```{r proportion of strategy use visualizations, include=FALSE}
+#Family language strategy visualization
+
+final_data_strat <- final_data_strat %>%
+  mutate(fre_exp_bins = case_when( fre_exp >= 0 & fre_exp <= 25 ~"0-25",
+                              fre_exp>= 25.1 & fre_exp <=50 ~"25-50",
+                              fre_exp >=50.1 & fre_exp <= 75 ~"50-75",
+                             fre_exp >=75.1 & fre_exp <=100 ~"75-100"))
+
+prop_strategy_balance<-final_data_strat%>%
+group_by(fre_exp_bins, strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(strategy = fct_relevel(strategy, "single-parent", "one-parent-one-lang-strict","one-parent-one-lang-flex","one-language-at-home","one-parent-bilingual", "both-parents-bilingual"))
+
+
+figure_2<- ggplot(prop_strategy_balance,aes( x=fre_exp_bins, y= prop, fill = strategy )) +
+  geom_col() +
+   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+  theme_bw() +
+  labs(title= "Proportion of Use of Family Strategies by Dominant Language Exposure Bin")
+
+```
+Figure 2
+```{r, include=FALSE}
+print(figure_2)
+```
+
+
+  We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant. 
   
   We conducted t-test pairwise comparisons to explore the relation between different family language strategies and the amount of French exposure children were getting (See Table 2). French is the majority language in the province of Quebec. We then repeated the process for amount of English exposure (See Table 3). English is not considered a majority language in the province of Quebec, but it is one of Canada's official languages and thus it holds a high linguistic status. We finally repeated the process for amount of minority language exposure (See Table 4). There are many minority languages aside from English that are spoken in the province of Quebec, however they tend to have a lower linguistic status than English.    
 
 
-```{r}
+```{r results from t tests, include=FALSE}
+#Loading results from t-test pairwise comparisons
 load(here("results/t_fre.Rda"))
 load(here("results/t_eng.Rda"))
 load(here("results/t_min.Rda"))
@@ -103,20 +137,20 @@ t_eng<- as.data.frame(pwc_exp_eng)
 t_min<- as.data.frame(pwc_exp_min)
 ```
 ###Table 2
-```{r}
+```{r, include=FALSE}
 kable(t_fre)
 ```
 ##Table 3
-```{r}
+```{r, include=FALSE}
 
 kable(t_eng)
 
 ```
 
 ##Table 4
-```{r}
+```{r, include=FALSE}
 kable(t_min)
 
 ```
 
-  We also subseted the data to include only the families that had provided data for more than one data point (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure) to determine thew stability of family strategy use across time.   
+  We also filtered the data to include only the families that had provided data for more than one data point (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure) to determine thew stability of family strategy use across time.   
