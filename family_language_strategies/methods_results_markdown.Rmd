@@ -11,7 +11,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r data call in, include=FALSE}
 library(here)
-library(tidyverse)
 library(dplyr)
 library(lme4)
 library(lmerTest)
@@ -20,6 +19,7 @@ library(papeR)
 library(knitr)
 library(waffle)
 library(ggsankey)
+library(tidyverse)
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
 load(here("anonymized_data/final_data_strat.Rda"))
@@ -157,6 +157,11 @@ chisq_p<- xsq_test$p.value
   
   We were also interested in weather the mean exposure to the majority languages French and English, and the mean exposure to a minority language changed as a function of which family language strategy was used (Figure 2)
 ```{r, include=FALSE}
+
+fre_by_strategy <- final_data_strat  %>%
+  select(c(strategy, fre_exp)) %>%
+  group_by(strategy) %>%
+  dplyr::summarize(mean= mean(fre_exp))
 
 ```
   
