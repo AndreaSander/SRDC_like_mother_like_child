@@ -11,7 +11,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r data call in, include=FALSE}
 library(here)
-library(dplyr)
 library(lme4)
 library(lmerTest)
 library(rstatix)
@@ -19,6 +18,7 @@ library(papeR)
 library(knitr)
 library(waffle)
 library(ggsankey)
+library(dplyr)
 library(tidyverse)
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
@@ -83,7 +83,7 @@ four_visit <- final_data %>%
   Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. LEQ with MAPLE has high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
 
 ### Procedure
-  Families were recruited through convenience sampling and visited the Concordia Infant Research Laboratory between 2013 and 2020. Caregivers were then asked to fill out a series of questionnaires as part of the lab standard practice, one (LEQ, described above) of which was the focus of the present study. At the time, the infants also participated in different experimental studies, but these are not the focus of this research. All parents signed a consent form (Appendix B), and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
+  Families were recruited through convenience sampling and visited the Concordia Infant Research Laboratory between 2013 and 2020. Caregivers were then asked to fill out a series of questionnaires as part of the lab standard practice, one (LEQ, described above) of which was the focus of the present study. At the time, the infants also participated in different experimental studies, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
  
 ## Results 
 
@@ -158,13 +158,59 @@ chisq_p<- xsq_test$p.value
   We were also interested in weather the mean exposure to the majority languages French and English, and the mean exposure to a minority language changed as a function of which family language strategy was used (Figure 2)
 ```{r, include=FALSE}
 
-fre_by_strategy <- final_data_strat  %>%
+fre_by_strategy <- first_visit_only  %>%
   select(c(strategy, fre_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean= mean(fre_exp))
+  dplyr::summarize(mean(fre_exp))
+
+figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=`mean(fre_exp)`, fill = strategy )) +
+  geom_col() +
+   scale_fill_manual (name = "Family Strategy", values =c("#1f78b4", "#d95f02","#FFC107","#b2df8a","#33a02c", "#7570b3")) +
+  theme_bw() +
+  labs(title= "Mean french exposure by strategy")
+
+eng_by_strategy <- first_visit_only  %>%
+  select(c(strategy, eng_exp)) %>%
+  group_by(strategy) %>%
+  dplyr::summarize(mean(eng_exp))
+
+figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=`mean(eng_exp)`, fill = strategy )) +
+  geom_col() +
+   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+  theme_bw() +
+  labs(title= "Mean english exposure by strategy")
+
+min_by_strategy <- first_visit_only  %>%
+  select(c(strategy, min_exp)) %>%
+  group_by(strategy) %>%
+  dplyr::summarize(mean(min_exp))
+
+figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=`mean(min_exp)`, fill = strategy )) +
+  geom_col() +
+   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+  theme_bw() +
+  labs(title= "Mean minority langauge exposure by strategy")
+
 
 ```
-  
+
+Figure 2 a)
+```{r}
+print(figure_2_a)
+```
+
+Figure 2 b)
+```{r}
+print(figure_2_b)
+```
+
+
+Figure 2 c)
+```{r}
+
+print(figure_2_c)
+```
+
   
   To test this statistically, we conducted t-test pairwise comparisons to explore the relation between different family language strategies and the amount of French exposure children were getting (See Table 2). French is the majority language in the province of Quebec. We then repeated the process for amount of English exposure (See Table 3). English is not considered a majority language in the province of Quebec, but it is one of Canada's official languages and thus it holds a high linguistic status. We finally repeated the process for amount of minority language exposure (See Table 4). There are many minority languages aside from English that are spoken in the province of Quebec, however they tend to have a lower linguistic status than English.    
 
@@ -196,7 +242,7 @@ kable(t_min)
 
 ```
 
-  Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure 4) to determine thew stability of family strategy use across time.
+  Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure 3) to determine thew stability of family strategy use across time.
   
 ```{r, include=FALSE}
 #select only relevant variables
@@ -242,7 +288,6 @@ p2<- p2 +
   labs(title="Stability of Family Strategies Across Visit", x="")
   
 
-print(p2)
 ```
   
   Figure 3
