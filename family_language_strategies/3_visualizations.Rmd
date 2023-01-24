@@ -31,7 +31,15 @@ load(here("anonymized_data/final_data_strat.Rda"))
 ```{r}
 #Descriptive graphs: 1 proportion of use statistic.
 
-prop_strategy<-final_data_strat%>%
+first_visit_only <- final_data_strat%>%
+    arrange(anon_baby_id, age) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit = row_number()) %>%
+  ungroup() %>%
+  filter(visit==1) #439 data from first visit only
+
+
+prop_strategy<- first_visit_only %>%
 group_by(strategy) %>%
   tally() %>%
   mutate(prop = n/sum(n)) 
@@ -39,9 +47,15 @@ group_by(strategy) %>%
 prop_strategy<- prop_strategy %>%
   mutate(strategy = fct_reorder(prop_strategy$strategy, prop_strategy$prop, .desc=F))
 
-# vector
+#Waffle plot
 
-waffle(prop_strategy$n, rows=23)
+ggplot(prop_strategy, aes(fill=strategy, values= n, na.rm=T)) +
+  geom_waffle (n_rows=22, color="white")+
+  scale_fill_manual (name = "Family Strategy", values =c("#7570b3","#33a02c","#b2df8a", "#d95f02", "#FFC107", "#1f78b4")) +
+ labs(x="", title = "Proportion of Use of Family Strategies")+
+theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
+ coord_equal()+
+theme_void() 
 
 
 ggplot(prop_strategy, aes(x="", y=prop, fill=strategy)) +

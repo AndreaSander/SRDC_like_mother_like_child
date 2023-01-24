@@ -18,6 +18,7 @@ library(lmerTest)
 library(rstatix)
 library(papeR)
 library(knitr)
+library(waffle)
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
 load(here("anonymized_data/final_data_strat.Rda"))
@@ -88,38 +89,63 @@ four_visit <- final_data %>%
 
   All the relevant LEQ data were manually entered from LEQ forms into excel spredsheets. The data were entered twice by two different researchers to minimize human errors. Demographic data were exported from Filemaker. LEQ and demographic data were merged together using a unique identifier per child per study, as some children participated in more than one study. 
 
-### Analytic approach
-  We described the family strategies (See Figure). The most common strategy was. We also compared the use of family language strategies across exposure to French bins.
  
 
 ```{r proportion of strategy use visualizations, include=FALSE}
 #Family language strategy visualization
 
-final_data_strat <- final_data_strat %>%
-  mutate(fre_exp_bins = case_when( fre_exp >= 0 & fre_exp <= 25 ~"0-25",
-                              fre_exp>= 25.1 & fre_exp <=50 ~"25-50",
-                              fre_exp >=50.1 & fre_exp <= 75 ~"50-75",
-                             fre_exp >=75.1 & fre_exp <=100 ~"75-100"))
+#subseting to get data only from each child's first visit to the lab
+first_visit_only <- final_data_strat%>%
+    arrange(anon_baby_id, age) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit = row_number()) %>%
+  ungroup() %>%
+  filter(visit==1) #439 data from first visit only
 
-prop_strategy_balance<-final_data_strat%>%
-group_by(fre_exp_bins, strategy) %>%
+#n when only taking first visit
+n_keep_first_visit<-first_visit_only %>%
+  distinct(unique_id)%>%
+  tally()
+
+#Calculating how many families use each strategy and its corresponding %
+prop_strategy<- first_visit_only %>%
+group_by(strategy) %>%
   tally() %>%
   mutate(prop = n/sum(n)) %>%
-  mutate(strategy = fct_relevel(strategy, "single-parent", "one-parent-one-lang-strict","one-parent-one-lang-flex","one-language-at-home","one-parent-bilingual", "both-parents-bilingual"))
+  mutate(perc= prop*100)
 
+perc_both_parents_biling<- prop_strategy %>%
+  filter(strategy=="both-parents-bilingual") %>%
+  select(perc)
 
-figure_2<- ggplot(prop_strategy_balance,aes( x=fre_exp_bins, y= prop, fill = strategy )) +
-  geom_col() +
-   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
-  theme_bw() +
-  labs(title= "Proportion of Use of Family Strategies by Dominant Language Exposure Bin")
+prop_strategy<- prop_strategy %>%
+  mutate(strategy = fct_reorder(prop_strategy$strategy, prop_strategy$prop, .desc=F))
+
+#Waffle plot
+
+figure_1<- ggplot(prop_strategy, aes(fill=strategy, values= n, na.rm=T)) +
+  geom_waffle (n_rows=22, color="white")+
+  scale_fill_manual (name = "Family Strategy", values =c("#7570b3","#33a02c","#b2df8a", "#d95f02", "#FFC107", "#1f78b4")) +
+ labs(x="", title = "Proportion of Use of Family Strategies")+
+theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
+ coord_equal()+
+theme_void() 
+
 
 ```
-Figure 2
-```{r, include=FALSE}
-print(figure_2)
+### Analytic approach
+  We first described the family strategies (See Figure 1). The most common strategy was the both parents bilingual strategy which represented `r perc_both_parents_biling`% of the sample.
+
+Figure 1
+```{r}
+print(figure_1)
 ```
 
+```{r goodness of fit, include=FALSE}
+
+
+
+```
 
   We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant. 
   
