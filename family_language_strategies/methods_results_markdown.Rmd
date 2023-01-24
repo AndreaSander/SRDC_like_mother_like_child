@@ -142,14 +142,20 @@ print(figure_1)
 ```
 
 ```{r goodness of fit, include=FALSE}
+for_chisq <- prop_strategy %>%
+  filter(strategy=="single-parent") # filter single parents because the cell size is small
 
+xsq_test<- chisq.test(prop_strategy$n)
 
-
+chisq_value<- xsq_test$statistic
+chisq_p<- xsq_test$p.value
 ```
 
-  We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant. 
+  We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant, where the null hypothesis is that the strategies are used in the same proportion across the families tested. The chi-squared goodness of test revealed a statistically significant difference between the distribution of proportions in our data and a distribution in which all the proportions are equal(X^2 = 'r chisq_value', p='r chisq_p'). 
   
-  We conducted t-test pairwise comparisons to explore the relation between different family language strategies and the amount of French exposure children were getting (See Table 2). French is the majority language in the province of Quebec. We then repeated the process for amount of English exposure (See Table 3). English is not considered a majority language in the province of Quebec, but it is one of Canada's official languages and thus it holds a high linguistic status. We finally repeated the process for amount of minority language exposure (See Table 4). There are many minority languages aside from English that are spoken in the province of Quebec, however they tend to have a lower linguistic status than English.    
+  We were also interested in weather the mean exposure to the majority languages French and English, and the mean exposure to a minority language changed as a function of which family language strategy was used. In Figure 2 it can be observed that 
+  
+  To test this statistically, we conducted t-test pairwise comparisons to explore the relation between different family language strategies and the amount of French exposure children were getting (See Table 2). French is the majority language in the province of Quebec. We then repeated the process for amount of English exposure (See Table 3). English is not considered a majority language in the province of Quebec, but it is one of Canada's official languages and thus it holds a high linguistic status. We finally repeated the process for amount of minority language exposure (See Table 4). There are many minority languages aside from English that are spoken in the province of Quebec, however they tend to have a lower linguistic status than English.    
 
 
 ```{r results from t tests, include=FALSE}
@@ -179,4 +185,6 @@ kable(t_min)
 
 ```
 
-  We also filtered the data to include only the families that had provided data for more than one data point (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure) to determine thew stability of family strategy use across time.   
+  Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure 4) to determine thew stability of family strategy use across time.
+  
+  
