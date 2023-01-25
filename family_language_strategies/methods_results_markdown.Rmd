@@ -166,6 +166,7 @@ fre_by_strategy <- first_visit_only  %>%
 figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=`mean(fre_exp)`, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c("#1f78b4", "#d95f02","#FFC107","#b2df8a","#33a02c", "#7570b3")) +
+  theme(axis.text.x = element_text(angle = 25))+
   theme_bw() +
   labs(title= "Mean french exposure by strategy")
 
@@ -176,7 +177,8 @@ eng_by_strategy <- first_visit_only  %>%
 
 figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=`mean(eng_exp)`, fill = strategy )) +
   geom_col() +
-   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+   scale_fill_manual (name = "Family Strategy", values =c("#1f78b4", "#d95f02","#FFC107","#b2df8a","#33a02c", "#7570b3")) +
+  theme(axis.text.x = element_text(angle = 25))+
   theme_bw() +
   labs(title= "Mean english exposure by strategy")
 
@@ -187,7 +189,8 @@ min_by_strategy <- first_visit_only  %>%
 
 figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=`mean(min_exp)`, fill = strategy )) +
   geom_col() +
-   scale_fill_manual (name = "Family Strategy", values =c("#4d4d4d","#57bc53","#008c77", "#4169e1", "#f6cb7f", "#f94f80")) +
+   scale_fill_manual (name = "Family Strategy", values =c("#1f78b4", "#d95f02","#FFC107","#b2df8a","#33a02c", "#7570b3")) +
+  theme(axis.text.x = element_text(angle = 25))+
   theme_bw() +
   labs(title= "Mean minority langauge exposure by strategy")
 
@@ -279,7 +282,7 @@ p1<- ggplot(for_sankey, aes(x = x,
   geom_sankey() 
 
 p2<- p1+ 
-      scale_fill_manual(name= "x", values = c("#f94f80", "#f6cb7f", "#4169e1", "#008c77", "#57bc53"))
+      scale_fill_manual(name= "x", values = c("#1f78b4", "#FFC107", "#d95f02","#b2df8a","#33a02c"))
 
 p2<- p2 + 
   geom_sankey_label(size=3, color="black", fill="white")+
