@@ -36,7 +36,7 @@ total_excluded<- final_data_no_exc %>%
     group_by(unique_id, exp_l1, exp_l2)%>%
    mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%
   ungroup() %>%
-  filter(total_l1_l2_exp>=90) %>%
+  filter(total_l1_l2_exp<=90) %>%
   distinct(unique_id)%>%
   tally()
 
@@ -45,10 +45,10 @@ n <- final_data %>%
   distinct(unique_id) %>%
   tally()
 
-age_min <- min(final_data$age, na.rm = T)
-age_max<- max(final_data$age, na.rm = T)
-age_mean<- mean(final_data$age, na.rm = T)
-age_sd<- sd(final_data$age, na.rm = T)
+age_min <- round(min(final_data$age, na.rm = T), 2)
+age_max<- round(max(final_data$age, na.rm = T), 2)
+age_mean<- round(mean(final_data$age, na.rm = T), 2)
+age_sd<- round(sd(final_data$age, na.rm = T), 2)
 
 female<- final_data %>%
   filter(gender=="female")%>%
@@ -75,16 +75,20 @@ four_visit <- final_data %>%
 
 ```
 
- Participants for each study were recruited from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events. 
+  Participants were recruited through convenience sampling when they visited Concordia Infant Research Laboratory to participate in a study. Families were contacted from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events. 
+  Our data consists of demographic and language exposure information collected between the years 2013 and 2020 via parental questionnaires and forms (described below). Caregivers filled out the questionnaires during each visit as part of the lab standard practice. At each visit, the infants also participated in several different experimental tasks, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
  
  The final sample consisted of data from `r n` participants aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. Some participants contributed data twice at different time points (n=`r twice_visit`), three times at different time points (n=`r three_visit`), and four or more times at different time points (n=`r four_visit`). A further `r total_excluded` children contributed data but were excluded due to hearing more than 10% of a third language. There were no other exclusion criteria.
 
 ### Instrument
-  Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. LEQ with MAPLE has high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
+  Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. 
+  
+  The first set of questions for the LEQ with MAPLE interview aim to understand how caregivers use their languages in daily life, particularly when talking to their baby. These questions use a likert type of scale to describe the frequency with which parents use each language when talking to their child (regularly, sometimes, or never). These first set of questions helped us determine the family language strategies, for example if a caregiver uses French regularly and never uses English while the other caregiver does the opposite, we assume they are using a one-parent-one-language strategy.
+  
+  The first set of questions for the LEQ with MAPLE interview aim to give a set of estimates of the amount of time babies spend hearing each of their languages throughout their lives based on a calculation made by the interviewer from caregiver responses (overall estimate), a rough estimate based on an estimation by the caregivers themselves (xxx estimate), and an overall estimate that averages the interviewer and the caregiver estimations (global estimate). The exposure estimates made with LEQ with MAPLE have high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
+  We additionally collected demographic information about our participants and their families via a short paper form.
 
-### Procedure
-  Families were recruited through convenience sampling and visited the Concordia Infant Research Laboratory between 2013 and 2020. Caregivers were then asked to fill out a series of questionnaires as part of the lab standard practice, one (LEQ, described above) of which was the focus of the present study. At the time, the infants also participated in different experimental studies, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
- 
+
 ## Results 
 
 ### Data Pre-Processing
@@ -116,9 +120,11 @@ group_by(strategy) %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
-perc_both_parents_biling<- prop_strategy %>%
+both_parents_biling<- prop_strategy %>%
   filter(strategy=="both-parents-bilingual") %>%
   select(perc)
+
+perc_both_parents_biling<- round(both_parents_biling$perc, 1)
 
 prop_strategy<- prop_strategy %>%
   mutate(strategy = fct_reorder(prop_strategy$strategy, prop_strategy$prop, .desc=F))
@@ -139,7 +145,7 @@ theme_void()
   We first described the family strategies (See Figure 1). The most common strategy was the both parents bilingual strategy which represented `r perc_both_parents_biling`% of the sample.
 
 Figure 1
-```{r}
+```{r, echo=FALSE}
 print(figure_1)
 ```
 
@@ -198,18 +204,18 @@ figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=`mean(min_exp)`, fill =
 ```
 
 Figure 2 a)
-```{r}
+```{r, echo=FALSE}
 print(figure_2_a)
 ```
 
 Figure 2 b)
-```{r}
+```{r, echo=FALSE}
 print(figure_2_b)
 ```
 
 
 Figure 2 c)
-```{r}
+```{r, echo=FALSE}
 
 print(figure_2_c)
 ```
