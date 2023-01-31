@@ -95,7 +95,7 @@ n_long <-longitudinal_data %>%
 
 ```
 
-  Participants were recruited through convenience sampling when they visited Concordia Infant Research Laboratory to participate in a study. Families were contacted from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events. 
+  Participants were recruited through convenience sampling when they visited Concordia Infant Research Laboratory to participate in a study. Families were contacted from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events.
   Our data consists of demographic and language exposure information collected between the years 2013 and 2020 via parental questionnaires and forms (described below). Caregivers filled out the questionnaires during each visit as part of the lab standard practice. At each visit, the infants also participated in several different experimental tasks, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
  
  The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus We kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. The final data thus consisted of `r first_visit_only` participants  aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. We further excluded `r total_excluded` children who heard more than 10% of a third language.
@@ -115,8 +115,7 @@ n_long <-longitudinal_data %>%
 
 ### Data Pre-Processing
 
-  All the relevant LEQ data were manually entered from LEQ forms into excel spredsheets. The data were entered twice by two different researchers to minimize human errors. Demographic data were exported from Filemaker. LEQ and demographic data were merged together using a unique identifier per child per study, as some children participated in more than one study. 
-
+  All the relevant LEQ data were manually entered from LEQ forms into excel spreadsheets. The data were entered twice by two different researchers to to catch errors, and discrepancies were resolved by a third individual who checked the original paper form. Demographic data were exported from Filemaker. 
  
 
 ```{r proportion of strategy use visualizations, include=FALSE}
@@ -137,7 +136,7 @@ both_parents_biling<- prop_strategy %>%
 perc_both_parents_biling<- round(both_parents_biling$perc, 1)
 
 prop_strategy<- prop_strategy %>%
-  mutate(strategy = fct_reorder(prop_strategy$strategy, prop_strategy$prop, .desc=F))
+  mutate(strategy = fct_reorder(prop_strategy$strategy, prop_strategy$prop, .desc=T))
 
 #Waffle plot
 
