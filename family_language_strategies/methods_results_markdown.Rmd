@@ -31,6 +31,8 @@ load(here("anonymized_data/longitudinal_data.Rda"))
 
 ### Participants
 ```{r participants information, include=FALSE}
+#### CONSTRUCTING AND DESCRIBING ALL RELEVANT DATA SETS ####
+
 #Exclusions count
 total_excluded<- final_data_no_exc %>%
     group_by(unique_id, exp_l1, exp_l2)%>%
@@ -40,17 +42,30 @@ total_excluded<- final_data_no_exc %>%
   distinct(unique_id)%>%
   tally()
 
-#after exclusions
+#after third language exclusions exclusions
 n <- final_data %>%
   distinct(unique_id) %>%
   tally()
 
-age_min <- round(min(final_data$age, na.rm = T), 2)
-age_max<- round(max(final_data$age, na.rm = T), 2)
-age_mean<- round(mean(final_data$age, na.rm = T), 2)
-age_sd<- round(sd(final_data$age, na.rm = T), 2)
+#subseting to get data only from each child's first visit to the lab. For main analyses
+first_visit_only <- final_data_strat%>%
+    arrange(anon_baby_id, age) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit = row_number()) %>%
+  ungroup() %>%
+  filter(visit==1) #439 data from first visit only
 
-female<- final_data %>%
+#n when only taking first visit
+n_keep_first_visit<-first_visit_only %>%
+  distinct(unique_id)%>%
+  tally()
+
+age_min <- round(min(first_visit_only$age, na.rm = T), 2)
+age_max<- round(max(first_visit_only$age, na.rm = T), 2)
+age_mean<- round(mean(first_visit_only$age, na.rm = T), 2)
+age_sd<- round(sd(first_visit_only$age, na.rm = T), 2)
+
+female<- first_visit_only %>%
   filter(gender=="female")%>%
   distinct(unique_id)%>%
   tally()
@@ -73,12 +88,19 @@ four_visit <- final_data %>%
   distinct(unique_id)%>%
   tally()
 
+#Longitudinal data set n
+n_long <-longitudinal_data %>%
+  distinct(unique_id)%>%
+  tally()
+
 ```
 
   Participants were recruited through convenience sampling when they visited Concordia Infant Research Laboratory to participate in a study. Families were contacted from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events. 
   Our data consists of demographic and language exposure information collected between the years 2013 and 2020 via parental questionnaires and forms (described below). Caregivers filled out the questionnaires during each visit as part of the lab standard practice. At each visit, the infants also participated in several different experimental tasks, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
  
- The final sample consisted of data from `r n` participants aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. Some participants contributed data twice at different time points (n=`r twice_visit`), three times at different time points (n=`r three_visit`), and four or more times at different time points (n=`r four_visit`). A further `r total_excluded` children contributed data but were excluded due to hearing more than 10% of a third language. There were no other exclusion criteria.
+ The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus We kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. The final data thus consisted of `r first_visit_only` participants  aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. We further excluded `r total_excluded` children who heard more than 10% of a third language.
+ 
+ While for the main analyses we excluded the second visit data of families' who came to multiple visits, we constructed a secondary data set (n= `r n_long`) which included first and second visit data from families who contributed data during multiple visits. We used this secondary data set to explore and describe our longitudinal data. We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points (). 
 
 ### Instrument
   Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. 
@@ -100,18 +122,6 @@ four_visit <- final_data %>%
 ```{r proportion of strategy use visualizations, include=FALSE}
 #Family language strategy visualization
 
-#subseting to get data only from each child's first visit to the lab
-first_visit_only <- final_data_strat%>%
-    arrange(anon_baby_id, age) %>%
-  group_by(anon_baby_id) %>%
-  mutate(visit = row_number()) %>%
-  ungroup() %>%
-  filter(visit==1) #439 data from first visit only
-
-#n when only taking first visit
-n_keep_first_visit<-first_visit_only %>%
-  distinct(unique_id)%>%
-  tally()
 
 #Calculating how many families use each strategy and its corresponding %
 prop_strategy<- first_visit_only %>%
