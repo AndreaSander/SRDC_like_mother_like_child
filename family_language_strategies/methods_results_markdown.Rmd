@@ -141,7 +141,7 @@ prop_strategy<- prop_strategy %>%
 
 figure_1<- ggplot(prop_strategy, aes(fill=strategy, values= n, na.rm=T)) +
   geom_waffle (n_rows=22, color="white")+
-  scale_fill_manual (name = "Family Strategy", values =c("#FFC107", "#1f78b4", "#d95f02", "#b2df8a", "#33a02c", "#7570b3" )) +
+  scale_fill_manual (name = "Family Strategy", values =c("#FFC107", "#d95f02", "#1f78b4", "#33a02c", "#7570b3" )) +
  labs(x="", title = "Proportion of Use of Family Strategies")+
 theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
  coord_equal()+
