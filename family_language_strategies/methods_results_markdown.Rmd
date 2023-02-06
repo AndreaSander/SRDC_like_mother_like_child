@@ -7,6 +7,7 @@ output: word_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 100, digits = 4)
 ```
 
 ```{r data call in, include=FALSE}
@@ -114,7 +115,7 @@ n_long <-longitudinal_data %>%
 
 ## Results 
 
-```{r table describing the family strategies categorization}
+```{r table describing the family strategies categorization, include=FALSE}
 
 collapse_rows_df <- function(df, variable){
  group_var <- enquo(variable)
@@ -145,17 +146,6 @@ color_formatter <- formatter(
       ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
             ))
             
-table_1<- formattable(strats_table,
-            list(
-              `caregiver_A_L1`= color_formatter,
-              `caregiver_A_L2`= color_formatter,
-              `caregiver_B_L1`= color_formatter,
-              `caregiver_B_L2`= color_formatter
-            ))
-
-
-            
-            
 ```
 
 
@@ -166,9 +156,16 @@ table_1<- formattable(strats_table,
   We used the responses from the first section of the LEQ questionnaire to characterize the family language strategy used by each family. For example, for a family where both parents indicated they used both their first and second language regularly we assigned the both parents bilingual strategy. Whereas for a family where each parent spoke a different first language regularly we assigned the one-parent-one-language strategy. In this manner we identified four distinct strategies: both parents bilingual, one parent bilingual, one-parent-one-language, and one language at home (see Table 1). We had originally sub-divided the one-parent-one-language strategy into a strict and flexible categories. In these sub-categories parents that always spoke their first language regularly and never spoke another language would be categorized as strict, and parents who always spoke their first language regularly but sometimes would speak another language were categorized as flexible. However, we noticed both categories were indistinct when performing statistical tests and other exploratory analyses, and thus we ultimately decided to keep them as a single group. Finally, we identified a few families with a single caregiver and we characterized them as single parent families, as we didn't have enough cases to identify distinct strategies which single parents might use.
 
 Table 1.
-```{r print table x, include=FALSE}
+```{r print table x, echo=FALSE}
 
-print(table_1)
+ formattable(strats_table,
+            list(
+              `caregiver_A_L1`= color_formatter,
+              `caregiver_A_L2`= color_formatter,
+              `caregiver_B_L1`= color_formatter,
+              `caregiver_B_L2`= color_formatter
+            ))
+
 
 ```
 
@@ -288,31 +285,39 @@ print(figure_2_c)
   To test this statistically, we conducted t-test pairwise comparisons to explore the relation between different family language strategies and the amount of French exposure children were getting (See Table 2). French is the majority language in the province of Quebec. We then repeated the process for amount of English exposure (See Table 3). English is not considered a majority language in the province of Quebec, but it is one of Canada's official languages and thus it holds a high linguistic status. We finally repeated the process for amount of minority language exposure (See Table 4). There are many minority languages aside from English that are spoken in the province of Quebec, however they tend to have a lower linguistic status than English.    
 
 
-```{r results from t tests, include=FALSE}
-#Loading results from t-test pairwise comparisons
-load(here("results/t_fre.Rda"))
-load(here("results/t_eng.Rda"))
-load(here("results/t_min.Rda"))
+```{r performing ANOVAs and Hukey post hoc test, include=FALSE}
 
-t_fre<- as.data.frame(pwc_exp_fre)
-t_eng<- as.data.frame(pwc_exp_eng)
-t_min<- as.data.frame(pwc_exp_min)
+for_anovas<- first_visit_only %>%
+  filter(!strategy == "single-parent")
+
+anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
+
+aov_fre<- tidy(anova_model_french)
+tukey_fre<- tukey_hsd(anova_model_french)
+
+
+anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
+aov_eng<- tidy(anova_model_english)
+tukey_eng<- tukey_hsd(anova_model_english)
+
+anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
+aov_min<- tidy(anova_model_heritage)
+
 ```
 ###Table 2
 ```{r, include=FALSE}
-kable(t_fre)
+formattable(aov_fre)
+formattable(tukey_fre)
 ```
 ##Table 3
 ```{r}
-
-kable(t_eng)
-
+formattable(aov_eng)
+formattable(tukey_eng)
 ```
 
 ##Table 4
 ```{r}
-kable(t_min)
-
+formattable(aov_min)
 ```
 
   Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure 3) to determine thew stability of family strategy use across time.
