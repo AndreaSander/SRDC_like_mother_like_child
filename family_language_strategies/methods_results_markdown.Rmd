@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r data call in, include=FALSE}
+library(formattable)
 library(here)
 library(lme4)
 library(lmerTest)
@@ -112,6 +113,51 @@ n_long <-longitudinal_data %>%
 
 
 ## Results 
+
+```{r table describing the family strategies categorization}
+
+collapse_rows_df <- function(df, variable){
+ group_var <- enquo(variable)
+  df %>%
+    group_by(!! group_var) %>%
+    mutate(groupRow = 1:n()) %>%
+    ungroup() %>%
+    mutate(!!quo_name(group_var) := ifelse(groupRow == 1, as.character(!! group_var), "")) %>%
+    select(-c(groupRow))
+}
+
+strats_table<- final_data_strat %>%
+  select(c(strategy, care1_l1, care1_l2, care2_l1, care2_l2))%>%
+  rename(caregiver_A_L1 = care1_l1)%>%
+  rename(caregiver_A_L2 = care1_l2)%>%
+  rename(caregiver_B_L1 = care2_l1)%>%
+  rename(caregiver_B_L2 = care2_l2)%>%
+  arrange(strategy) %>%
+  distinct() %>%
+  collapse_rows_df(strategy)
+
+
+color_formatter <- formatter(
+  "span",
+  style = x ~ style(
+    color = 'black',
+    'background-color' =
+      ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
+            ))
+            
+formattable(strats_table,
+            list(
+              `caregiver_A_L1`= color_formatter,
+              `caregiver_A_L2`= color_formatter,
+              `caregiver_B_L1`= color_formatter,
+              `caregiver_B_L2`= color_formatter
+            ))
+
+
+            
+            
+```
+
 
 ### Data Pre-Processing
 
