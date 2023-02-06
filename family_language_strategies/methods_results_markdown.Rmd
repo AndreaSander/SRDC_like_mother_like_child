@@ -291,10 +291,8 @@ for_anovas<- first_visit_only %>%
   filter(!strategy == "single-parent")
 
 anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
-
 aov_fre<- tidy(anova_model_french)
 tukey_fre<- tukey_hsd(anova_model_french)
-
 
 anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
 aov_eng<- tidy(anova_model_english)
@@ -304,20 +302,18 @@ anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
 aov_min<- tidy(anova_model_heritage)
 
 ```
-###Table 2
-```{r, include=FALSE}
-formattable(aov_fre)
-formattable(tukey_fre)
+Table 2
+```{r, echo=FALSE}
+kable(tukey_fre)
 ```
 ##Table 3
 ```{r}
-formattable(aov_eng)
-formattable(tukey_eng)
+kable(tukey_eng)
 ```
 
 ##Table 4
 ```{r}
-formattable(aov_min)
+
 ```
 
   Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure 3) to determine thew stability of family strategy use across time.
