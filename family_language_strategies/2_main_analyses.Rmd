@@ -25,6 +25,7 @@ library(janitor)
 ```{r}
 
 load(here("anonymized_data/final_merged_data.Rda"))
+
 ```
 
 
@@ -174,7 +175,38 @@ final_data_strat <- final_data_strat %>%
 
 #do check that the monolinguals are actually monolinguals and not both min
 
+
+#subseting to get data only from each child's first visit to the lab. For main analyses
+first_visit_only <- final_data_strat%>%
+    arrange(anon_baby_id, age) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit = row_number()) %>%
+  ungroup() %>%
+  filter (visit==1)
+
 ```
+
+
+###PERFORMING ANOVAS
+```{r}
+#filtering the single parent cases because there are not enough to have any power statistically.
+for_anovas<- first_visit_only %>%
+  filter(!strategy == "single-parent")
+
+anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
+
+tidy(anova_model_french)
+tukey_hsd(anova_model_french)
+
+
+anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
+tidy(anova_model_english)
+tukey_hsd(anova_model_english)
+
+anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
+tidy(anova_model_heritage)
+```
+
 
 ```{r}
 for_t_tests<- final_data_strat %>%
