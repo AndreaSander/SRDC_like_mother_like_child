@@ -145,7 +145,7 @@ color_formatter <- formatter(
       ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
             ))
             
-formattable(strats_table,
+table_1<- formattable(strats_table,
             list(
               `caregiver_A_L1`= color_formatter,
               `caregiver_A_L2`= color_formatter,
@@ -162,6 +162,17 @@ formattable(strats_table,
 ### Data Pre-Processing
 
   All the relevant LEQ data were manually entered from LEQ forms into excel spreadsheets. The data were entered twice by two different researchers to to catch errors, and discrepancies were resolved by a third individual who checked the original paper form. Demographic data were exported from Filemaker. 
+  
+  We used the responses from the first section of the LEQ questionnaire to characterize the family language strategy used by each family. For example, for a family where both parents indicated they used both their first and second language regularly we assigned the both parents bilingual strategy. Whereas for a family where each parent spoke a different first language regularly we assigned the one-parent-one-language strategy. In this manner we identified four distinct strategies: both parents bilingual, one parent bilingual, one-parent-one-language, and one language at home (see Table 1). We had originally sub-divided the one-parent-one-language strategy into a strict and flexible categories. In these sub-categories parents that always spoke their first language regularly and never spoke another language would be categorized as strict, and parents who always spoke their first language regularly but sometimes would speak another language were categorized as flexible. However, we noticed both categories were indistinct when performing statistical tests and other exploratory analyses, and thus we ultimately decided to keep them as a single group. Finally, we identified a few families with a single caregiver and we characterized them as single parent families, as we didn't have enough cases to identify distinct strategies which single parents might use.
+
+Table 1.
+```{r print table x, include=FALSE}
+
+print(table_1)
+
+```
+
+
 
 ```{r proportion of strategy use visualizations, include=FALSE}
 #Family language strategy visualization
