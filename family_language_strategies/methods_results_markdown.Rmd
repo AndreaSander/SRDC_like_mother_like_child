@@ -322,8 +322,7 @@ eng_p <- aov_eng$p.value
 
 anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
 aov_min<- tidy(anova_model_heritage)
-#tukey_min<-
-  tukey_hsd(anova_model_heritage)
+tukey_min<-tukey_hsd(anova_model_heritage)
 min_F <- aov_min$statistic
 min_p <- aov_min$p.value
 
@@ -331,12 +330,11 @@ min_p <- aov_min$p.value
 
 To test this statistically, we conducted a one-way analysis of variance (ANOVA test) to explore weather some family language strategies contributed more variance to the amount of exposure babies got in French, English and/or a heritage language. 
 
-In terms of French exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r fre_F`, p= `r fre_P`). We then conducted a Hukey HSD post-hoc analysis to determine where specifically were the differences in variance between the family language strategies (See Table 2). The post-hoc analyses showed that the one parent bilingual strategy statistcally singificantly accounted for more variance in the French exposure when compared to the both parents bilingual, the one-parent-one-language and the one langauge at home strategies.
+In terms of French exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r fre_F`, p= `r fre_p`). We then conducted a Hukey HSD post-hoc analysis to determine which observed difference between means accounted for more variance(See Table 2). The post-hoc analyses showed that the one parent bilingual strategy was statistically significantly different than the both parents bilingual, one-parent-one-language, and the one language at home strategies. The one parent bilingual strategy was associated with the lowest mean French exposure out all all the strategies (see Figure 2a).
 
-In terms of English exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r eng_F`, p= `r eng_P`). We then conducted a Hukey HSD post-hoc analysis to determine where specifically were the differences in variance between the family language strategies (See Table 3). Contrary to what we found for the French exposure, the post-hoc analyses showed thatthe one-parent-one-language and one language at home strategies accounted for more variance in English exposure than the one parent bilingual strategy. This makes sense as most of the families in our sample were French-English bilinguals, and thus English exposure was in most cases a complement to French exposure.
+In terms of English exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r eng_F`, p= `r eng_p`). We then conducted a Hukey HSD post-hoc analysis to determine which observed difference between means accounted for more variance(See Table 3). The post-hoc analyses showed again that the one parent bilingual strategy was statistically significantly different than the one-parent-one-language, and the one language at home strategies. However, in the case of English, the one parent bilingual strategy was associated with the highest mean English exposure out all all the strategies (See Figure 2b).This makes sense as most of the families in our sample were French-English bilinguals, and thus English exposure was in most cases a complement to French exposure.
 
-Finally, in terms of exposure to a heritage language, we found an approaching statistically significant difference in how much variance the family language strategies contribute (F=`r min_F`, p= `r min_P`). The fact that the the difference between strategies only approaches significance might be due to a lack of power, since the sample of families who used a heritage language was relatively small. We thus decided to also conduct a Hukey HSD post-hoc analysis. The post-hoc analysis showed that the one language at home strategy statistically significantlly contributes more variance to the exposure to a heritage language.
-
+Finally, in terms of exposure to a heritage language, we found an approaching statistically significance difference in how much variance the family language strategies contribute (F=`r min_F`, p= `r min_p`). The fact that the the difference between strategies only approaches significance might be due to a lack of power, since the sample of families who used a heritage language was relatively small. We thus decided to also conduct a Hukey HSD post-hoc analysis. The post-hoc analysis showed that the one language at home strategy was statistically significantly different than the one-parent-one-language strategy. The one language at home strategy was associated with the lowest mean heritage language exposure, while the one-parent-one-language strategy was associated with the highest mean heritage language exposure (see Figure 2c). 
 
 
 
@@ -381,7 +379,7 @@ for_sankey <- wider_longitudinal %>%
   make_long(visit_1, visit_2) 
 
 for_sankey <- for_sankey %>%
-  mutate(node= fct_relevel (node, "both-parents-bilingual", "one-parent-bilingual", "one-language-at-home", "one-parent-one-lang-flex", "one-parent-one-lang-strict"))
+  mutate(node= fct_relevel (node, "both-parents-bilingual", "one-parent-bilingual", "one-language-at-home", "one-parent-one-language"))
 
 p1<- ggplot(for_sankey, aes(x = x, 
                next_x = next_x, 
@@ -403,7 +401,7 @@ p2<- p2 +
 ```
   
   Figure 3
-```{r}
+```{r echo=FALSE}
 print(p2)
 ```
   
