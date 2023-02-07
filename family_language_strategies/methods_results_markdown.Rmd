@@ -148,18 +148,6 @@ color_formatter <- formatter(
     'background-color' =
       ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
             ))
-            
-```
-
-
-### Data Pre-Processing
-
-  All the relevant LEQ data were manually entered from LEQ forms into excel spreadsheets. The data were entered twice by two different researchers to to catch errors, and discrepancies were resolved by a third individual who checked the original paper form. Demographic data were exported from Filemaker. 
-  
-  We used the responses from the first section of the LEQ questionnaire to characterize the family language strategy used by each family. For example, for a family where both parents indicated they used both their first and second language regularly we assigned the both parents bilingual strategy. Whereas for a family where each parent spoke a different first language regularly we assigned the one-parent-one-language strategy. In this manner we identified four distinct strategies: both parents bilingual, one parent bilingual, one-parent-one-language, and one language at home (see Table 1). We had originally sub-divided the one-parent-one-language strategy into a strict and flexible categories. In these sub-categories parents that always spoke their first language regularly and never spoke another language would be categorized as strict, and parents who always spoke their first language regularly but sometimes would speak another language were categorized as flexible. However, we noticed both categories were indistinct when performing statistical tests and other exploratory analyses, and thus we ultimately decided to keep them as a single group. Finally, we identified a few families with a single caregiver and we characterized them as single parent families, as we didn't have enough cases to identify distinct strategies which single parents might use.
-
-
-```{r print table x, echo=FALSE}
 
  formattable(strats_table,
             list(
@@ -174,9 +162,16 @@ color_formatter <- formatter(
 htmlwidgets::saveWidget(w, "table.html", selfcontained = TRUE)
 webshot::webshot(url = "table.html", file = "table.png", 
                vwidth = 1200, vheight = 275)
-
-
+            
 ```
+
+
+### Data Pre-Processing
+
+  All the relevant LEQ data were manually entered from LEQ forms into excel spreadsheets. The data were entered twice by two different researchers to to catch errors, and discrepancies were resolved by a third individual who checked the original paper form. Demographic data were exported from Filemaker. 
+  
+  We used the responses from the first section of the LEQ questionnaire to characterize the family language strategy used by each family. For example, for a family where both parents indicated they used both their first and second language regularly we assigned the both parents bilingual strategy. Whereas for a family where each parent spoke a different first language regularly we assigned the one-parent-one-language strategy. In this manner we identified four distinct strategies: both parents bilingual, one parent bilingual, one-parent-one-language, and one language at home (see Table 1). We had originally sub-divided the one-parent-one-language strategy into a strict and flexible categories. In these sub-categories parents that always spoke their first language regularly and never spoke another language would be categorized as strict, and parents who always spoke their first language regularly but sometimes would speak another language were categorized as flexible. However, we noticed both categories were indistinct when performing statistical tests and other exploratory analyses, and thus we ultimately decided to keep them as a single group. Finally, we identified a few families with a single caregiver and we characterized them as single parent families, as we didn't have enough cases to identify distinct strategies which single parents might use.
+
 
 Table 1
 
@@ -243,8 +238,8 @@ fre_by_strategy <- first_visit_only  %>%
 figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=`mean(fre_exp)`, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c("#1f78b4", "#d95f02","#FFC107","#b2df8a","#33a02c", "#7570b3")) +
-  theme(axis.text.x = element_text(angle = 25))+
   theme_bw() +
+    theme(axis.text.x = element_blank())+
   labs(title= "Mean french exposure by strategy")
 
 eng_by_strategy <- first_visit_only  %>%
@@ -255,8 +250,8 @@ eng_by_strategy <- first_visit_only  %>%
 figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=`mean(eng_exp)`, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c("#1f78b4", "#d95f02","#FFC107","#b2df8a","#33a02c", "#7570b3")) +
-  theme(axis.text.x = element_text(angle = 25))+
   theme_bw() +
+    theme(axis.text.x = element_blank())+
   labs(title= "Mean english exposure by strategy")
 
 min_by_strategy <- first_visit_only  %>%
@@ -267,8 +262,8 @@ min_by_strategy <- first_visit_only  %>%
 figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=`mean(min_exp)`, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c("#1f78b4", "#d95f02","#FFC107","#b2df8a","#33a02c", "#7570b3")) +
-  theme(axis.text.x = element_text(angle = 25))+
   theme_bw() +
+  theme(axis.text.x = element_blank())+
   labs(title= "Mean minority langauge exposure by strategy")
 
 
@@ -292,26 +287,49 @@ print(figure_2_c)
 ```
 
   
-  To test this statistically, we conducted t-test pairwise comparisons to explore the relation between different family language strategies and the amount of French exposure children were getting (See Table 2). French is the majority language in the province of Quebec. We then repeated the process for amount of English exposure (See Table 3). English is not considered a majority language in the province of Quebec, but it is one of Canada's official languages and thus it holds a high linguistic status. We finally repeated the process for amount of minority language exposure (See Table 4). There are many minority languages aside from English that are spoken in the province of Quebec, however they tend to have a lower linguistic status than English.    
-
-
+     
 ```{r performing ANOVAs and Hukey post hoc test, include=FALSE}
 
 for_anovas<- first_visit_only %>%
-  filter(!strategy == "single-parent")
-
+  filter(!strategy == "single-parent") %>%
+  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
+                              strategy=="one-language-at-home"~"OneLanguageAtHome",
+                              strategy=="one-parent-bilingual"~"OneParentBilingual",
+                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
+##French Anova objects
 anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
 aov_fre<- tidy(anova_model_french)
 tukey_fre<- tukey_hsd(anova_model_french)
+fre_F <- aov_fre$statistic
+fre_p <- aov_fre$p.value
 
+##English ANOVA objects
 anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
 aov_eng<- tidy(anova_model_english)
-tukey_eng<- tukey_hsd(anova_model_english)
+tukey_eng<-tukey_hsd(anova_model_english)
+eng_F <- aov_eng$statistic
+eng_p <- aov_eng$p.value
 
 anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
 aov_min<- tidy(anova_model_heritage)
+#tukey_min<-
+  tukey_hsd(anova_model_heritage)
+min_F <- aov_min$statistic
+min_p <- aov_min$p.value
 
 ```
+
+To test this statistically, we conducted a one-way analysis of variance (ANOVA test) to explore weather some family language strategies contributed more variance to the amount of exposure babies got in French, English and/or a heritage language. 
+
+In terms of French exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r fre_F`, p= `r fre_P`). We then conducted a Hukey HSD post-hoc analysis to determine where specifically were the differences in variance between the family language strategies (See Table 2). The post-hoc analyses showed that the one parent bilingual strategy statistcally singificantly accounted for more variance in the French exposure when compared to the both parents bilingual, the one-parent-one-language and the one langauge at home strategies.
+
+In terms of English exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r eng_F`, p= `r eng_P`). We then conducted a Hukey HSD post-hoc analysis to determine where specifically were the differences in variance between the family language strategies (See Table 3). Contrary to what we found for the French exposure, the post-hoc analyses showed thatthe one-parent-one-language and one language at home strategies accounted for more variance in English exposure than the one parent bilingual strategy. This makes sense as most of the families in our sample were French-English bilinguals, and thus English exposure was in most cases a complement to French exposure.
+
+Finally, in terms of exposure to a heritage language, we found an approaching statistically significant difference in how much variance the family language strategies contribute (F=`r min_F`, p= `r min_P`). The fact that the the difference between strategies only approaches significance might be due to a lack of power, since the sample of families who used a heritage language was relatively small. We thus decided to also conduct a Hukey HSD post-hoc analysis. The post-hoc analysis showed that the one language at home strategy statistically significantlly contributes more variance to the exposure to a heritage language.
+
+
+
+
 Table 2
 ```{r, echo=FALSE}
 kable(tukey_fre)
