@@ -11,6 +11,7 @@ options(scipen = 100, digits = 4)
 ```
 
 ```{r data call in, include=FALSE}
+library(lubridate)
 library(sparkline)
 library(webshot)
 library(htmlwidgets)
@@ -100,26 +101,91 @@ four_visit <- final_data %>%
   distinct(unique_id)%>%
   tally()
 
+#l1 percentages
+l1_perc <- first_visit_only %>%
+group_by(l1) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+fre_l1 <- l1_perc %>%
+  filter(l1=="French") %>%
+  select(perc)
+
+eng_l1 <- l1_perc %>%
+  filter(l1=="English") %>%
+  select(perc)
+  
+min_l1<- abs(fre_l1-eng_l1)
+
+
+#l2 percentages
+l2_perc <- first_visit_only %>%
+group_by(l2) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+fre_l2 <- l2_perc %>%
+  filter(l2=="French") %>%
+  select(perc)
+
+eng_l2 <- l2_perc %>%
+  filter(l2=="English") %>%
+  select(perc)
+  
+min_l2<- abs(fre_l2-eng_l2)
+
 #Longitudinal data set n
 n_long <-longitudinal_data %>%
   distinct(unique_id)%>%
   tally()
 
+#Longitudinal data set length between visit one and 2
+visit_length<- longitudinal_data %>%
+  arrange(anon_baby_id, age) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit = row_number()) %>%
+  ungroup() %>%
+  filter(nn==2) %>%
+  mutate(first_visit_date = case_when(visit == 1 ~ leq_date)) %>%
+  mutate(second_visit_date = case_when(visit == 2 ~ leq_date)) %>%
+  select(anon_baby_id, first_visit_date, second_visit_date) %>%
+  group_by(anon_baby_id) %>%
+  fill(first_visit_date, second_visit_date, .direction="updown") %>%
+  distinct() %>%
+  ungroup() %>%
+  mutate(length_between_visits = abs(interval(start= first_visit_date, end=second_visit_date)/ duration (n=1, unit="days" )))
+##!! There is a mistake in one date which results in a negative date. Fix.
+
+
+avg_visit_l <- round(mean(visit_length$length_between_visits), 2)
+min_visit_l <- round(min(visit_length$length_between_visits),2)
+max_visit_l <- round(max(visit_length$length_between_visits),2)
+sd_visit_l <- round(sd(visit_length$length_between_visits),2)
 ```
 
-  Participants were recruited through convenience sampling when they visited Concordia Infant Research Laboratory to participate in a study. Families were contacted from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events.
+  Participants were recruited through convenience sampling when they visited Concordia Infant Research Laboratory to participate in any study. Families were contacted from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events.
+  
   Our data consists of demographic and language exposure information collected between the years 2013 and 2020 via parental questionnaires and forms (described below). Caregivers filled out the questionnaires during each visit as part of the lab standard practice. At each visit, the infants also participated in several different experimental tasks, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
  
- The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus We kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. The final data thus consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. We further excluded `r total_excluded` children who heard more than 10% of a third language.
+ The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus we kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. The final data thus consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. 
  
- While for the main analyses we excluded the second visit data of families' who came to multiple visits, we constructed a secondary data set (n= `r n_long`) which included first and second visit data from families who contributed data during multiple visits. We used this secondary data set to explore and describe our longitudinal data. We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points (). 
+ The infants in our data were exposed to two languages. We defined the first langauge (L1) as the language to which they were most exposed ranging from xx to xx in our sample. We therefore defined the second language (L2) as the language to which they were least exposed. We excluded `r total_excluded` children who heard more than 10% of a third language from our original sample. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage langauge was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making thus other languages heritage or minority languages. Second, infants who did not hear English and French heard one of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been unpractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
+ 
+ While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. 
+ 
+
 
 ### Instrument
   Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. 
   
-  The first set of questions for the LEQ with MAPLE interview aim to understand how caregivers use their languages in daily life, particularly when talking to their baby. These questions use a likert type of scale to describe the frequency with which parents use each language when talking to their child (regularly, sometimes, or never). These first set of questions helped us determine the family language strategies, for example if a caregiver uses French regularly and never uses English while the other caregiver does the opposite, we assume they are using a one-parent-one-language strategy.
+  The first set of questions for the LEQ with MAPLE interview aim to understand how caregivers use their languages in daily life, particularly when talking to their baby. These questions use a likert type of scale to describe the frequency with which parents use each language when talking to their child (regularly, sometimes, or never). We used these data to determine the family language strategies, for example if a caregiver uses French regularly and never uses English while the other caregiver does the opposite, we assume they are using a one-parent-one-language strategy (See Table 1 in the results section for a complete description of how family language strategies were calculated).
   
-  The first set of questions for the LEQ with MAPLE interview aim to give a set of estimates of the amount of time babies spend hearing each of their languages throughout their lives based on a calculation made by the interviewer from caregiver responses (overall estimate), a rough estimate based on an estimation by the caregivers themselves (xxx estimate), and an overall estimate that averages the interviewer and the caregiver estimations (global estimate). The exposure estimates made with LEQ with MAPLE have high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
+  The second set of questions for the LEQ with MAPLE interview aim to give a set of estimates of the amount of time babies spend hearing each of their languages throughout their lives based on a detailed calculation made by the interviewer from caregiver responses (cumulative exposure estimate), a rough estimate made by the caregivers themselves (global exposure estimate), and an overall estimate that averages the interviewer and the caregiver estimations (overall exposure estimate). We only used data from the overall exposure estimate to determine how much exposure to each language infants in our sample were getting.
+  
+  The overall exposure estimate made with LEQ with MAPLE have high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
+  
   We additionally collected demographic information about our participants and their families via a short paper form.
 
 
@@ -216,9 +282,10 @@ theme_void()
 
 ```
 ### Analytic approach
-  We first described the family strategies (See Figure 1). The most common strategy was the both parents bilingual strategy which represented `r perc_both_parents_biling`% of the sample.
+  Once characterized, we described the proportions in which family language strategies were used in our smaple (See Figure 1). The most common strategy was the both parents bilingual strategy which represented `r perc_both_parents_biling`% of the sample.
 
 Figure 1
+
 ```{r, echo=FALSE}
 print(figure_1)
 ```
@@ -233,8 +300,7 @@ chisq_value<- round(xsq_test$statistic, 2)
 chisq_p<- round(xsq_test$p.value, 4)
 ```
 
-  We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant, where the null hypothesis is that the strategies are used in the same proportion across the families tested. The chi-squared goodness of test revealed a statistically significant difference between the distribution of proportions in our data and a distribution in which all the proportions are equal (X= `r chisq_value`, p= <.001).
-  We were also interested in weather the mean exposure to the majority languages French and English, and the mean exposure to a minority language changed as a function of which family language strategy was used (Figure 2)
+  We performed a chi-square goodness of fit test to determine weather the difference in proportion of usage between strategies was statistically significant, where the null hypothesis was that the strategies were used in the same proportion across the sample. The chi-squared goodness of fit test revealed a statistically significant difference between the distribution of proportions in our data and a distribution in which all the proportions are equal (X= `r chisq_value`, p= <.001).
 ```{r, include=FALSE}
 
 fre_by_strategy <- first_visit_only  %>%
@@ -279,25 +345,8 @@ figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=`mean(min_exp)`, fill =
 
 ```
 
-Figure 2 a)
-```{r, echo=FALSE}
-print(figure_2_a)
-```
-
-Figure 2 b)
-```{r, echo=FALSE}
-print(figure_2_b)
-```
 
 
-Figure 2 c)
-```{r, echo=FALSE}
-
-print(figure_2_c)
-```
-
-  
-     
 ```{r performing ANOVAs and Hukey post hoc test, include=FALSE}
 
 for_anovas<- first_visit_only %>%
@@ -328,7 +377,30 @@ min_p <- aov_min$p.value
 
 ```
 
-To test this statistically, we conducted a one-way analysis of variance (ANOVA test) to explore weather some family language strategies contributed more variance to the amount of exposure babies got in French, English and/or a heritage language. 
+We were also interested to learn how different family language strategies related to the overall amount of language exposure infants were getting. We observed that different family language strategies led to different a different mean exposure to French, English and Heritage languages (See Figure 2a, 2b, and 2c respectively).
+
+Figure 2 a.
+
+```{r, echo=FALSE}
+print(figure_2_a)
+
+```
+
+Figure 2 b.
+
+```{r, echo=FALSE}
+print(figure_2_b)
+
+```
+ 
+ Figure 2 c.
+ 
+```{r, echo=FALSE}
+print(figure_2_c)
+
+```
+  
+  To test this statistically, we conducted a one-way analysis of variance (ANOVA test) to explore weather some family language strategies contributed more variance to the amount of exposure babies got in French, English and/or a heritage language, regardless of weather each of those languages was their L1 or L2 language. 
 
 In terms of French exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r fre_F`, p= `r fre_p`). We then conducted a Hukey HSD post-hoc analysis to determine which observed difference between means accounted for more variance(See Table 2). The post-hoc analyses showed that the one parent bilingual strategy was statistically significantly different than the both parents bilingual, one-parent-one-language, and the one language at home strategies. The one parent bilingual strategy was associated with the lowest mean French exposure out all all the strategies (see Figure 2a).
 
@@ -336,23 +408,25 @@ In terms of English exposure, we found a statistically significant difference in
 
 Finally, in terms of exposure to a heritage language, we found an approaching statistically significance difference in how much variance the family language strategies contribute (F=`r min_F`, p= `r min_p`). The fact that the the difference between strategies only approaches significance might be due to a lack of power, since the sample of families who used a heritage language was relatively small. We thus decided to also conduct a Hukey HSD post-hoc analysis. The post-hoc analysis showed that the one language at home strategy was statistically significantly different than the one-parent-one-language strategy. The one language at home strategy was associated with the lowest mean heritage language exposure, while the one-parent-one-language strategy was associated with the highest mean heritage language exposure (see Figure 2c). 
 
-
-
 Table 2
+
 ```{r, echo=FALSE}
 kable(tukey_fre)
 ```
-##Table 3
+
+Table 3
+
 ```{r}
 kable(tukey_eng)
 ```
 
-##Table 4
+Table 4
+
 ```{r}
 
 ```
 
-  Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). As mentioned in the method section we had a few families that had contributed data to three, four or more data points, however these families were so few we decided not to include data beyond the second point. We wxplored the longitudinal data (See Figure 3) to determine thew stability of family strategy use across time.
+  Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). We plotted the longitudinal data (See Figure 3) to determine the stability of family strategy use across time. As can be observed, most families maintain the same family language strategy throughout both visits. 
   
 ```{r, include=FALSE}
 #select only relevant variables
@@ -401,6 +475,7 @@ p2<- p2 +
 ```
   
   Figure 3
+  
 ```{r echo=FALSE}
 print(p2)
 ```
