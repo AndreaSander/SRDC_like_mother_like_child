@@ -136,8 +136,35 @@ eng_l2 <- l2_perc %>%
   
 min_l2<- abs(fre_l2-eng_l2)
 
+#l1 amount of exposure range
+min_exp_range <- final_data %>%
+  select(exp_l1) %>%
+  min()
+
+max_exp_range <-final_data %>%
+  select(exp_l1) %>%
+  max()
+
+#Prepping longitudinal data excluding irrelevant cases
+
+longitudinal_data_analyses <- longitudinal_data %>%
+  select(age, strategy, unique_id, anon_baby_id, leq_date)
+
+longitudinal_data_analyses <- longitudinal_data %>%
+  arrange(anon_baby_id, age) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit = row_number()) %>%
+  ungroup() %>% 
+  mutate(first_visit_date = case_when(visit == 1 ~ leq_date)) %>%
+  mutate(second_visit_date = case_when(visit == 2 ~ leq_date)) %>%
+  group_by(anon_baby_id) %>%
+  fill(first_visit_date, second_visit_date, .direction="updown") %>% #to collapse the rows and be able to calculate visit
+  ungroup() %>%
+  mutate(length_between_visits = abs(interval(start= first_visit_date, end=second_visit_date)/ duration (n=1, unit="days" ))) %>%
+  filter(! length_between_visits < 15) 
+
 #Longitudinal data set n
-n_long <-longitudinal_data %>%
+n_long <-longitudinal_data_analyses %>%
   distinct(unique_id)%>%
   tally()
 
@@ -155,7 +182,8 @@ visit_length<- longitudinal_data %>%
   fill(first_visit_date, second_visit_date, .direction="updown") %>% #to collapse the rows and be able to calculate visit
   distinct() %>%
   ungroup() %>%
-  mutate(length_between_visits = abs(interval(start= first_visit_date, end=second_visit_date)/ duration (n=1, unit="days" )))
+  mutate(length_between_visits = abs(interval(start= first_visit_date, end=second_visit_date)/ duration (n=1, unit="days" ))) %>%
+  filter(! length_between_visits < 15) ##Filter visits that were very close together. 
 ##!! There is a mistake in one date which results in a negative date. Fix.
 
 
@@ -171,7 +199,7 @@ sd_visit_l <- round(sd(visit_length$length_between_visits),2)
  
  The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus we kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. The final data thus consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. 
  
- The infants in our data were exposed to two languages. We defined the first langauge (L1) as the language to which they were most exposed ranging from xx to xx in our sample. We therefore defined the second language (L2) as the language to which they were least exposed. We excluded `r total_excluded` children who heard more than 10% of a third language from our original sample. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage langauge was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making thus other languages heritage or minority languages. Second, infants who did not hear English and French heard one of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been unpractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
+ The infants in our data were exposed to two languages. We defined the first langauge (L1) as the language to which they were most exposed ranging from `r min_exp_range`  to `r max_exp_range` in our sample. We therefore defined the second language (L2) as the language to which they were least exposed. We excluded `r total_excluded` children who heard more than 10% of a third language from our original sample. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage langauge was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making thus other languages heritage or minority languages. Second, infants who did not hear English and French heard one of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been unpractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
  
  While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. The length between visits one and two varied between `r min_visit_l` and `r max_visit_l` days (m= `r avg_visit_l`days, sd= `r sd_visit_l` days).
  
@@ -332,8 +360,8 @@ figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=`mean(eng_exp)`, fill =
 min_by_strategy <- first_visit_only  %>%
   select(c(strategy, min_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean(min_exp))%>%
-  arrange(desc("mean(min_exp)"))
+  dplyr::summarize(mean(min_exp))#%>%
+  #arrange(desc("mean(min_exp)"))
 
 figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=`mean(min_exp)`, fill = strategy )) +
   geom_col() +
@@ -358,20 +386,24 @@ for_anovas<- first_visit_only %>%
 ##French Anova objects
 anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
 aov_fre<- tidy(anova_model_french)
-tukey_fre<- tukey_hsd(anova_model_french)
+tukey_fre_s<- TukeyHSD (anova_model_french)
+tukey_fre<- tidy(tukey_fre_s)
 fre_F <- aov_fre$statistic
 fre_p <- aov_fre$p.value
 
 ##English ANOVA objects
 anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
 aov_eng<- tidy(anova_model_english)
-tukey_eng<-tukey_hsd(anova_model_english)
+tukey_eng_s<- TukeyHSD(anova_model_english)
+tukey_eng<- tidy(tukey_eng_s)
+
 eng_F <- aov_eng$statistic
 eng_p <- aov_eng$p.value
 
 anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
 aov_min<- tidy(anova_model_heritage)
-tukey_min<-tukey_hsd(anova_model_heritage)
+tukey_min_s<-TukeyHSD(anova_model_heritage)
+tukey_min <- tidy(tukey_min_s)
 min_F <- aov_min$statistic
 min_p <- aov_min$p.value
 
@@ -429,18 +461,11 @@ kable(tukey_min)
   Finally, we wanted to explore weather families switched in their use of family language strategies across time.To explore this, we used a subset of of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). We plotted the longitudinal data (See Figure 3) to determine the stability of family strategy use across time. As can be observed, most families maintain the same family language strategy throughout both visits (See Table 5). The biggest gain between visits was for the both parents bilingual strategy which gained around 6%. The biggest loss between visits was for the one language at home strategy which lost around 5%. The most common change between strategies was from the one parent bilingual strategy, to the both parents bilingual strategy, followed by changing from the one language at home strategy to the one parent bilingual strategy.
   
 ```{r, include=FALSE}
-#select only relevant variables
-longitudinal_data <- longitudinal_data %>%
-  select(age, strategy, unique_id, anon_baby_id)
+## LONGITUDINAL DATA ANALYSES ##
 
-longitudinal_data<- longitudinal_data %>%
-  arrange(anon_baby_id, age) %>%
-  group_by(anon_baby_id) %>%
-  mutate(visit = row_number()) %>%
-  ungroup() 
 ########### Count proportions ##########
 
-v1_strat_prop <- longitudinal_data %>%
+v1_strat_prop <- longitudinal_data_analyses %>%
   select(visit, strategy) %>%
   filter(visit==1) %>%
   filter(!strategy == "single-parent") %>%
@@ -450,7 +475,7 @@ v1_strat_prop <- longitudinal_data %>%
   mutate(perc= prop*100)
 
 
-v2_strat_prop <- longitudinal_data %>%
+v2_strat_prop <- longitudinal_data_analyses %>%
   select(visit, strategy) %>%
   filter(visit==2) %>%
   filter(!strategy == "single-parent") %>%
@@ -473,7 +498,7 @@ percentages_visits <- percentages_visits %>%
 
 ############ make sankey ########
 
-wider_longitudinal <- longitudinal_data %>%
+wider_longitudinal <- longitudinal_data_analyses %>%
   select(anon_baby_id, visit, strategy) %>%
   filter(str_detect(strategy, "single-parent", negate=T))
 
