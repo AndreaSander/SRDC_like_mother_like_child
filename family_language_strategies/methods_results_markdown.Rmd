@@ -334,10 +334,12 @@ chisq_p<- round(xsq_test$p.value, 4)
 fre_by_strategy <- first_visit_only  %>%
   select(c(strategy, fre_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean(fre_exp)) %>%
-  arrange(desc("mean(fre_exp)"))
+  dplyr::summarize(mean(fre_exp,  na.rm=TRUE)) %>%
+  arrange(desc("mean(fre_exp, na.rm=TRUE)")) 
 
-figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=`mean(fre_exp)`, fill = strategy )) +
+fre_by_strategy<- rename(fre_by_strategy, "mean_fre_exp" = "mean(fre_exp, na.rm = TRUE)")
+
+figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=mean_fre_exp, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c(my_yellow, my_orange, my_blue, my_green, my_purple)) +
   theme_bw() +
@@ -347,10 +349,12 @@ figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=`mean(fre_exp)`, fill =
 eng_by_strategy <- first_visit_only  %>%
   select(c(strategy, eng_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean(eng_exp))%>%
-  arrange(desc("mean(eng_exp)"))
+  dplyr::summarize(mean(eng_exp, na.rm=TRUE))%>%
+  arrange(desc("mean(eng_exp, na.rm=TRUE)"))
 
-figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=`mean(eng_exp)`, fill = strategy )) +
+eng_by_strategy <- rename(eng_by_strategy, "mean_eng_exp" = "mean(eng_exp, na.rm = TRUE)")
+
+figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y= mean_eng_exp, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c(my_yellow, my_orange, my_blue, my_green, my_purple)) +
   theme_bw() +
@@ -360,10 +364,12 @@ figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=`mean(eng_exp)`, fill =
 min_by_strategy <- first_visit_only  %>%
   select(c(strategy, min_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean(min_exp))#%>%
-  #arrange(desc("mean(min_exp)"))
+  dplyr::summarize(mean(min_exp, na.rm=TRUE)) %>%
+  arrange(desc("mean(min_exp, na.rm = TRUE)"))
 
-figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=`mean(min_exp)`, fill = strategy )) +
+min_by_strategy <- rename(min_by_strategy, "mean_heritage_exp" = "mean(min_exp, na.rm = TRUE)")
+
+figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y= mean_heritage_exp, fill = strategy )) +
   geom_col() +
    scale_fill_manual (name = "Family Strategy", values =c(my_yellow, my_orange, my_blue, my_green, my_purple)) +
   theme_bw() +
