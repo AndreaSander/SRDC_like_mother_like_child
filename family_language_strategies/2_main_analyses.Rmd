@@ -58,16 +58,13 @@ final_data_french_coded <-
   mutate(fre_exp = case_when(l1=="French"~ exp_l1,
                                 l2=="French"~ exp_l2,
                                 l3=="French"~ exp_l3,
-                                l4=="French"~ exp_l4,
-                                TRUE~ 0)) %>%
+                                l4=="French"~ exp_l4)) %>%
     mutate(eng_exp = case_when(l1=="English"~ exp_l1,
                                 l2=="English"~ exp_l2,
                                 l3=="English"~ exp_l3,
-                                l4=="English"~ exp_l4,
-                                TRUE~ 0)) %>%
+                                l4=="English"~ exp_l4)) %>%
   mutate(min_exp = case_when (!(l1 %in% c("French", "English"))& l2 %in% c("French", "English") ~ exp_l1,
-                              !(l2 %in% c("French", "English")) & l1 %in% c("French", "English") ~ exp_l2,
-                              TRUE ~ 0
+                              !(l2 %in% c("French", "English")) & l1 %in% c("French", "English") ~ exp_l2
                               ))
 
 
