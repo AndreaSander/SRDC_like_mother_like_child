@@ -397,9 +397,9 @@ tukey_fre<- tidy(tukey_fre_s)
 fre_F <- aov_fre$statistic
 fre_p <- aov_fre$p.value
 
-#library(performance)
-#model_performance(anova_model_french)
-#check_model(anova_model_french)
+library(performance)
+model_performance(anova_model_french)
+check_model(anova_model_french)
 
 ##English ANOVA objects
 anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
@@ -410,8 +410,8 @@ tukey_eng<- tidy(tukey_eng_s)
 eng_F <- aov_eng$statistic
 eng_p <- aov_eng$p.value
 
-#model_performance(anova_model_english)
-#check_model(anova_model_english)
+model_performance(anova_model_english)
+check_model(anova_model_english)
 
 anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
 aov_min<- tidy(anova_model_heritage)
@@ -420,7 +420,7 @@ tukey_min <- tidy(tukey_min_s)
 min_F <- aov_min$statistic
 min_p <- aov_min$p.value
 
-#model_performance(anova_model_heritage)
+model_performance(anova_model_heritage)
 check_model(anova_model_heritage)
 
 ```
