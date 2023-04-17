@@ -51,7 +51,7 @@ range(final_data$age, na.rm = T) #4.33 - 30.9 months so 4 - 31 if we round.
 
 ##NOTE: Originally I had also added exposure on language 3 and 4. Language 3 and 4 always amount to less than 10% because we excluded trilinguals. However, 
 #in parental interviews caregivers frequently give a third language and the final calculation is so low it amounts to 0 
-#this was 0 inflating our english and french exposures, and because we are interested in how bilingual strategies relate to bilingual exposure, I decided to get rid of l3 and 4 exposure.
+#this was 0 inflating our english and french exposures, and because we are interested in how bilingual strategies relate to bilingual exposure, I decided to get rid of l3 and 4 exposure when making the frenc, english, and heritage language esposure variables.
             
   
 
