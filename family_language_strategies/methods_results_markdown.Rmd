@@ -390,7 +390,12 @@ for_anovas<- first_visit_only %>%
                               strategy=="one-parent-bilingual"~"OneParentBilingual",
                               strategy=="one-parent-one-lang"~"OneParentOneLang"))
 ##French Anova objects
-anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
+#Cutting the tails of the distribution to avoid 0 inflation, while we will describe the families that were monolingual, it makes our tests more statistically sound to cut the tails.
+for_anovas_f<- for_anovas %>%
+  filter(!fre_exp == 0) %>%
+  filter(!fre_exp == 100)
+
+anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas_f)
 aov_fre<- tidy(anova_model_french)
 tukey_fre_s<- TukeyHSD (anova_model_french)
 tukey_fre<- tidy(tukey_fre_s)
@@ -402,7 +407,11 @@ model_performance(anova_model_french)
 check_model(anova_model_french)
 
 ##English ANOVA objects
-anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
+for_anovas_e<- for_anovas %>%
+  filter(!eng_exp == 0) %>%
+  filter(!eng_exp == 100)
+
+anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas_e)
 aov_eng<- tidy(anova_model_english)
 tukey_eng_s<- TukeyHSD(anova_model_english)
 tukey_eng<- tidy(tukey_eng_s)
@@ -413,7 +422,12 @@ eng_p <- aov_eng$p.value
 model_performance(anova_model_english)
 check_model(anova_model_english)
 
-anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
+##Heritage langauge ANOVA Objects
+for_anovas_h<- for_anovas %>%
+  filter(!min_exp == 0) %>%
+  filter(!min_exp == 100)
+
+anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas_h)
 aov_min<- tidy(anova_model_heritage)
 tukey_min_s<-TukeyHSD(anova_model_heritage)
 tukey_min <- tidy(tukey_min_s)
