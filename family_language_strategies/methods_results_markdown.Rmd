@@ -46,14 +46,30 @@ my_purple<- "#7570b3"
 ```{r participants information, include=FALSE}
 #### CONSTRUCTING AND DESCRIBING ALL RELEVANT DATA SETS ####
 
-#Exclusions count
-total_excluded<- final_data_no_exc %>%
+#Trilingul exclusions count
+total_excluded_triling<- final_data_no_exc %>%
     group_by(unique_id, exp_l1, exp_l2)%>%
    mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%
   ungroup() %>%
   filter(total_l1_l2_exp<=90) %>%
   distinct(unique_id)%>%
   tally()
+
+#Monolingual strategies count
+monoling_strategies_Count <-
+  final_data_no_exc %>% 
+  mutate(monoling_strategy = case_when(
+    care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "yes",
+    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1 %in% c("never", "NA") & care2_l2=="regularly"~ "yes",
+    TRUE~"No"))%>%
+  mutate(bilinugal_strategy= case_when(monoling_strategy=="yes" & childcare_l1 == l1 & childcare_l2 %in% c(NA, "NA")  ~ "no",
+                                       monoling_strategy=="yes"& childcare_l2 == l1 & childcare_l1 %in% c(NA, "NA") ~"no",
+                                       monoling_strategy=="yes" & childcare_l1 %in% c(NA, "NA") & childcare_l2 %in% c(NA, "NA") ~"no",
+                                       TRUE~"yes")) %>%
+  filter(bilinugal_strategy=="no") %>%
+  distinct(unique_id)%>%
+  tally()
+
 
 #after third language exclusions exclusions
 n <- final_data %>%
@@ -197,11 +213,13 @@ sd_visit_l <- round(sd(visit_length$length_between_visits),2)
   
   Our dataset consists of demographic and language exposure information collected between the years 2013 and 2020 via parental questionnaires and forms (described below). Caregivers filled out the questionnaires during each visit as part of the lab standard practice. At each visit, the infants also participated in one or more experimental tasks, and parents completed additional questionnaires, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
  
- The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus we kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. The final dataset thus consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` months (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. 
+ The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus we kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. We decided to keep data from the first visit only because that made the data from families with multiple visits and families with a single visit easier to compare. 
  
- The infants in our data were exposed to two languages. We defined the first language (L1) as the language to which they were most exposed which ranged from `r min_exp_range`  to `r max_exp_range` in our sample, as some infants were exposed to a small amount of a third language. We . We therefore defined the second language (L2) as the language to which they were least exposed. We excluded `r total_excluded` children who heard more than 10% of a third language from our original sample. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of which heard French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage language was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making other languages heritage or minority languages. Second, infants who heard a language other than English and French heard one of a wide variety of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been impractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
+ Most infants in our data were exposed to two languages. We defined the first language (L1) as the language to which they were most exposed which ranged from `r min_exp_range`  to `r max_exp_range` in our sample, as some infants were exposed to a small amount of a third language. We therefore defined the second language (L2) as the language to which they were second most exposed. We excluded `r total_excluded_triling` children who heard more than 10% of a third language from our original sample. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of which heard French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage language was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making other languages heritage or minority languages. Second, infants who heard a language other than English and French heard one of a wide variety of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been impractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
  
- While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. We also excluded a second visit that occurred in less than 15 days from the first visit. The length between visits one and two varied between `r min_visit_l` and `r max_visit_l` days (m= `r avg_visit_l`days, sd= `r sd_visit_l` days).
+ Because the purpose of the present study is to explore bilingual family language strategies we excluded, to the best of our abilities, families who were not using bilingual strategies (n= `r monoling_strategies_count`. We characterized these families as those where both caregivers reported using a single language with the child, and that reported either that the child attended a daycare where they only used the same language, the child had no other form of childcare, or there was missing data regarding other forms of childcare. That being said, we retained data from families that reported using two different languages with the child, but whse child ended up having a reported input of 100% to a single language. We retained those monolingual input/ bilingual strategy families for our descripted analyses, but we removed this data from our statistical analyses as it will be detailed below in the data pre-reocessing section of this manuscript.
+ 
+ After exclusions, the final dataset consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` months (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. We also excluded a second visit that occurred in less than 15 days from the first visit. The length between visits one and two varied between `r min_visit_l` and `r max_visit_l` days (m= `r avg_visit_l`days, sd= `r sd_visit_l` days).
  
 
 
