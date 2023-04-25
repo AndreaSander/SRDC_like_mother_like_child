@@ -36,7 +36,7 @@ my_yellow<-"#FFC107"
 my_orange<- "#D95F02"
 my_blue<- "#1F78B4"
 my_green<- "#33a02c"
-my_purple<- "#7570b3"
+my_purple<- "#683f6d"
 
 ```
 
@@ -305,20 +305,49 @@ group_by(strategy) %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
+#Reordering levels so legend in the graph is in order.
+prop_strategy$strategy<- factor(prop_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+prop_strategy<- prop_strategy %>%
+ arrange(desc(prop))
+
+#Creating dataframes of each strategy to save their percentages and prnt them on the text
+
+##Both parents bilingual
 both_parents_biling<- prop_strategy %>%
   filter(strategy=="both-parents-bilingual") %>%
   select(perc)
 
 perc_both_parents_biling<- round(both_parents_biling$perc, 1)
 
-prop_strategy<- prop_strategy %>%
- arrange(desc(prop))
+##One parent bilingual
+one_parent_biling<- prop_strategy %>%
+  filter(strategy=="one-parent-bilingual") %>%
+  select(perc)
+
+perc_one_parents_biling<- round(one_parent_biling$perc, 1)
+
+
+##One parent one lang
+one_parent_one_lang<- prop_strategy %>%
+  filter(strategy=="one-parent-one-lang") %>%
+  select(perc)
+
+perc_one_parent_one_lang<- round(one_parent_biling$perc, 1)
+
+##one language at home
+one_language_at_home<- prop_strategy %>%
+  filter(strategy=="one-language-at-home") %>%
+  select(perc)
+
+perc_one_language_at_home<- round(one_parent_biling$perc, 1)
+
 
 #Waffle plot
 
 figure_1<- ggplot(prop_strategy, aes(fill=strategy, values= n, na.rm=T)) +
   geom_waffle (n_rows=22, color="white")+
-  scale_fill_manual (name = "Family Strategy", values =c(my_yellow, my_orange, my_blue, my_green, my_purple)) +
+  scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
  labs(x="", title = "Proportion of Use of Family Strategies")+
 theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
  coord_equal()+
@@ -327,7 +356,7 @@ theme_void()
 
 ```
 ### Analytic approach
-  Once characterized, we described the proportions in which family language strategies were used in our sample (See Figure 1). The most common strategy was the both parents bilingual strategy which was used by `r perc_both_parents_biling`% of the sample, and the least common strategy was the one-parent-one-language strategy (XX%).  One-language-at-home and (zz%) one-parent-bilingual (bb%) were intermediate.
+  Once characterized, we described the proportions in which family language strategies were used in our sample (See Figure 1). The most common strategy was the both parents bilingual strategy which was used by `r perc_both_parents_biling`% of the sample, and the least common strategy was the one language at home strategy (`r perc_one_language_at_home`%).  One-parent-bilingual (`r perc_one_parents_biling`%), and one-language-at-home (`r perc_one_language_at_home`%) were intermediate. Note that we had 11 single parent families who were not classified in the avobe mentioned strategies.
 
 Figure 1
 
@@ -351,14 +380,17 @@ chisq_p<- round(xsq_test$p.value, 4)
 fre_by_strategy <- first_visit_only  %>%
   select(c(strategy, fre_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean(fre_exp,  na.rm=TRUE)) %>%
+  dplyr::summarize(
+    sd= sd(fre_exp, na.rm=TRUE),
+    mean= mean(fre_exp,  na.rm=TRUE)) %>%
   arrange(desc("mean(fre_exp, na.rm=TRUE)")) 
 
-fre_by_strategy<- rename(fre_by_strategy, "mean_fre_exp" = "mean(fre_exp, na.rm = TRUE)")
+fre_by_strategy$strategy<- factor(fre_by_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
 
-figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=mean_fre_exp, fill = strategy )) +
+figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
   geom_col() +
-   scale_fill_manual (name = "Family Strategy", values =c(my_yellow, my_orange, my_blue, my_green, my_purple)) +
+  geom_errorbar(width=0.2)+
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
     theme(axis.text.x = element_blank())+
   labs(title= "Mean french exposure by strategy")
