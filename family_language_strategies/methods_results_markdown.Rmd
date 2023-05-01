@@ -1,7 +1,7 @@
 ---
 title: "results_markdown"
 author: "ASM"
-date: "13/01/2023 last updated 07/02/2023"
+date: "13/01/2023 last updated 01/05/2023"
 output: word_document
 ---
 
@@ -56,7 +56,7 @@ total_excluded_triling<- final_data_no_exc %>%
   tally()
 
 #Monolingual strategies count
-monoling_strategies_Count <-
+monoling_strategies_count <-
   final_data_no_exc %>% 
   mutate(monoling_strategy = case_when(
     care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "yes",
@@ -398,32 +398,40 @@ figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=mean, fill = strategy, 
 eng_by_strategy <- first_visit_only  %>%
   select(c(strategy, eng_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean(eng_exp, na.rm=TRUE))%>%
-  arrange(desc("mean(eng_exp, na.rm=TRUE)"))
+  dplyr::summarize(
+    sd= sd(eng_exp, na.rm=TRUE),
+    mean= mean(eng_exp,  na.rm=TRUE)) %>%
+  arrange(desc("mean(eng_exp, na.rm=TRUE)")) 
 
-eng_by_strategy <- rename(eng_by_strategy, "mean_eng_exp" = "mean(eng_exp, na.rm = TRUE)")
+eng_by_strategy$strategy<- factor(eng_by_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
 
-figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y= mean_eng_exp, fill = strategy )) +
+figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
   geom_col() +
-   scale_fill_manual (name = "Family Strategy", values =c(my_yellow, my_orange, my_blue, my_green, my_purple)) +
+  geom_errorbar(width=0.2)+
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
     theme(axis.text.x = element_blank())+
   labs(title= "Mean english exposure by strategy")
 
+
 min_by_strategy <- first_visit_only  %>%
   select(c(strategy, min_exp)) %>%
   group_by(strategy) %>%
-  dplyr::summarize(mean(min_exp, na.rm=TRUE)) %>%
-  arrange(desc("mean(min_exp, na.rm = TRUE)"))
+  dplyr::summarize(
+    sd= sd(min_exp, na.rm=TRUE),
+    mean= mean(min_exp,  na.rm=TRUE)) %>%
+  arrange(desc("mean(min_exp, na.rm=TRUE)")) 
 
-min_by_strategy <- rename(min_by_strategy, "mean_heritage_exp" = "mean(min_exp, na.rm = TRUE)")
+min_by_strategy$strategy<- factor(min_by_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
 
-figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y= mean_heritage_exp, fill = strategy )) +
+figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
   geom_col() +
-   scale_fill_manual (name = "Family Strategy", values =c(my_yellow, my_orange, my_blue, my_green, my_purple)) +
+  geom_errorbar(width=0.2)+
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-  theme(axis.text.x = element_blank())+
-  labs(title= "Mean minority langauge exposure by strategy")
+    theme(axis.text.x = element_blank())+
+  labs(title= "Mean heritage language exposure by strategy")
+
 
 
 ```
@@ -537,7 +545,6 @@ Table 4. Tukey HSD Test on the Effect of Strategies on Heritage Langauge Exposur
 kable(tukey_min)
 ```
 
-  Finally, we wanted to explore whether families switched in their use of family language strategies across time. To explore this, we used a subset of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). We plotted the longitudinal data (See Figure 3) to determine the stability of family strategy use across time. As can be observed, most families maintain the same family language strategy throughout both visits (See Table 5). The biggest gain between visits was for the both parents bilingual strategy which gained around 6%. The biggest loss between visits was for the one language at home strategy which lost around 5%. The most common change between strategies was from the one parent bilingual strategy, to the both parents bilingual strategy, followed by changing from the one language at home strategy to the one parent bilingual strategy.
   
 ```{r, include=FALSE}
 ## LONGITUDINAL DATA ANALYSES ##
@@ -571,6 +578,26 @@ percentages_visits <- percentages_visits %>%
   rename(n_second_visit = n.y) %>%
   rename(percentage_first_visit = perc.x) %>%
   rename(percentage_second_visit = perc.y)
+
+perc_family_change <- longitudinal_data_analyses %>%
+  select(visit, strategy, anon_baby_id) %>%
+  filter(visit == c(1,2)) %>%
+  filter(!strategy == "single-parent") %>%
+  pivot_wider(names_from = visit, values_from = strategy) %>%
+  rename(visit_1 = "1") %>%
+  rename(visit_2 = "2") %>%
+  mutate(change_strat = case_when(visit_1 == visit_2 ~"no_change",
+                                  TRUE~ "change")) %>%
+  group_by(change_strat) %>%
+  tally() %>%
+  mutate(perc = (n/sum(n)*100))
+
+change_perc<- perc_family_change %>%
+  filter(change_strat == "change") 
+
+change_perc <- change_perc$perc
+  
+no_change_perc<- 100-change_perc
 
 ###########################
 
@@ -612,14 +639,16 @@ p2<- p2 +
   
 
 ```
-  
+  Finally, we wanted to explore whether families switched in their use of family language strategies across time. To explore this, we used a subset of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). We plotted the longitudinal data (See Figure 3) to determine the stability of family strategy use across time. As can be observed, most families maintain the same family language strategy throughout both visits. Specifically, `r no_change_perc`% kept the same strategy, and `r change_perc`% changed strategies  (See Table 5 for the breakdown of strategy use by visit). The biggest gain between visits was for the both parents bilingual strategy which gained around 6%. The biggest loss between visits was for the one language at home strategy which lost around 5%. The most common change between strategies was from the one parent bilingual strategy, to the both parents bilingual strategy, followed by changing from the one language at home strategy to the one parent bilingual strategy.  
+
+
   Figure 3
   
 ```{r echo=FALSE}
 print(p2)
 ```
 
-Table 5 Percentage os Family Strategy Use in Each Visit
+Table 5 Percentage of Family Strategy Use in Each Visit
 
 ```{r echo=FALSE}
 
