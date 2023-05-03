@@ -18,6 +18,14 @@ library(lmerTest)
 library(rstatix)
 library(broom)
 library(janitor)
+library(glmmTMB)
+library(DHARMa)
+library(betareg)
+library(emmeans)
+library(ggeffects)
+library(mvtnorm)
+library(boot)
+library(bbmle)
 ```
 
 
@@ -452,5 +460,130 @@ longitudinal_data<- final_data_strat %>%
   filter(nn>1)
 
 save(longitudinal_data, file=here("anonymized_data/longitudinal_data.Rda"))
+```
+
+
+
+#Explore beta regressions
+```{r}
+# Create the dataframes to run the models for each language. Monolinguals are excluded, as are the rows 
+# where exposure for a given language equals 100. Since exposure is on a 0-100 scale and the beta distributions 
+# works with values ranging from 0-1, exposure is divided by 100. 
+for_beta <- for_anovas %>% 
+  select(gender, anon_baby_id, age, fre_exp, eng_exp, min_exp, strategy, lang_status) %>% 
+  filter(lang_status != "monolingual") %>% 
+  filter(gender != "NA")
+
+# Dataframe for english exposure
+for_beta_eng <- for_beta %>% 
+  select(age, eng_exp, strategy, lang_status, anon_baby_id) %>% 
+  filter(eng_exp != "NA") %>% 
+  filter(eng_exp !=100) %>% 
+  mutate(eng_exp = eng_exp/100,
+         strategy = as.factor(strategy), 
+         lang_status = as.factor(lang_status))
+
+# Dataframe for french exposure
+for_beta_fre <- for_beta %>% 
+  select(age, fre_exp, strategy, lang_status, anon_baby_id) %>%
+  filter(fre_exp != "NA") %>% 
+  filter(fre_exp != 100) %>% 
+  mutate(fre_exp = fre_exp/100, 
+         strategy = as.factor(strategy), 
+         lang_status = as.factor(lang_status))
+
+# Dataframe for minority language exposure
+for_beta_min <- for_beta %>% 
+  select(age, min_exp, strategy, lang_status, anon_baby_id) %>%
+  filter(min_exp != "NA") %>% 
+  filter(min_exp !=100) %>% 
+  mutate(min_exp = min_exp/100,
+         strategy = as.factor(strategy), 
+         lang_status = as.factor(lang_status))
+
+
+# When modelling direct proportions, using a beta distribution is a good idea. 
+# We can fit a beta model with eng_exp and age as a predictor. 
+# These models are better than the linear models, but still present issues (i.e., heteroscedasticity).
+
+m2a <- glmmTMB(eng_exp ~ strategy, data=for_beta_eng, family= beta_family(link="logit")) 
+summary(m2a)
+sim_m2a <- simulateResiduals(m2a)
+plot(sim_m2a)
+
+m2b <- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"))
+summary(m2b) # NOTE: No significant effects
+sim_m2b <- simulateResiduals(m2b)
+plot(sim_m2b)
+
+# To solve the heteroscedasticity problem, we can use the dispformula argument so that that the dispersion parameter phi is allowed to vary by the levels of "strategy"
+m3a <- glmmTMB(eng_exp ~ strategy, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~strategy)
+summary(m3a) # Significant effect for one-parent-bilingual; AIC = -83.7
+sim_m3a <- simulateResiduals(m3a)
+plot(sim_m3a) # MODEL OK!
+
+m3b <- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~strategy)
+summary(m3b) # No significant effects
+sim_m2b <- simulateResiduals(m2b)
+plot(sim_m2b) # NOTE: Quantile deviations detected
+
+# We can enhance the model by allowing the dispersion parameter in the beta distribution to differ across the different levels of "strategy" and the different values of "age"
+m4a <- glmmTMB(eng_exp ~ strategy, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * age)
+summary(m4a)
+sim_m4a <- simulateResiduals(m2b)
+plot(sim_m4a) # NOTE: Quantile deviations detected
+
+m4b <- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * age)
+summary(m4b) # Significant effects for one-language-at-home and its interaction with age
+
+# We run model diagnostics with DHARMa
+sim_m4b <- simulateResiduals(m4b)
+plot(sim_m4b) # MODEL OK!
+testDispersion(sim_m4b) # MODEL OK!
+
+# We can plot the fixed effects for m4b, the best model so far (very interesting!)
+m4b_effects <- ggpredict(m4b, terms = c("age", "strategy"))
+custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
+plot(m4b_effects, add.data = F, colors= custom_palette, alpha=.2)
+
+
+# We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. This code computes pairwise comparisons of the estimated marginal means of eng_exp across the different levels of "strategy", while holding "age" constant at its mean value.
+emtrends(m4b, pairwise ~ strategy, var="age") # trend for one-language-at-home significantly different from that of one parent-bilingual
+
+
+# MODEL FOR FRENCH EXPOSURE + VISUALIZATION
+m5 <- glmmTMB(fre_exp ~ strategy * age, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * age)
+summary(m5) # No significant results
+
+# We run model diagnostics with DHARMa
+sim_m5 <- simulateResiduals(m5)
+plot(sim_m5) # MODEL OK!
+testDispersion(sim_m5) # MODEL OK!
+
+# We can plot the fixed effects for m5, the best model so far
+m5_effects <- ggpredict(m5, terms = c("age", "strategy"))
+custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
+plot(m5_effects, add.data = F, colors= custom_palette, alpha=.2)
+
+# We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. 
+emtrends(m5, pairwise ~ strategy, var="age") # no significant results
+
+# MODEL FOR MINORITY LANGUAGE EXPOSURE + VISUALIZATION
+m6 <- glmmTMB(min_exp ~ strategy * age, data=for_beta_min, family= beta_family(link="logit"), dispformula = ~ strategy + age)
+summary(m6) # Significant effects for one-language-at-home and its interaction with age and the interaction between one-parent-one-lang and age.
+
+# We run model diagnostics with DHARMa
+sim_m6 <- simulateResiduals(m6)
+plot(sim_m6) # MODEL OK!
+testDispersion(sim_m6) # MODEL OK!
+
+# We can plot the fixed effects for m6, the best model so far (very interesting!)
+m6_effects <- ggpredict(m6, terms = c("age", "strategy"))
+custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
+plot(m6_effects, add.data = F, colors= custom_palette, alpha=.2)
+
+# We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. 
+emtrends(m6, pairwise ~ strategy, var="age") # # trend for one-language-at-home significantly different from that of one parent-bilingual
+
 ```
 
