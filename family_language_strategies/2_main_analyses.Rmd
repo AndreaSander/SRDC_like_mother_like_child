@@ -185,7 +185,13 @@ final_data_strat <-
 
 #In the end, after discussion we decided to filter all the strictly monolinguals because we are truly interested in bilinguals mainly.
 
+final_data_strat <- 
+  final_data_strat %>%
+  filter(exp_l1 <95) %>%
+  filter(exp_l2 >5)
 
+range(final_data_strat$exp_l1) #47-94
+range(final_data_strat$exp_l2) #6-50
 
 save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
 
@@ -243,6 +249,31 @@ tidy(anova_model_heritage)
 ```{r}
 for_blc_anova <- first_visit_only %>%
   filter(!strategy == "single-parent")
+
+blc_anova_fre <- for_blc_anova %>%
+  filter(l2=="French")
+
+blc_model_french <- aov(exp_l2 ~ strategy, data = blc_anova_fre)
+tidy(blc_model_french)
+tukey_hsd(blc_model_french)
+
+######################################
+
+blc_anova_eng <- for_blc_anova %>%
+  filter(l2=="English")
+
+blc_model_english <- aov(exp ~ strategy, data= blc_anova_eng)
+tidy(anova_model_english)
+tukey_hsd(anova_model_english)
+
+#####################################
+
+blc_anova_her <- for_blc_anova %>%
+  filter (!l2 %in% c("French", "English"))
+
+anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
+tidy(anova_model_heritage)
+
 
 ```
 
