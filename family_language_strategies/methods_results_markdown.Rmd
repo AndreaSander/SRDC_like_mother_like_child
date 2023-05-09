@@ -434,6 +434,25 @@ figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=mean, fill = strategy, 
 
 
 
+balance <- first_visit_only  %>%
+  select(c(strategy, exp_l2)) %>%
+  group_by(strategy) %>%
+  dplyr::summarize(
+    sd= sd(exp_l2, na.rm=TRUE),
+    mean= mean(exp_l2,  na.rm=TRUE)) %>%
+  arrange(desc("mean(exp_l2, na.rm=TRUE)")) 
+
+balance$strategy<- factor(balance$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+figure_2_d<- ggplot(balance, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
+  geom_col() +
+  geom_errorbar(width=0.2)+
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
+  theme_bw() +
+    theme(axis.text.x = element_blank())+
+  labs(title= "Mean exposure balance by strategy")
+
+
 ```
 
 
@@ -448,7 +467,7 @@ for_anovas<- first_visit_only %>%
                               strategy=="one-parent-one-lang"~"OneParentOneLang"))
 ##French Anova objects
 
-anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas_f)
+anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
 aov_fre<- tidy(anova_model_french)
 tukey_fre_s<- TukeyHSD (anova_model_french)
 tukey_fre<- tidy(tukey_fre_s)
@@ -460,11 +479,7 @@ model_performance(anova_model_french)
 check_model(anova_model_french)
 
 ##English ANOVA objects
-for_anovas_e<- for_anovas %>%
-  filter(!eng_exp == 0) %>%
-  filter(!eng_exp == 100)
-
-anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas_e)
+anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
 aov_eng<- tidy(anova_model_english)
 tukey_eng_s<- TukeyHSD(anova_model_english)
 tukey_eng<- tidy(tukey_eng_s)
@@ -476,11 +491,8 @@ model_performance(anova_model_english)
 check_model(anova_model_english)
 
 ##Heritage langauge ANOVA Objects
-for_anovas_h<- for_anovas %>%
-  filter(!min_exp == 0) %>%
-  filter(!min_exp == 100)
 
-anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas_h)
+anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
 aov_min<- tidy(anova_model_heritage)
 tukey_min_s<-TukeyHSD(anova_model_heritage)
 tukey_min <- tidy(tukey_min_s)
@@ -489,6 +501,21 @@ min_p <- aov_min$p.value
 
 model_performance(anova_model_heritage)
 check_model(anova_model_heritage)
+
+######### FOR BALANCE EXPOSURE ANOVA ########
+
+for_blc_anova <- first_visit_only %>%
+  filter(!strategy == "single-parent") %>%
+  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
+                              strategy=="one-language-at-home"~"OneLanguageAtHome",
+                              strategy=="one-parent-bilingual"~"OneParentBilingual",
+                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
+
+
+blc_model <- aov(exp_l2 ~ strategy, data= for_blc_anova)
+tidy(blc_model)
+blc_tukey<- tukey_hsd(blc_model)
+
 
 ```
 
@@ -513,6 +540,13 @@ print(figure_2_b)
 ```{r, echo=FALSE}
 print(figure_2_c)
 
+```
+
+
+
+
+```{r, echo=FALSE}
+print(figure_2_d)
 ```
   
   To test this statistically, we conducted a one-way analysis of variance (ANOVA test) to explore weather some family language strategies contributed more variance to the amount of exposure babies got in French, English and/or a heritage language, regardless of whether each of those languages was their L1 or L2 language. 
