@@ -26,6 +26,7 @@ library(ggeffects)
 library(mvtnorm)
 library(boot)
 library(bbmle)
+library(knitr)
 ```
 
 
@@ -193,7 +194,7 @@ final_data_strat <-
 range(final_data_strat$exp_l1) #47-94
 range(final_data_strat$exp_l2) #6-50
 
-save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
+#save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
 
 
 ```
@@ -248,34 +249,65 @@ tidy(anova_model_heritage)
 ###PERFORMING ANOVAS AND POST HOC TESTS --> LANG BALANCE PREDICTOR
 ```{r}
 for_blc_anova <- first_visit_only %>%
-  filter(!strategy == "single-parent")
+  filter(!strategy == "single-parent") %>%
+  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
+                              strategy=="one-language-at-home"~"OneLanguageAtHome",
+                              strategy=="one-parent-bilingual"~"OneParentBilingual",
+                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
 
-blc_anova_fre <- for_blc_anova %>%
-  filter(l2=="French")
+#blc_anova_fre <- for_blc_anova %>%
+#  filter(l2=="French")
 
-blc_model_french <- aov(exp_l2 ~ strategy, data = blc_anova_fre)
-tidy(blc_model_french)
-tukey_hsd(blc_model_french)
+#blc_model_french <- aov(exp_l2 ~ strategy, data = blc_anova_fre)
+#tidy(blc_model_french)
+#tukey_hsd(blc_model_french)
 
 ######################################
 
-blc_anova_eng <- for_blc_anova %>%
-  filter(l2=="English")
+#blc_anova_eng <- for_blc_anova %>%
+#  filter(l2=="English")
 
-blc_model_english <- aov(exp ~ strategy, data= blc_anova_eng)
-tidy(anova_model_english)
-tukey_hsd(anova_model_english)
+#blc_model_english <- aov(exp_l2 ~ strategy, data= blc_anova_eng)
+#tidy(blc_model_english)
+#tukey_hsd(blc_model_english)
 
 #####################################
 
-blc_anova_her <- for_blc_anova %>%
-  filter (!l2 %in% c("French", "English"))
+#blc_anova_her <- for_blc_anova %>%
+#  filter (!l2 %in% c("French", "English"))
 
-anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
-tidy(anova_model_heritage)
+#blc_model_heritage <- aov(exp_l2 ~ strategy, data= blc_anova_her)
+#tidy(blc_model_heritage)
+#tukey_hsd(blc_model_heritage)
+
+####################################
+blc_model <- aov(exp_l2 ~ strategy, data= for_blc_anova)
+tidy(blc_model)
+blc_tukey<- tukey_hsd(blc_model)
+kable(blc_tukey)
 
 
-```
+
+balance <- first_visit_only  %>%
+  select(c(strategy, exp_l2)) %>%
+  group_by(strategy) %>%
+  dplyr::summarize(
+    sd= sd(exp_l2, na.rm=TRUE),
+    mean= mean(exp_l2,  na.rm=TRUE)) %>%
+  arrange(desc("mean(exp_l2, na.rm=TRUE)")) 
+
+balance$strategy<- factor(balance$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+ggplot(balance, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
+  geom_col() +
+  geom_errorbar(width=0.2)+
+   #scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
+  theme_bw() +
+    theme(axis.text.x = element_blank())+
+  labs(title= "Mean exposure balance by strategy")
+
+
+  ```
 
 
 
@@ -300,6 +332,12 @@ for_beta <- for_anovas %>%
   select(gender, anon_baby_id, age, fre_exp, eng_exp, min_exp, strategy, lang_status) %>% 
   filter(lang_status != "monolingual") %>% 
   filter(gender != "NA")
+
+for_beta_blc <- for_blc_anova %>% 
+  select(gender, anon_baby_id, age, exp_l2, strategy, lang_status) %>% 
+  filter(lang_status != "monolingual") %>% 
+  filter(gender != "NA")
+
 
 # Dataframe for english exposure
 for_beta_eng <- for_beta %>% 
@@ -328,40 +366,17 @@ for_beta_min <- for_beta %>%
          strategy = as.factor(strategy), 
          lang_status = as.factor(lang_status))
 
+#Dataframe for balance
+for_balance<- for_beta_blc%>% 
+  select(age, exp_l2, strategy, lang_status, anon_baby_id) %>%
+  filter(exp_l2 != "NA") %>% 
+  mutate(exp_l2 = exp_l2/100,
+         strategy = as.factor(strategy), 
+         lang_status = as.factor(lang_status))
 
-# When modelling direct proportions, using a beta distribution is a good idea. 
-# We can fit a beta model with eng_exp and age as a predictor. 
-# These models are better than the linear models, but still present issues (i.e., heteroscedasticity).
-
-m2a <- glmmTMB(eng_exp ~ strategy, data=for_beta_eng, family= beta_family(link="logit")) 
-summary(m2a)
-sim_m2a <- simulateResiduals(m2a)
-plot(sim_m2a)
-
-m2b <- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"))
-summary(m2b) # NOTE: No significant effects
-sim_m2b <- simulateResiduals(m2b)
-plot(sim_m2b)
-
-# To solve the heteroscedasticity problem, we can use the dispformula argument so that that the dispersion parameter phi is allowed to vary by the levels of "strategy"
-m3a <- glmmTMB(eng_exp ~ strategy, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~strategy)
-summary(m3a) # Significant effect for one-parent-bilingual; AIC = -83.7
-sim_m3a <- simulateResiduals(m3a)
-plot(sim_m3a) # MODEL OK!
-
-m3b <- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~strategy)
-summary(m3b) # No significant effects
-sim_m2b <- simulateResiduals(m2b)
-plot(sim_m2b) # NOTE: Quantile deviations detected
-
-# We can enhance the model by allowing the dispersion parameter in the beta distribution to differ across the different levels of "strategy" and the different values of "age"
-m4a <- glmmTMB(eng_exp ~ strategy, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * age)
-summary(m4a)
-sim_m4a <- simulateResiduals(m2b)
-plot(sim_m4a) # NOTE: Quantile deviations detected
 
 m4b <- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * age)
-summary(m4b) # Significant effects for one-language-at-home and its interaction with age
+summary(m4b) # No significant effects, except for the intercept which is both parents bilingual?
 
 # We run model diagnostics with DHARMa
 sim_m4b <- simulateResiduals(m4b)
@@ -380,7 +395,7 @@ emtrends(m4b, pairwise ~ strategy, var="age") # trend for one-language-at-home s
 
 # MODEL FOR FRENCH EXPOSURE + VISUALIZATION
 m5 <- glmmTMB(fre_exp ~ strategy * age, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * age)
-summary(m5) # No significant results
+summary(m5) # same as English only for the intercept.
 
 # We run model diagnostics with DHARMa
 sim_m5 <- simulateResiduals(m5)
@@ -397,7 +412,7 @@ emtrends(m5, pairwise ~ strategy, var="age") # no significant results
 
 # MODEL FOR MINORITY LANGUAGE EXPOSURE + VISUALIZATION
 m6 <- glmmTMB(min_exp ~ strategy * age, data=for_beta_min, family= beta_family(link="logit"), dispformula = ~ strategy + age)
-summary(m6) # Significant effects for one-language-at-home and its interaction with age and the interaction between one-parent-one-lang and age.
+summary(m6) # Significant effects for one-language-at-home and its interaction with age and with age is a significant predictor.
 
 # We run model diagnostics with DHARMa
 sim_m6 <- simulateResiduals(m6)
@@ -412,5 +427,13 @@ plot(m6_effects, add.data = F, colors= custom_palette, alpha=.2)
 # We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. 
 emtrends(m6, pairwise ~ strategy, var="age") # # trend for one-language-at-home significantly different from that of one parent-bilingual
 
+
+m7<- glmmTMB(exp_l2 ~ strategy * age, data=for_balance, family= beta_family(link="logit"), dispformula = ~ strategy + age)
+summary(m7)
+
+
+m7_effects <- ggpredict(m7, terms = c("age", "strategy"))
+custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
+plot(m7_effects, add.data = F, colors= custom_palette, alpha=.2)
 ```
 

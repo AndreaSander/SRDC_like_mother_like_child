@@ -447,10 +447,6 @@ for_anovas<- first_visit_only %>%
                               strategy=="one-parent-bilingual"~"OneParentBilingual",
                               strategy=="one-parent-one-lang"~"OneParentOneLang"))
 ##French Anova objects
-#Cutting the tails of the distribution to avoid 0 inflation, while we will describe the families that were monolingual, it makes our tests more statistically sound to cut the tails.
-for_anovas_f<- for_anovas %>%
-  filter(!fre_exp == 0) %>%
-  filter(!fre_exp == 100)
 
 anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas_f)
 aov_fre<- tidy(anova_model_french)
