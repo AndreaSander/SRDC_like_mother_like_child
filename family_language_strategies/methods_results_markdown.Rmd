@@ -26,6 +26,8 @@ library(waffle)
 library(ggsankey)
 library(dplyr)
 library(tidyverse)
+library(patchwork)
+library(ggpubr)
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
 load(here("anonymized_data/final_data_strat.Rda"))
@@ -377,80 +379,44 @@ chisq_p<- round(xsq_test$p.value, 4)
   We performed a chi-square goodness of fit test to determine whether the difference in proportion of usage between strategies was statistically significant, where the null hypothesis was that the strategies were used in the same proportion across the sample. The chi-squared goodness of fit test revealed a statistically significant difference between the distribution of proportions in our data and a distribution in which all the proportions are equal (X= `r chisq_value`, p= <.001).
 ```{r, include=FALSE}
 
-fre_by_strategy <- first_visit_only  %>%
-  select(c(strategy, fre_exp)) %>%
-  group_by(strategy) %>%
-  dplyr::summarize(
-    sd= sd(fre_exp, na.rm=TRUE),
-    mean= mean(fre_exp,  na.rm=TRUE)) %>%
-  arrange(desc("mean(fre_exp, na.rm=TRUE)")) 
+for_anova_graphs<-first_visit_only 
 
-fre_by_strategy$strategy<- factor(fre_by_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+for_anova_graphs$strategy<- factor(for_anova_graphs$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
 
-figure_2_a <-ggplot(fre_by_strategy, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
-  geom_col() +
-  geom_errorbar(width=0.2)+
+figure_2_a <-ggplot(for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
+  stat_summary(geom="bar")+
+  stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
     theme(axis.text.x = element_blank())+
-  labs(title= "Mean french exposure by strategy")
+  labs(title= "A. Mean French exposure by strategy")
 
-eng_by_strategy <- first_visit_only  %>%
-  select(c(strategy, eng_exp)) %>%
-  group_by(strategy) %>%
-  dplyr::summarize(
-    sd= sd(eng_exp, na.rm=TRUE),
-    mean= mean(eng_exp,  na.rm=TRUE)) %>%
-  arrange(desc("mean(eng_exp, na.rm=TRUE)")) 
-
-eng_by_strategy$strategy<- factor(eng_by_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
-
-figure_2_b <-ggplot(eng_by_strategy, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
-  geom_col() +
-  geom_errorbar(width=0.2)+
+figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
+  stat_summary(geom="bar")+
+  stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
     theme(axis.text.x = element_blank())+
-  labs(title= "Mean english exposure by strategy")
+  labs(title= "B. Mean English exposure by strategy")
 
-
-min_by_strategy <- first_visit_only  %>%
-  select(c(strategy, min_exp)) %>%
-  group_by(strategy) %>%
-  dplyr::summarize(
-    sd= sd(min_exp, na.rm=TRUE),
-    mean= mean(min_exp,  na.rm=TRUE)) %>%
-  arrange(desc("mean(min_exp, na.rm=TRUE)")) 
-
-min_by_strategy$strategy<- factor(min_by_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
-
-figure_2_c <-ggplot(min_by_strategy, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
-  geom_col() +
-  geom_errorbar(width=0.2)+
+figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
+  stat_summary(geom="bar")+
+  stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
     theme(axis.text.x = element_blank())+
-  labs(title= "Mean heritage language exposure by strategy")
+  labs(title= "C. Mean HL exposure by strategy")
 
 
-
-balance <- first_visit_only  %>%
-  select(c(strategy, exp_l2)) %>%
-  group_by(strategy) %>%
-  dplyr::summarize(
-    sd= sd(exp_l2, na.rm=TRUE),
-    mean= mean(exp_l2,  na.rm=TRUE)) %>%
-  arrange(desc("mean(exp_l2, na.rm=TRUE)")) 
-
-balance$strategy<- factor(balance$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
-
-figure_2_d<- ggplot(balance, aes( x=strategy , y=mean, fill = strategy, ymin = mean, ymax = mean+sd )) +
-  geom_col() +
-  geom_errorbar(width=0.2)+
+figure_2_d <-ggplot(for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strategy )) +
+  stat_summary(geom="bar")+
+  stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
     theme(axis.text.x = element_blank())+
-  labs(title= "Mean exposure balance by strategy")
+  labs(title= "D. Mean exposure balance by strategy")
+
+figure_2<- figure_2_a + figure_2_b + figure_2_c + figure_2_d
 
 
 ```
