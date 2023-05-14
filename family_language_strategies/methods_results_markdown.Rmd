@@ -388,7 +388,7 @@ figure_2_a <-ggplot(for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank())+
+    theme(axis.text.x = element_blank(), legend.position = "none")+
   labs(title= "A. Mean French exposure by strategy")
 
 figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
@@ -404,7 +404,7 @@ figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank())+
+    theme(axis.text.x = element_blank(), legend.position = "none")+
   labs(title= "C. Mean HL exposure by strategy")
 
 
@@ -413,7 +413,7 @@ figure_2_d <-ggplot(for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strateg
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank())+
+    theme(axis.text.x = element_blank(), legend.position = "none")+
   labs(title= "D. Mean exposure balance by strategy")
 
 figure_2<- figure_2_a + figure_2_b + figure_2_c + figure_2_d
