@@ -27,6 +27,14 @@ library(mvtnorm)
 library(boot)
 library(bbmle)
 library(knitr)
+library(patchwork)
+
+#Saving my palette to use in visualizations
+my_yellow<-"#FFC107"
+my_orange<- "#D95F02"
+my_blue<- "#1F78B4"
+my_green<- "#33a02c"
+my_purple<- "#683f6d"
 ```
 
 
@@ -385,8 +393,10 @@ testDispersion(sim_m4b) # MODEL OK!
 
 # We can plot the fixed effects for m4b, the best model so far (very interesting!)
 m4b_effects <- ggpredict(m4b, terms = c("age", "strategy"))
-custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
-plot(m4b_effects, add.data = F, colors= custom_palette, alpha=.2)
+custom_palette = c(my_orange, my_green, my_yellow, my_blue)
+figure_3a<- plot(m4b_effects, add.data = F, colors= custom_palette, alpha=.2)+
+  theme(legend.position = "none")+
+  labs(title= "A. Predicted values of English Exposure")
 
 
 # We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. This code computes pairwise comparisons of the estimated marginal means of eng_exp across the different levels of "strategy", while holding "age" constant at its mean value.
@@ -404,8 +414,9 @@ testDispersion(sim_m5) # MODEL OK!
 
 # We can plot the fixed effects for m5, the best model so far
 m5_effects <- ggpredict(m5, terms = c("age", "strategy"))
-custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
-plot(m5_effects, add.data = F, colors= custom_palette, alpha=.2)
+custom_palette = c(my_orange, my_green, my_yellow, my_blue)
+figure_3b<- plot(m5_effects, add.data = F, colors= custom_palette, alpha=.2)+
+  labs(title= "B. Predicted values of French Exposure")
 
 # We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. 
 emtrends(m5, pairwise ~ strategy, var="age") # no significant results
@@ -421,8 +432,10 @@ testDispersion(sim_m6) # MODEL OK!
 
 # We can plot the fixed effects for m6, the best model so far (very interesting!)
 m6_effects <- ggpredict(m6, terms = c("age", "strategy"))
-custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
-plot(m6_effects, add.data = F, colors= custom_palette, alpha=.2)
+custom_palette = c(my_orange, my_green, my_yellow, my_blue)
+figure_3c<- plot(m6_effects, add.data = F, colors= custom_palette, alpha=.2) +
+  theme(legend.position = "none")+
+  labs(title= "C. Predicted values of HL Exposure")
 
 # We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. 
 emtrends(m6, pairwise ~ strategy, var="age") # # trend for one-language-at-home significantly different from that of one parent-bilingual
@@ -433,7 +446,11 @@ summary(m7)
 
 
 m7_effects <- ggpredict(m7, terms = c("age", "strategy"))
-custom_palette = c("#BD081C","#0099FF", "#00B489", "#FF8F00")
-plot(m7_effects, add.data = F, colors= custom_palette, alpha=.2)
+custom_palette = c(my_orange, my_green, my_yellow, my_blue)
+figure_3d<- plot(m7_effects, add.data = F, colors= custom_palette, alpha=.2)+
+  theme(legend.position = "none")+
+  labs(title= "D. Predicted values of Exposure Balance")
+
+figure_3a + figure_3b + figure_3c + figure_3d
 ```
 
