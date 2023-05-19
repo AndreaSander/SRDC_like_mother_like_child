@@ -241,48 +241,48 @@ sd_visit_l <- round(sd(visit_length$length_between_visits),2)
 
 ```{r table describing the family strategies categorization, include=FALSE}
 
-collapse_rows_df <- function(df, variable){
- group_var <- enquo(variable)
-  df %>%
-    group_by(!! group_var) %>%
-    mutate(groupRow = 1:n()) %>%
-    ungroup() %>%
-    mutate(!!quo_name(group_var) := ifelse(groupRow == 1, as.character(!! group_var), "")) %>%
-    select(-c(groupRow))
-}
+#collapse_rows_df <- function(df, variable){
+ #group_var <- enquo(variable)
+  #df %>%
+   # group_by(!! group_var) %>%
+    #mutate(groupRow = 1:n()) %>%
+    #ungroup() %>%
+    #mutate(!!quo_name(group_var) := ifelse(groupRow == 1, as.character(!! group_var), "")) %>%
+    #select(-c(groupRow))
+#}
 
-strats_table<- final_data_strat %>%
-  select(c(strategy, care1_l1, care1_l2, care2_l1, care2_l2))%>%
-  rename(caregiver_A_L1 = care1_l1)%>%
-  rename(caregiver_A_L2 = care1_l2)%>%
-  rename(caregiver_B_L1 = care2_l1)%>%
-  rename(caregiver_B_L2 = care2_l2)%>%
-  arrange(strategy) %>%
-  distinct() %>%
-  collapse_rows_df(strategy)
+#strats_table<- final_data_strat %>%
+ # select(c(strategy, care1_l1, care1_l2, care2_l1, care2_l2))%>%
+  #rename(caregiver_A_L1 = care1_l1)%>%
+  #rename(caregiver_A_L2 = care1_l2)%>%
+  #rename(caregiver_B_L1 = care2_l1)%>%
+  #rename(caregiver_B_L2 = care2_l2)%>%
+  #arrange(strategy) %>%
+  #distinct() %>%
+  #collapse_rows_df(strategy)
 
 
-color_formatter <- formatter(
-  "span",
-  style = x ~ style(
-    color = 'black',
-    'background-color' =
-      ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
-            ))
+#color_formatter <- formatter(
+ # "span",
+#  style = x ~ style(
+ #   color = 'black',
+  #  'background-color' =
+   #   ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
+    #        ))
 
- formattable(strats_table,
-            list(
-              `caregiver_A_L1`= color_formatter,
-              `caregiver_A_L2`= color_formatter,
-              `caregiver_B_L1`= color_formatter,
-              `caregiver_B_L2`= color_formatter
-            )) %>%
-    as.datatable(options = list(pageLength = 35)) %>%
-  spk_add_deps() -> w
+ #formattable(strats_table,
+  #          list(
+   #           `caregiver_A_L1`= color_formatter,
+    #          `caregiver_A_L2`= color_formatter,
+     #         `caregiver_B_L1`= color_formatter,
+      #        `caregiver_B_L2`= color_formatter
+       #     )) %>%
+    #as.datatable(options = list(pageLength = 35)) %>%
+  #spk_add_deps() -> w
 
-htmlwidgets::saveWidget(w, "table.html", selfcontained = TRUE)
-webshot::webshot(url = "table.html", file = "table.png", 
-               vwidth = 1200, vheight = 275)
+#htmlwidgets::saveWidget(w, "table.html", selfcontained = TRUE)
+#webshot::webshot(url = "table.html", file = "table.png", 
+ #              vwidth = 1200, vheight = 275)
             
 ```
 
@@ -388,7 +388,7 @@ figure_2_a <-ggplot(for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank(), legend.position = "none")+
+       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
   labs(title= "A. Mean French exposure by strategy")
 
 figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
@@ -396,7 +396,7 @@ figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank())+
+        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.text= element_text(size=20), legend.title= element_text(size=20))+
   labs(title= "B. Mean English exposure by strategy")
 
 figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
@@ -404,7 +404,7 @@ figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank(), legend.position = "none")+
+        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
   labs(title= "C. Mean HL exposure by strategy")
 
 
@@ -413,7 +413,7 @@ figure_2_d <-ggplot(for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strateg
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank(), legend.position = "none")+
+    theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
   labs(title= "D. Mean exposure balance by strategy")
 
 figure_2<- figure_2_a + figure_2_b + figure_2_c + figure_2_d
