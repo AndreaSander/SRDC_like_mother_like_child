@@ -346,7 +346,7 @@ for_beta_blc <- for_blc_anova %>%
   select(gender, anon_baby_id, age, exp_l2, strategy, lang_status) %>% 
   filter(lang_status != "monolingual") %>% 
   filter(gender != "NA") %>%
-    filter(!strategy == "one-language-at-home")
+    filter(!strategy == "OneLanguageAtHome")
 
 
 
@@ -397,9 +397,9 @@ testDispersion(sim_m4b) # MODEL OK!
 # We can plot the fixed effects for m4b, the best model so far (very interesting!)
 m4b_effects <- ggpredict(m4b, terms = c("age", "strategy"))
 custom_palette = c(my_orange, my_yellow, my_blue)
-figure_3a<- plot(m4b_effects, add.data = F, colors= custom_palette, alpha=.2)+
-  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
-  labs(title= "A. Predicted values of English Exposure")
+figure_3a<- plot(m4b_effects, add.data = F, colors= custom_palette, alpha=.05)+
+  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
+  labs(title= "A. Predicted values of English")
 
 
 # We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. This code computes pairwise comparisons of the estimated marginal means of eng_exp across the different levels of "strategy", while holding "age" constant at its mean value.
@@ -418,9 +418,9 @@ testDispersion(sim_m5) # MODEL OK!
 # We can plot the fixed effects for m5, the best model so far
 m5_effects <- ggpredict(m5, terms = c("age", "strategy"))
 custom_palette = c(my_orange, my_yellow, my_blue)
-figure_3b<- plot(m5_effects, add.data = F, colors= custom_palette, alpha=.2)+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.text= element_text(size=20), legend.title= element_text(size=20))+
-  labs(title= "B. Predicted values of French Exposure")
+figure_3b<- plot(m5_effects, add.data = F, colors= custom_palette, alpha=.05)+
+        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.text= element_text(size=20), legend.title= element_text(size=20))+
+  labs(title= "B. Predicted values of French")
 
 # We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. 
 emtrends(m5, pairwise ~ strategy, var="age") # no significant results
@@ -437,9 +437,9 @@ testDispersion(sim_m6) # MODEL OK!
 # We can plot the fixed effects for m6, the best model so far (very interesting!)
 m6_effects <- ggpredict(m6, terms = c("age", "strategy"))
 custom_palette = c(my_orange, my_yellow, my_blue)
-figure_3c<- plot(m6_effects, add.data = F, colors= custom_palette, alpha=.2) +
-  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
-  labs(title= "C. Predicted values of HL Exposure")
+figure_3c<- plot(m6_effects, add.data = F, colors= custom_palette, alpha=.05) +
+  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
+  labs(title= "C. Predicted values of HL")
 
 # We can estimate and compare the marginal means of the response variable across different levels of "strategy", while accounting for the effect of "age" and the varying dispersion parameter. 
 emtrends(m6, pairwise ~ strategy, var="age") # # trend for one-language-at-home significantly different from that of one parent-bilingual
@@ -451,10 +451,10 @@ summary(m7)
 
 m7_effects <- ggpredict(m7, terms = c("age", "strategy"))
 custom_palette = c(my_orange, my_yellow, my_blue)
-figure_3d<- plot(m7_effects, add.data = F, colors= custom_palette, alpha=.2)+
-  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
+figure_3d<- plot(m7_effects, add.data = F, colors= custom_palette, alpha=.05)+
+  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
   labs(title= "D. Predicted values of Exposure Balance")
 
-figure_3a + figure_3b + figure_3c + figure_3d
+figure_3<- figure_3a + figure_3b + figure_3c + figure_3d
 ```
 
