@@ -28,6 +28,17 @@ library(dplyr)
 library(tidyverse)
 library(patchwork)
 library(ggpubr)
+library(broom)
+library(janitor)
+library(glmmTMB)
+library(DHARMa)
+library(betareg)
+library(emmeans)
+library(ggeffects)
+library(mvtnorm)
+library(boot)
+library(bbmle)
+
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
 load(here("anonymized_data/final_data_strat.Rda"))
@@ -57,19 +68,11 @@ total_excluded_triling<- final_data_no_exc %>%
   distinct(unique_id)%>%
   tally()
 
-#Monolingual strategies count
-monoling_strategies_count <-
-  final_data_no_exc %>% 
-  mutate(monoling_strategy = case_when(
-    care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "yes",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1 %in% c("never", "NA") & care2_l2=="regularly"~ "yes",
-    TRUE~"No"))%>%
-  mutate(bilinugal_strategy= case_when(monoling_strategy=="yes" & childcare_l1 == l1 & childcare_l2 %in% c(NA, "NA")  ~ "no",
-                                       monoling_strategy=="yes"& childcare_l2 == l1 & childcare_l1 %in% c(NA, "NA") ~"no",
-                                       monoling_strategy=="yes" & childcare_l1 %in% c(NA, "NA") & childcare_l2 %in% c(NA, "NA") ~"no",
-                                       TRUE~"yes")) %>%
-  filter(bilinugal_strategy=="no") %>%
-  distinct(unique_id)%>%
+#Monolingual exclusions
+total_monoling_excluded<- final_data %>%
+  filter(exp_l1 >95) %>%
+  filter(exp_l2 <5) %>%
+  distinct(unique_id) %>%
   tally()
 
 
@@ -217,11 +220,12 @@ sd_visit_l <- round(sd(visit_length$length_between_visits),2)
  
  The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus we kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. We decided to keep data from the first visit only because that made the data from families with multiple visits and families with a single visit easier to compare. 
  
- Most infants in our data were exposed to two languages. We defined the first language (L1) as the language to which they were most exposed which ranged from `r min_exp_range`  to `r max_exp_range` in our sample, as some infants were exposed to a small amount of a third language. We therefore defined the second language (L2) as the language to which they were second most exposed. We excluded `r total_excluded_triling` children who heard more than 10% of a third language from our original sample. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of which heard French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage language was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making other languages heritage or minority languages. Second, infants who heard a language other than English and French heard one of a wide variety of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been impractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
+ Most infants in our data were exposed to two languages. We defined the first language (L1) as the language to which they were most exposed which ranged from `r min_exp_range`  to `r max_exp_range` in our sample, as some infants were exposed to a small amount of a third language. We therefore defined the second language (L2) as the language to which they were second most exposed. We excluded `r total_excluded_triling` children who heard more than 10% of a third language from our original sample. Because the purpose of the present study is to explore bilingual family language strategies we also excluded families whose babies were getting monolingual input defined as hearing less than 95% of their L1 or less than 5% of their L2. We excluded a total of `r total_monoling_excluded` families based on this criteria.
  
- Because the purpose of the present study is to explore bilingual family language strategies we excluded, to the best of our abilities, families who were not using bilingual strategies (n= `r monoling_strategies_count`. We characterized these families as those where both caregivers reported using a single language with the child, and that reported either that the child attended a daycare where they only used the same language, the child had no other form of childcare, or there was missing data regarding other forms of childcare. That being said, we retained data from families that reported using two different languages with the child, but whse child ended up having a reported input of 100% to a single language. We retained those monolingual input/ bilingual strategy families for our descripted analyses, but we removed this data from our statistical analyses as it will be detailed below in the data pre-reocessing section of this manuscript.
+  After exclusions, the final main analyses dataset consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` months (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of which heard French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage language was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making other languages heritage or minority languages. Second, infants who heard a language other than English and French heard one of a wide variety of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been impractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
  
- After exclusions, the final dataset consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` months (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. We also excluded a second visit that occurred in less than 15 days from the first visit. The length between visits one and two varied between `r min_visit_l` and `r max_visit_l` days (m= `r avg_visit_l`days, sd= `r sd_visit_l` days).
+  While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. We also excluded a second visit that occurred in less than 15 days from the first visit. The length between visits one and two varied between `r min_visit_l` and `r max_visit_l` days (m= `r avg_visit_l`days, sd= `r sd_visit_l` days).
+
  
 
 
@@ -346,14 +350,9 @@ perc_one_language_at_home<- round(one_parent_biling$perc, 1)
 
 
 #Waffle plot
+V1<- setNames(prop_strategy$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
-figure_1<- ggplot(prop_strategy, aes(fill=strategy, values= n, na.rm=T)) +
-  geom_waffle (n_rows=22, color="white")+
-  scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
- labs(x="", title = "Proportion of Use of Family Strategies")+
-theme(axis.text.x= element_blank(), axis.ticks = element_blank())+
- coord_equal()+
-theme_void() 
+figure_1<- waffle(parts = V1, rows=20, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "Proportion of Use of Family Strategies", size=0.6)
 
 
 ```
@@ -388,7 +387,7 @@ figure_2_a <-ggplot(for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
+       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. Mean French exposure by strategy")
 
 figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
@@ -396,7 +395,7 @@ figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.text= element_text(size=20), legend.title= element_text(size=20))+
+        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
   labs(title= "B. Mean English exposure by strategy")
 
 figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
@@ -404,7 +403,7 @@ figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strate
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
+        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "C. Mean HL exposure by strategy")
 
 
@@ -413,7 +412,7 @@ figure_2_d <-ggplot(for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strateg
   stat_summary() +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
   theme_bw() +
-    theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=23), legend.position = "none")+
+    theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "D. Mean exposure balance by strategy")
 
 figure_2<- figure_2_a + figure_2_b + figure_2_c + figure_2_d
@@ -440,9 +439,6 @@ tukey_fre<- tidy(tukey_fre_s)
 fre_F <- aov_fre$statistic
 fre_p <- aov_fre$p.value
 
-library(performance)
-model_performance(anova_model_french)
-check_model(anova_model_french)
 
 ##English ANOVA objects
 anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
@@ -483,37 +479,30 @@ tidy(blc_model)
 blc_tukey<- tukey_hsd(blc_model)
 
 
+library(performance)
+model_performance(anova_model_french)
+model_performance(anova_model_english)
+model_performance(anova_model_heritage)
+model_performance(blc_model)
+
+check_model(blc_model)
+check_model(anova_model_french)
+check_model(anova_model_english)
+
+plot(anova_model_french)
+
+
 ```
 
 We were also interested to learn how different family language strategies related to the overall amount of language exposure infants were getting. We observed that different family language strategies led to different a different mean exposure to French, English and Heritage languages (See Figure 2a, 2b, and 2c respectively).
 
-Figure 2 a.
+```{r print combined figure 2, echo=FALSE, message=FALSE, warning=FALSE}
 
-```{r, echo=FALSE}
-print(figure_2_a)
-
-```
-
-Figure 2 b.
-
-```{r, echo=FALSE}
-print(figure_2_b)
-
-```
- 
- Figure 2 c.
- 
-```{r, echo=FALSE}
-print(figure_2_c)
+print(figure_2)
 
 ```
 
 
-
-
-```{r, echo=FALSE}
-print(figure_2_d)
-```
   
   To test this statistically, we conducted a one-way analysis of variance (ANOVA test) to explore weather some family language strategies contributed more variance to the amount of exposure babies got in French, English and/or a heritage language, regardless of whether each of those languages was their L1 or L2 language. 
 
@@ -539,6 +528,115 @@ Table 4. Tukey HSD Test on the Effect of Strategies on Heritage Langauge Exposur
 
 ```{r}
 kable(tukey_min)
+```
+
+
+```{r performing beta models, include=FALSE}
+
+# Create the dataframes to run the models for each language. Monolinguals are excluded, as are the rows 
+# where exposure for a given language equals 100. Since exposure is on a 0-100 scale and the beta distributions 
+# works with values ranging from 0-1, exposure is divided by 100. 
+for_beta <- for_anovas %>% 
+  select(gender, anon_baby_id, age, fre_exp, eng_exp, min_exp, strategy) %>% 
+  filter(gender != "NA") %>%
+  filter(!strategy == "OneLanguageAtHome")
+
+for_beta_blc <- for_blc_anova %>% 
+  select(gender, anon_baby_id, age, exp_l2, strategy) %>% 
+  filter(gender != "NA") %>%
+    filter(!strategy == "OneLanguageAtHome")
+
+
+# Dataframe for english exposure
+for_beta_eng <- for_beta %>% 
+  select(age, eng_exp, strategy, anon_baby_id) %>% 
+  filter(eng_exp != "NA") %>% 
+  mutate(eng_exp = eng_exp/100,
+         strategy = as.factor(strategy))
+
+# Dataframe for french exposure
+for_beta_fre <- for_beta %>% 
+  select(age, fre_exp, strategy, anon_baby_id) %>%
+  filter(fre_exp != "NA") %>% 
+  mutate(fre_exp = fre_exp/100, 
+         strategy = as.factor(strategy))
+
+# Dataframe for minority language exposure
+for_beta_min <- for_beta %>% 
+  select(age, min_exp, strategy, anon_baby_id) %>%
+  filter(min_exp != "NA") %>% 
+  mutate(min_exp = min_exp/100,
+         strategy = as.factor(strategy))
+
+
+#Dataframe for balance
+for_balance<- for_beta_blc%>% 
+  select(age, exp_l2, strategy, anon_baby_id) %>%
+  filter(exp_l2 != "NA") %>% 
+  mutate(exp_l2 = exp_l2/100,
+         strategy = as.factor(strategy))
+
+#Constructing the different beta models
+beta_eng<- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * age)
+beta_fre<- glmmTMB(fre_exp ~ strategy * age, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * age)
+beta_min<- glmmTMB(min_exp ~ strategy * age, data=for_beta_min, family= beta_family(link="logit"), dispformula = ~ strategy * age)
+beta_blc<- glmmTMB(exp_l2 ~ strategy * age, data=for_balance, family= beta_family(link="logit"), dispformula = ~ strategy * age)
+
+#predicting models' effects
+
+beta_eng_effects <- ggpredict(beta_eng, terms = c("age", "strategy"))
+beta_fre_effects <- ggpredict(beta_fre, terms = c("age", "strategy"))
+beta_min_effects <- ggpredict(beta_min, terms = c("age", "strategy"))
+beta_blc_effects <- ggpredict(beta_blc, terms = c("age", "strategy"))
+
+#Graphing each model's predicted effects
+
+custom_palette = c(my_orange, my_yellow, my_blue)
+
+figure_3a<- plot(beta_eng_effects, add.data = F, colors= custom_palette, alpha=.05)+
+  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
+  labs(title= "A. Predicted values of English")
+
+figure_3b<- plot(beta_fre_effects, add.data = F, colors= custom_palette, alpha=.05)+
+        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.text= element_text(size=20), legend.title= element_text(size=20))+
+  labs(title= "B. Predicted values of French")
+
+figure_3c<- plot(beta_min_effects, add.data = F, colors= custom_palette, alpha=.05) +
+  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
+  labs(title= "C. Predicted values of HL")
+
+figure_3d<- plot(beta_blc_effects, add.data = F, colors= custom_palette, alpha=.05)+
+  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
+  labs(title= "D. Predicted values of Exposure Balance")
+
+#Creating a combined figure of all the figures above
+figure_3<- figure_3a + figure_3b + figure_3c + figure_3d
+
+#Summary of beta regression results
+summary(beta_eng)
+summary(beta_fre)
+summary(beta_min)
+summary(beta_blc)
+
+
+
+```
+
+We also explored the data using beta regression models. While these models are not broadly used in this field, they are especially appropriate for continuous proportions that are bounded between 1 and 0 (REF), which is the case for our outcome variables, as they use a structure that does not assume a normal error structure (REF). Estimation in these kinds of models is performed by maximum likelihood. Beta regressions fit both a conditional model, which models the mean of the response, and a dispersion model, which models the error. 
+
+We constructed four beta regression models where the proportion of either English, French, a Heritage language or the exposure to the non-dominant language were predicted both by the strategy used and the age of the baby (e.g.eng_exp ~ strategy * age). We decided not to include the one-language-at-home strategy in these analyses because there were too few families who used the strategy which introduced noise to the models. We performed model diagnostics in all of our models and corroborated they met model assumptions (model diagnostics can be found in the Appendices).
+
+We found a significant effect of the both-parents-bilingual strategy on total amount of French and total amount of English exposure in the dispersion models. We also found a significant effect of the both-parents-bilingual strategy on balance of exposure both in the conditional and the dispersion models. We did not find significant effects of any of the strategies on total amount of heritage language exposure.
+
+We found a significant effect of the interaction between age and the one-parent-one-language strategy where for older children the one-parent-one-langauge strategy is more associated with a balanced exposure than for older children. While we did not find statistical effects of age as a separate predictor or in its interaction with family strategies for our other models, the visual inspection of the data (Figure 3) shows a fanning shape where there appears to be no difference between strategies at younger ages and a growing difference with age. With this in mind we do not discard the possibility that age plays a role in all of our models, but the models were under-powered to find it. 
+
+
+
+Figure 3
+```{r, echo=FALSE}
+
+print(figure_3)
+
 ```
 
   
@@ -625,7 +723,7 @@ p1<- ggplot(for_sankey, aes(x = x,
   geom_sankey() 
 
 p2<- p1+ 
-      scale_fill_manual(name= "x", values = c(my_yellow, my_blue, my_orange, my_green))
+      scale_fill_manual(name= "x", values = c(my_orange, my_yellow, my_green, my_blue))
 
 p2<- p2 + 
   geom_sankey_label(size=3, color="black", fill="white")+
@@ -638,7 +736,7 @@ p2<- p2 +
   Finally, we wanted to explore whether families switched in their use of family language strategies across time. To explore this, we used a subset of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). We plotted the longitudinal data (See Figure 3) to determine the stability of family strategy use across time. As can be observed, most families maintain the same family language strategy throughout both visits. Specifically, `r no_change_perc`% kept the same strategy, and `r change_perc`% changed strategies  (See Table 5 for the breakdown of strategy use by visit). The biggest gain between visits was for the both parents bilingual strategy which gained around 6%. The biggest loss between visits was for the one language at home strategy which lost around 5%. The most common change between strategies was from the one parent bilingual strategy, to the both parents bilingual strategy, followed by changing from the one language at home strategy to the one parent bilingual strategy.  
 
 
-  Figure 3
+  Figure 4
   
 ```{r echo=FALSE}
 print(p2)
