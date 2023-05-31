@@ -449,7 +449,7 @@ tukey_eng<- tidy(tukey_eng_s)
 eng_F <- aov_eng$statistic
 eng_p <- aov_eng$p.value
 
-model_performance(anova_model_english)
+#model_performance(anova_model_english)
 check_model(anova_model_english)
 
 ##Heritage langauge ANOVA Objects
