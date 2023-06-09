@@ -38,6 +38,7 @@ library(ggeffects)
 library(mvtnorm)
 library(boot)
 library(bbmle)
+library(performance)
 
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
@@ -367,7 +368,8 @@ print(figure_1)
 
 ```{r goodness of fit, include=FALSE}
 for_chisq <- prop_strategy %>%
-  filter(strategy=="single-parent") # filter single parents because the cell size is small
+  filter(!strategy=="single-parent") %>%
+  filter(!strategy=="one-language-at-home")# filter these two strategies cause cell sizes are small
 
 xsq_test<- chisq.test(prop_strategy$n)
 
@@ -435,7 +437,6 @@ for_anovas<- first_visit_only %>%
 anova_model_french <- aov(fre_exp ~ strategy, data= for_anovas)
 aov_fre<- tidy(anova_model_french)
 tukey_fre_s<- TukeyHSD (anova_model_french)
-tukey_fre<- tidy(tukey_fre_s)
 fre_F <- aov_fre$statistic
 fre_p <- aov_fre$p.value
 
@@ -444,7 +445,7 @@ fre_p <- aov_fre$p.value
 anova_model_english <- aov(eng_exp ~ strategy, data= for_anovas)
 aov_eng<- tidy(anova_model_english)
 tukey_eng_s<- TukeyHSD(anova_model_english)
-tukey_eng<- tidy(tukey_eng_s)
+
 
 eng_F <- aov_eng$statistic
 eng_p <- aov_eng$p.value
@@ -457,7 +458,6 @@ check_model(anova_model_english)
 anova_model_heritage <- aov(min_exp ~ strategy, data= for_anovas)
 aov_min<- tidy(anova_model_heritage)
 tukey_min_s<-TukeyHSD(anova_model_heritage)
-tukey_min <- tidy(tukey_min_s)
 min_F <- aov_min$statistic
 min_p <- aov_min$p.value
 
@@ -475,11 +475,9 @@ for_blc_anova <- first_visit_only %>%
 
 
 blc_model <- aov(exp_l2 ~ strategy, data= for_blc_anova)
-tidy(blc_model)
-blc_tukey<- tukey_hsd(blc_model)
+tukey_blc_s<- TukeyHSD(blc_model)
 
 
-library(performance)
 model_performance(anova_model_french)
 model_performance(anova_model_english)
 model_performance(anova_model_heritage)
@@ -515,20 +513,27 @@ Finally, in terms of exposure to a heritage language, we found a difference that
 Table 2. Tukey HSD Test on the Effect of Strategies on French Exposure
 
 ```{r, echo=FALSE}
-kable(tukey_fre)
+kable(tidy(tukey_fre_s))
+
 ```
 
 Table 3. Tukey HSD Test on the Effect of Strategies on English Exposure
 
-```{r}
-kable(tukey_eng)
+```{r, echo=FALSE}
+kable(tidy(tukey_eng_s))
 ```
 
 Table 4. Tukey HSD Test on the Effect of Strategies on Heritage Langauge Exposure
 
-```{r}
-kable(tukey_min)
+```{r, echo=FALSE}
+kable(tidy(tukey_min_s))
 ```
+
+Table 5. Tukey HSD Test on the Effect of Strategies on Balance of Exposure
+```{r, echo=FALSE}
+kable(tidy(tukey_blc_s))
+```
+
 
 
 ```{r ploting strategies by lang_Exp by age before running betta models}
@@ -654,7 +659,7 @@ figure_3d<- plot(beta_blc_effects, add.data = F, colors= custom_palette, alpha=.
   labs(title= "D. Predicted values of Exposure Balance")
 
 #Creating a combined figure of all the figures above
-figure_3<- figure_3a + figure_3b + figure_3c + figure_3d
+#figure_3<- figure_3a + figure_3b + figure_3c + figure_3d
 
 #Summary of beta regression results
 summary(beta_eng)
