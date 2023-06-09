@@ -426,8 +426,8 @@ figure_2<- figure_2_a + figure_2_b + figure_2_c + figure_2_d
 
 for_anovas<- first_visit_only %>%
   filter(!strategy == "single-parent") %>%
+  filter(!strategy == "one-language-at-home") %>%
   mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
-                              strategy=="one-language-at-home"~"OneLanguageAtHome",
                               strategy=="one-parent-bilingual"~"OneParentBilingual",
                               strategy=="one-parent-one-lang"~"OneParentOneLang"))
 ##French Anova objects
@@ -468,8 +468,8 @@ check_model(anova_model_heritage)
 
 for_blc_anova <- first_visit_only %>%
   filter(!strategy == "single-parent") %>%
+    filter(!strategy == "one-language-at-home") %>%
   mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
-                              strategy=="one-language-at-home"~"OneLanguageAtHome",
                               strategy=="one-parent-bilingual"~"OneParentBilingual",
                               strategy=="one-parent-one-lang"~"OneParentOneLang"))
 
@@ -528,6 +528,50 @@ Table 4. Tukey HSD Test on the Effect of Strategies on Heritage Langauge Exposur
 
 ```{r}
 kable(tukey_min)
+```
+
+
+```{r ploting strategies by lang_Exp by age before running betta models}
+
+for_anova_graphs <- for_anova_graphs %>%
+  filter(!strategy == "single-parent") %>%
+  filter(!strategy == "one-language-at-home")
+
+figure_3_a <-ggplot(for_anova_graphs, aes( x=age , y=fre_exp, color=strategy, fill = strategy )) +
+  geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "A. French exposure changes by age divided by strategy")
+
+figure_3_b <-ggplot(for_anova_graphs, aes( x=age , y=eng_exp, color=strategy, fill = strategy )) +
+  geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "B. English exposure changes by age divided by strategy")
+
+figure_3_c <-ggplot(for_anova_graphs, aes( x=age , y=min_exp, color=strategy, fill = strategy )) +
+  geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "c. HL exposure changes by age divided by strategy")
+
+figure_3_d <-ggplot(for_anova_graphs, aes( x=age , y=exp_l2, color=strategy, fill = strategy )) +
+  geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 50)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "D. Exposure balance changes by age divided by strategy")
+
+
+figure_3<- figure_3_a + figure_3_b + figure_3_c + figure_3_d
+
 ```
 
 
