@@ -548,7 +548,7 @@ kable(tidy(tukey_blc_s))
 ```{r ploting strategies by lang_Exp by age before running betta models}
 
 
-figure_3_a <-ggplot(for_anova_graphs, aes( x=age , y=fre_exp, color=strategy, fill = strategy )) +
+figure_3_a <-ggplot(for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
   geom_smooth(alpha=0.2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
@@ -556,15 +556,15 @@ figure_3_a <-ggplot(for_anova_graphs, aes( x=age , y=fre_exp, color=strategy, fi
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. French exposure changes by age divided by strategy")
 
-figure_3_b <-ggplot(for_anova_graphs, aes( x=age , y=eng_exp, color=strategy, fill = strategy )) +
+figure_3_b <-ggplot(for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)) +
   geom_smooth(alpha=0.2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
   ylim(0, 100)+
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
   labs(title= "B. English exposure changes by age divided by strategy")
 
-figure_3_c <-ggplot(for_anova_graphs, aes( x=age , y=min_exp, color=strategy, fill = strategy )) +
+figure_3_c <-ggplot(for_anova_graphs, aes( x=age , y=min_exp, color=strategy)) +
   geom_smooth(alpha=0.2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
@@ -572,7 +572,7 @@ figure_3_c <-ggplot(for_anova_graphs, aes( x=age , y=min_exp, color=strategy, fi
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "c. HL exposure changes by age divided by strategy")
 
-figure_3_d <-ggplot(for_anova_graphs, aes( x=age , y=exp_l2, color=strategy, fill = strategy )) +
+figure_3_d <-ggplot(for_anova_graphs, aes( x=age , y=exp_l2, color=strategy )) +
   geom_smooth(alpha=0.2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
@@ -763,9 +763,11 @@ for_long_glmer<- longitudinal_data_analyses %>%
                                   TRUE~ "change"))
   
 
-long_model<- glmer(as.factor(change_strat) ~ length_between_visits +(1|anon_baby_id), data = for_long_glmer, family="binomial")
+long_model<- glmer(as.factor(change_strat) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_long_glmer, family="binomial")
 
 summary(long_model)
+
+
 
 
 ############ make sankey graph ########
