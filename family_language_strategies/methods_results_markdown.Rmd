@@ -384,10 +384,16 @@ for_anova_graphs<-first_visit_only
 
 for_anova_graphs$strategy<- factor(for_anova_graphs$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
 
+for_anova_graphs <- for_anova_graphs %>%
+  filter(!strategy == "single-parent") %>%
+  filter(!strategy == "one-language-at-home")
+  
+
 figure_2_a <-ggplot(for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
+  ylim(0,100) +
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. Mean French exposure by strategy")
@@ -395,7 +401,8 @@ figure_2_a <-ggplot(for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strate
 figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
+  ylim(0,100) +
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
         theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
   labs(title= "B. Mean English exposure by strategy")
@@ -403,7 +410,8 @@ figure_2_b <-ggplot(for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strate
 figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
+  ylim(0,100)+
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
         theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "C. Mean HL exposure by strategy")
@@ -412,7 +420,8 @@ figure_2_c <-ggplot(for_anova_graphs, aes( x=strategy , y=min_exp, fill = strate
 figure_2_d <-ggplot(for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple)) +
+  ylim(0,50) +
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
     theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "D. Mean exposure balance by strategy")
@@ -538,9 +547,6 @@ kable(tidy(tukey_blc_s))
 
 ```{r ploting strategies by lang_Exp by age before running betta models}
 
-for_anova_graphs <- for_anova_graphs %>%
-  filter(!strategy == "single-parent") %>%
-  filter(!strategy == "one-language-at-home")
 
 figure_3_a <-ggplot(for_anova_graphs, aes( x=age , y=fre_exp, color=strategy, fill = strategy )) +
   geom_smooth(alpha=0.2)+
