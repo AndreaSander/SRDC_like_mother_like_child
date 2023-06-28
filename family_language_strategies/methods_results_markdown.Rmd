@@ -123,40 +123,51 @@ four_visit <- final_data %>%
   distinct(unique_id)%>%
   tally()
 
-#l1 percentages
-l1_perc <- first_visit_only %>%
-group_by(l1) %>%
-  tally() %>%
-  mutate(prop = n/sum(n)) %>%
+
+#French-English-Heritage bilingual percentages
+
+FEH <- first_visit_only %>%
+  mutate(l1 = case_when(l1=="French" ~ "French",
+                        l1=="English" ~ "English",
+                        TRUE ~ "Heritage")) %>%
+    mutate(l2 = case_when(l2=="French" ~ "French",
+                        l2=="English" ~ "English",
+                        TRUE ~ "Heritage")) %>%
+  mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
+                                    l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
+                                    l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
+  
+FEH_perc<- FEH %>%
+  group_by(bilingual_type) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
-fre_l1 <- l1_perc %>%
-  filter(l1=="French") %>%
-  select(perc)
 
-eng_l1 <- l1_perc %>%
-  filter(l1=="English") %>%
-  select(perc)
+#By bilingual type percentages
+
+fre_eng_perc <- FEH %>%
+  filter(bilingual_type== "fre-eng")%>%
+ group_by(l1) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
   
-min_l1<- abs(fre_l1-eng_l1)
-
-
-#l2 percentages
-l2_perc <- first_visit_only %>%
-group_by(l2) %>%
-  tally() %>%
-  mutate(prop = n/sum(n)) %>%
+  
+  fre_her_perc <- FEH %>%
+  filter(bilingual_type=="fre-her")%>%
+  group_by(l1) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
-fre_l2 <- l2_perc %>%
-  filter(l2=="French") %>%
-  select(perc)
-
-eng_l2 <- l2_perc %>%
-  filter(l2=="English") %>%
-  select(perc)
   
-min_l2<- abs(fre_l2-eng_l2)
+  her_eng_perc <- FEH %>%
+  filter(bilingual_type=="eng-her") %>%
+  group_by(l1) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
 
 #l1 amount of exposure range
 min_exp_range <- final_data %>%
@@ -356,6 +367,23 @@ V1<- setNames(prop_strategy$n, c("both-parents-bilingual", "one-parent-bilingual
 figure_1<- waffle(parts = V1, rows=20, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "Proportion of Use of Family Strategies", size=0.6)
 
 
+#Making a figure of most used strategies divided by lang exposure
+for_breakdown <- first_visit_only %>%
+  mutate(l1 = case_when(l1=="French" ~ "French",
+                        l1=="English" ~ "English",
+                        TRUE ~ "Heritage")) %>%
+group_by(strategy, l1) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+for_breakdown$strategy<- factor(for_breakdown$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+ggplot(for_breakdown, aes(x=l1, y=n, fill=strategy)) + 
+  geom_bar(stat="identity", position="fill") +
+  scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple))
+
+
 ```
 ### Analytic approach
   Once characterized, we described the proportions in which family language strategies were used in our sample (See Figure 1). The most common strategy was the both parents bilingual strategy which was used by `r perc_both_parents_biling`% of the sample, and the least common strategy was the one language at home strategy (`r perc_one_language_at_home`%).  One-parent-bilingual (`r perc_one_parents_biling`%), and one-language-at-home (`r perc_one_language_at_home`%) were intermediate. Note that we had 11 single parent families who were not classified in the avobe mentioned strategies.
@@ -380,6 +408,16 @@ caregiver_bi_prop <- one_parent_b %>%
   tally() %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
+
+##Also looking at OPOL to see who speaks French
+
+opol_b <- first_visit_only %>%
+  filter(strategy=="one-parent-one-lang") %>%
+  mutate(who_speaks_fre = case_when(l1=="French" & care1_l1 %in% c("regularly", "sometimes") ~ "mother",
+                                    l1=="French" & care2_l1 %in% c("regularly", "sometimes")~"father",
+                                    l2=="French" & care1_l2 %in% c("regularly", "sometimes")~"mother",
+                                    l2=="French" & care2_l2 %in% c("regularly", "sometimes")~"father",
+                                    TRUE ~ "English-heritage"))
 
 ```
 
@@ -591,6 +629,17 @@ figure_3_b <-ggplot(for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)) +
 
 figure_3_c <-ggplot(for_anova_graphs, aes( x=age , y=min_exp, color=strategy)) +
   geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "c. HL exposure changes by age divided by strategy")
+
+#Figure 3 c with data points to explore why the confidence bands are choppy
+
+ggplot(for_anova_graphs, aes( x=age , y=min_exp, color=strategy)) +
+  geom_smooth(alpha=0.2)+
+  geom_point()+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
   ylim(0, 100)+
