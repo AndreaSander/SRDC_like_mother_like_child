@@ -417,7 +417,16 @@ opol_b <- first_visit_only %>%
                                     l1=="French" & care2_l1 %in% c("regularly", "sometimes")~"father",
                                     l2=="French" & care1_l2 %in% c("regularly", "sometimes")~"mother",
                                     l2=="French" & care2_l2 %in% c("regularly", "sometimes")~"father",
-                                    TRUE ~ "English-heritage"))
+                                    TRUE ~ "English-heritage")) %>%
+  mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
+                                    l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
+                                    l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
+
+opol_b_fre_count <- opol_b %>%
+  filter(bilingual_type=="fre-eng")%>%
+  group_by(who_speaks_fre)%>%
+  tally()%>%
+  mutate(prop = n/sum(n))
 
 ```
 
