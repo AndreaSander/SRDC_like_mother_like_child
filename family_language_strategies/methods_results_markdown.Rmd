@@ -315,6 +315,7 @@ sd_visit_l <- round(sd(visit_length$length_between_visits),2)
 ```{r proportion of strategy use visualizations, include=FALSE}
 #Family language strategy visualization
 
+######## FOR THE WHOLE SAMPLE ############
 
 #Calculating how many families use each strategy and its corresponding %
 prop_strategy<- first_visit_only %>%
@@ -384,6 +385,73 @@ ggplot(for_breakdown, aes(x=l1, y=n, fill=strategy)) +
   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple))
 
 
+####### FOR THE FRENCH- ENGLISH SAMPLE ############
+
+#Calculating how many families use each strategy and its corresponding %
+prop_strategy_FE<- FEH %>%
+  filter(bilingual_type == "fre-eng")%>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+#Reordering levels so legend in the graph is in order.
+prop_strategy_FE$strategy<- factor(prop_strategy_FE$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+prop_strategy_FE<- prop_strategy_FE %>%
+ arrange(desc(prop))
+
+#Waffle plot
+V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
+
+figure_1_FE<- waffle(parts = V1_FE, rows=15, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-English sample", size=0.6)
+
+
+
+###### FOR THE FRENCH- HERITAGE SAMPLE ###########
+#Calculating how many families use each strategy and its corresponding %
+prop_strategy_FH<- FEH %>%
+  filter(bilingual_type == "fre-her")%>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+#Reordering levels so legend in the graph is in order.
+prop_strategy_FH$strategy<- factor(prop_strategy_FH$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+prop_strategy_FH<- prop_strategy_FH %>%
+ arrange(desc(prop))
+
+#Waffle plot
+V1_FH<- setNames(prop_strategy_FH$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
+
+figure_1_FH<- waffle(parts = V1_FH, rows=5, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-heritage sample", size=0.6)
+
+
+
+
+##### FOR THE ENGLISH- HERITAGE SAMPLE ###########
+prop_strategy_EH<- FEH %>%
+  filter(bilingual_type == "eng-her")%>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+#Reordering levels so legend in the graph is in order.
+prop_strategy_EH$strategy<- factor(prop_strategy_EH$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+prop_strategy_EH<- prop_strategy_EH %>%
+ arrange(desc(prop))
+
+#Waffle plot
+V1_EH<- setNames(prop_strategy_EH$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "single-parent"))
+
+figure_1_EH<- waffle(parts = V1_EH, rows=5, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the English-heritage sample", size=0.6)
+
+
+
 ```
 ### Analytic approach
   Once characterized, we described the proportions in which family language strategies were used in our sample (See Figure 1). The most common strategy was the both parents bilingual strategy which was used by `r perc_both_parents_biling`% of the sample, and the least common strategy was the one language at home strategy (`r perc_one_language_at_home`%).  One-parent-bilingual (`r perc_one_parents_biling`%), and one-language-at-home (`r perc_one_language_at_home`%) were intermediate. Note that we had 11 single parent families who were not classified in the avobe mentioned strategies.
@@ -392,6 +460,10 @@ Figure 1
 
 ```{r, echo=FALSE}
 print(figure_1)
+print(figure_1_FE)
+print(figure_1_FH)
+print(figure_1_EH)
+
 ```
 
 ```{r}
