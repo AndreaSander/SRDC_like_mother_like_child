@@ -743,7 +743,7 @@ figure_3<- figure_3_a + figure_3_b + figure_3_d
 
 
 for_beta <- FE_for_anovas %>% 
-  select(gender, anon_baby_id, age, fre_exp, eng_exp, strategy, care1_l1, care1_l2, l1, l2) %>% 
+  select(gender, anon_baby_id, age, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
   mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
                                             l2=="French"~care1_l2))%>%
   mutate(caregiver_1_french_use = case_when(caregiver_1_french_use == "regularly" ~3,
@@ -755,15 +755,17 @@ for_beta <- FE_for_anovas %>%
 
   mutate(caregiver_1_english_use = case_when(caregiver_1_english_use == "regularly" ~3,
                                             caregiver_1_english_use == "sometimes"~ 2,
-                                            caregiver_1_english_use == "never"~1))%>%
-    mutate(caregiver_2_french_use = case_when(l1=="French"~care2_l1,
-                                            l2=="French"~care2_l2))%>%
+                                            caregiver_1_english_use == "never"~1)) %>%
+
+    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
+                                            l2=="French"~ care2_l2)) %>%
+    
   mutate(caregiver_2_french_use = case_when(caregiver_2_french_use == "regularly" ~3,
                                             caregiver_2_french_use == "sometimes"~ 2,
                                             caregiver_2_french_use == "never"~1))%>%
   
-    mutate(caregiver_2_english_use = case_when(l1=="English"~care1_l1,
-                                            l2=="English"~care1_l2)) %>%
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
 
   mutate(caregiver_2_english_use = case_when(caregiver_2_english_use == "regularly" ~3,
                                             caregiver_2_english_use == "sometimes"~ 2,
@@ -780,14 +782,14 @@ for_beta_blc <- FE_for_blc_anova %>%
 
 # Dataframe for english exposure
 for_beta_eng <- for_beta %>% 
-  select(age, eng_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use) %>% 
+  select(age, eng_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use,caregiver_2_english_use) %>% 
   filter(eng_exp != "NA") %>% 
   mutate(eng_exp = eng_exp/100,
          strategy = as.factor(strategy))
 
 # Dataframe for french exposure
 for_beta_fre <- for_beta %>% 
-  select(age, fre_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use) %>%
+  select(age, fre_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use, caregiver_2_english_use) %>%
   filter(fre_exp != "NA") %>% 
   mutate(fre_exp = fre_exp/100, 
          strategy = as.factor(strategy))
@@ -828,8 +830,18 @@ dad_beta_eng<- glmmTMB(eng_exp ~ strategy * caregiver_2_english_use, data=for_be
 dad_beta_fre<- glmmTMB(fre_exp ~ strategy * caregiver_2_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_french_use)
 
 #Summary of MOTHER models
-summary(mom_beta_eng)
-summary(mom_beta_fre)
+summary(dad_beta_eng)
+summary(dad_beta_fre)
+
+
+#MOTHER AND FATHER MODELS
+parents_beta_eng<- glmmTMB(eng_exp ~ strategy * caregiver_2_english_use + strategy * caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_english_use + strategy * caregiver_1_english_use)
+
+parents_beta_fre<- glmmTMB(fre_exp ~ strategy * caregiver_2_french_use + strategy*caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_french_use + strategy*caregiver_1_french_use)
+
+#Summary of MOTHER models
+summary(parents_beta_eng)
+summary(parents_beta_fre)
 
 
 
@@ -840,37 +852,6 @@ beta_fre_effects <- ggpredict(beta_fre, terms = c("age", "strategy"))
 beta_min_effects <- ggpredict(beta_min, terms = c("age", "strategy"))
 beta_blc_effects <- ggpredict(beta_blc, terms = c("age", "strategy"))
 
-#Graphing each model's predicted effects
-
-custom_palette = c(my_orange, my_yellow, my_blue)
-
-figure_3a<- plot(beta_eng_effects, add.data = F, colors= custom_palette, alpha=.05)+
-  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
-  labs(title= "A. Predicted values of English")
-
-figure_3b<- plot(beta_fre_effects, add.data = F, colors= custom_palette, alpha=.05)+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.text= element_text(size=20), legend.title= element_text(size=20))+
-  labs(title= "B. Predicted values of French")
-
-figure_3c<- plot(beta_min_effects, add.data = F, colors= custom_palette, alpha=.05) +
-  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
-  labs(title= "C. Predicted values of HL")
-
-figure_3d<- plot(beta_blc_effects, add.data = F, colors= custom_palette, alpha=.05)+
-  theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=22), legend.position = "none")+
-  labs(title= "D. Predicted values of Exposure Balance")
-
-#Creating a combined figure of all the figures above
-#figure_3<- figure_3a + figure_3b + figure_3c + figure_3d
-
-#Summary of beta regression results
-summary(beta_eng)
-summary(beta_fre)
-summary(beta_min)
-summary(beta_blc)
-
-
-
 ```
 
 We also explored the data using beta regression models. While these models are not broadly used in this field, they are especially appropriate for continuous proportions that are bounded between 1 and 0 (REF), which is the case for our outcome variables, as they use a structure that does not assume a normal error structure (REF). Estimation in these kinds of models is performed by maximum likelihood. Beta regressions fit both a conditional model, which models the mean of the response, and a dispersion model, which models the error. 
@@ -880,6 +861,42 @@ We constructed four beta regression models where the proportion of either Englis
 We found a significant effect of the both-parents-bilingual strategy on total amount of French and total amount of English exposure in the dispersion models. We also found a significant effect of the both-parents-bilingual strategy on balance of exposure both in the conditional and the dispersion models. We did not find significant effects of any of the strategies on total amount of heritage language exposure.
 
 We found a significant effect of the interaction between age and the one-parent-one-language strategy where for older children the one-parent-one-langauge strategy is more associated with a balanced exposure than for older children. While we did not find statistical effects of age as a separate predictor or in its interaction with family strategies for our other models, the visual inspection of the data (Figure 3) shows a fanning shape where there appears to be no difference between strategies at younger ages and a growing difference with age. With this in mind we do not discard the possibility that age plays a role in all of our models, but the models were under-powered to find it. 
+
+
+```{r}
+figure_mother_french <-ggplot(for_beta, aes( x= as.factor(caregiver_1_french_use) , y=fre_exp, fill=strategy)) +
+  geom_boxplot() +
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
+  labs(title= "Role of mothers' use of French by strategy in amount of French exposure")
+
+
+figure_mother_english <-ggplot(for_beta, aes( x= as.factor(caregiver_1_english_use) , y=eng_exp, fill=strategy)) +
+  geom_boxplot(na.rm=T) +
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
+  labs(title= "Role of mothers' use of English by strategy in amount of English exposure")
+
+
+figure_father_french <-ggplot(for_beta, aes( x= as.factor(caregiver_2_french_use) , y=fre_exp, fill=strategy)) +
+  geom_boxplot() +
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
+  labs(title= "Role of fathers' use of French by strategy in amount of French exposure")
+
+
+figure_father_english <-ggplot(for_beta, aes( x= as.factor(caregiver_2_english_use) , y=eng_exp, fill=strategy)) +
+  geom_boxplot() +
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
+  labs(title= "Role of fathers' use of English by strategy in amount of English exposure")
+
+
+```
 
 
 
