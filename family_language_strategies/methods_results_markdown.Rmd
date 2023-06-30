@@ -756,6 +756,19 @@ for_beta <- FE_for_anovas %>%
   mutate(caregiver_1_english_use = case_when(caregiver_1_english_use == "regularly" ~3,
                                             caregiver_1_english_use == "sometimes"~ 2,
                                             caregiver_1_english_use == "never"~1))%>%
+    mutate(caregiver_2_french_use = case_when(l1=="French"~care2_l1,
+                                            l2=="French"~care2_l2))%>%
+  mutate(caregiver_2_french_use = case_when(caregiver_2_french_use == "regularly" ~3,
+                                            caregiver_2_french_use == "sometimes"~ 2,
+                                            caregiver_2_french_use == "never"~1))%>%
+  
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care1_l1,
+                                            l2=="English"~care1_l2)) %>%
+
+  mutate(caregiver_2_english_use = case_when(caregiver_2_english_use == "regularly" ~3,
+                                            caregiver_2_english_use == "sometimes"~ 2,
+                                            caregiver_2_english_use == "never"~1))%>%
+  
   filter(gender != "NA") %>%
   filter(!strategy == "OneLanguageAtHome")
 
@@ -804,6 +817,15 @@ summary(beta_blc)
 #MOTHER MODELS
 mom_beta_eng<- glmmTMB(eng_exp ~ strategy * caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_1_english_use)
 mom_beta_fre<- glmmTMB(fre_exp ~ strategy * caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_1_french_use)
+
+#Summary of MOTHER models
+summary(mom_beta_eng)
+summary(mom_beta_fre)
+
+
+#FATHER MODELS 
+dad_beta_eng<- glmmTMB(eng_exp ~ strategy * caregiver_2_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_english_use)
+dad_beta_fre<- glmmTMB(fre_exp ~ strategy * caregiver_2_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_french_use)
 
 #Summary of MOTHER models
 summary(mom_beta_eng)
