@@ -518,6 +518,124 @@ opol_b_fre_count <- opol_b %>%
   tally()%>%
   mutate(prop = n/sum(n))
 
+##Looking at the responses distribution between mothers and fathers
+
+########################## FRENCH DATA ##################
+F_l1 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
+  filter(l1=="French") %>%
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+F_l2 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
+  filter(l2=="French") %>%
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+#Plotting mothers distribution of French use as L1
+ggplot(data = F_l1, aes(x=care1_l1, fill= care1_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of French use as L2
+F_l2 %>%
+  filter(!care1_l2 == "NA")%>%
+  ggplot(aes(x=care1_l2, fill= care1_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+
+#Plotting fathers distribution of French use as L1
+
+ggplot(data = F_l1, aes(x=care2_l1, fill= care2_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of French use as L2
+F_l2 %>%
+  filter(!care2_l2 == "NA")%>%
+  ggplot(aes(x=care2_l2, fill= care2_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+
+########################## ENGLISH DATA ##################
+E_l1 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
+  filter(l1=="English") %>%
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+E_l2 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
+  filter(l2=="English") %>%
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+#Plotting mothers distribution of English use as L1
+ggplot(data = E_l1, aes(x=care1_l1, fill= care1_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of English use as L2
+E_l2 %>%
+  filter(!care1_l2 == "NA")%>%
+  ggplot(aes(x=care1_l2, fill= care1_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+
+#Plotting fathers distribution of English use as L1
+
+ggplot(data = E_l1, aes(x=care2_l1, fill= care2_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of French use as L2
+E_l2 %>%
+  filter(!care2_l2 == "NA")%>%
+  ggplot(aes(x=care2_l2, fill= care2_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+
+########################## HERITAGE DATA ##################
+H_l1 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy, bilingual_type)) %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  filter(!l1 %in% c("French", "English"))
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+H_l2 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy, bilingual_type)) %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  filter(!l2 %in% c("French", "English"))
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+#Plotting mothers distribution of English use as L1
+ggplot(data = H_l1, aes(x=care1_l1, fill= care1_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of French use as L2
+H_l2 %>%
+  filter(!care1_l2 == "NA")%>%
+  ggplot(aes(x=care1_l2, fill= care1_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+
+#Plotting fathers distribution of French use as L1
+
+ggplot(data = E_l1, aes(x=care2_l1, fill= care2_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of French use as L2
+E_l2 %>%
+  filter(!care2_l2 == "NA")%>%
+  ggplot(aes(x=care2_l2, fill= care2_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+
 ```
 
 
@@ -804,6 +922,17 @@ for_balance<- for_beta_blc%>%
 
 #Constructing the different beta models
 
+#STRATEGY MODELS
+strat_eng<- glmmTMB(eng_exp ~ strategy, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy)
+strat_fre <- glmmTMB(eng_exp ~ strategy, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy)
+strat_blc<- glmmTMB(exp_l2 ~ strategy, data=for_balance, family= beta_family(link="logit"), dispformula = ~ strategy)
+
+
+#Summary of STRATEGY models
+summary(strat_eng)
+summary(strat_fre)
+summary(strat_blc)
+
 #AGE MODELS
 beta_eng<- glmmTMB(eng_exp ~ strategy * age, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * age)
 beta_fre<- glmmTMB(fre_exp ~ strategy * age, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * age)
@@ -817,8 +946,8 @@ summary(beta_blc)
 
 
 #MOTHER MODELS
-mom_beta_eng<- glmmTMB(eng_exp ~ strategy * caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_1_english_use)
-mom_beta_fre<- glmmTMB(fre_exp ~ strategy * caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_1_french_use)
+mom_beta_eng<- glmmTMB(eng_exp ~ caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_1_english_use)
+mom_beta_fre<- glmmTMB(fre_exp ~ caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_1_french_use)
 
 #Summary of MOTHER models
 summary(mom_beta_eng)
@@ -826,24 +955,39 @@ summary(mom_beta_fre)
 
 
 #FATHER MODELS 
-dad_beta_eng<- glmmTMB(eng_exp ~ strategy * caregiver_2_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_english_use)
-dad_beta_fre<- glmmTMB(fre_exp ~ strategy * caregiver_2_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_french_use)
+dad_beta_eng<- glmmTMB(eng_exp ~ caregiver_2_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use)
+dad_beta_fre<- glmmTMB(fre_exp ~ caregiver_2_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use)
 
-#Summary of MOTHER models
+#Summary of FATHER models
 summary(dad_beta_eng)
 summary(dad_beta_fre)
 
 
 #MOTHER AND FATHER MODELS
-parents_beta_eng<- glmmTMB(eng_exp ~ strategy * caregiver_2_english_use + strategy * caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_english_use + strategy * caregiver_1_english_use)
+parents_aditive_eng<- glmmTMB(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use + caregiver_1_english_use)
 
-parents_beta_fre<- glmmTMB(fre_exp ~ strategy * caregiver_2_french_use + strategy*caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ strategy * caregiver_2_french_use + strategy*caregiver_1_french_use)
+parents_aditive_fre<- glmmTMB(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use + caregiver_1_french_use)
 
-#Summary of MOTHER models
-summary(parents_beta_eng)
-summary(parents_beta_fre)
+parents_aditive_blc<- glmmTMB(exp_l2 ~ caregiver_2_french_use + caregiver_1_french_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use + caregiver_1_french_use)
+
+parents_int_eng<- glmmTMB(eng_exp ~ caregiver_2_english_use * caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use * caregiver_1_english_use)
+
+parents_int_fre<- glmmTMB(fre_exp ~ caregiver_2_french_use * caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use * caregiver_1_french_use)
+
+parents_int_blc<- glmmTMB(exp_l2 ~ caregiver_2_french_use * caregiver_1_french_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use * caregiver_1_french_use)
 
 
+#Summary of PARENTS models
+summary(parents_aditive_eng)
+summary(parents_aditive_fre)
+summary(parents_aditive_blc)
+summary(parents_int_eng)
+summary(parents_int_fre)
+summary(parents_int_blc)
+
+
+
+## MODEL COMPARISONS
 
 S#predicting models' effects
 
