@@ -238,8 +238,6 @@ sd_visit_l <- round(sd(visit_length$length_between_visits),2)
  
   While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. We also excluded a second visit that occurred in less than 15 days from the first visit. The length between visits one and two varied between `r min_visit_l` and `r max_visit_l` days (m= `r avg_visit_l`days, sd= `r sd_visit_l` days).
 
- 
-
 
 ### Instrument
   Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. 
@@ -251,83 +249,33 @@ sd_visit_l <- round(sd(visit_length$length_between_visits),2)
   The overall exposure estimate made with LEQ with MAPLE have high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
   
   We additionally collected demographic information about our participants and their families via a short paper form.
-
-
-## Results 
-
-```{r table describing the family strategies categorization, include=FALSE}
-
-#collapse_rows_df <- function(df, variable){
- #group_var <- enquo(variable)
-  #df %>%
-   # group_by(!! group_var) %>%
-    #mutate(groupRow = 1:n()) %>%
-    #ungroup() %>%
-    #mutate(!!quo_name(group_var) := ifelse(groupRow == 1, as.character(!! group_var), "")) %>%
-    #select(-c(groupRow))
-#}
-
-#strats_table<- final_data_strat %>%
- # select(c(strategy, care1_l1, care1_l2, care2_l1, care2_l2))%>%
-  #rename(caregiver_A_L1 = care1_l1)%>%
-  #rename(caregiver_A_L2 = care1_l2)%>%
-  #rename(caregiver_B_L1 = care2_l1)%>%
-  #rename(caregiver_B_L2 = care2_l2)%>%
-  #arrange(strategy) %>%
-  #distinct() %>%
-  #collapse_rows_df(strategy)
-
-
-#color_formatter <- formatter(
- # "span",
-#  style = x ~ style(
- #   color = 'black',
-  #  'background-color' =
-   #   ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
-    #        ))
-
- #formattable(strats_table,
-  #          list(
-   #           `caregiver_A_L1`= color_formatter,
-    #          `caregiver_A_L2`= color_formatter,
-     #         `caregiver_B_L1`= color_formatter,
-      #        `caregiver_B_L2`= color_formatter
-       #     )) %>%
-    #as.datatable(options = list(pageLength = 35)) %>%
-  #spk_add_deps() -> w
-
-#htmlwidgets::saveWidget(w, "table.html", selfcontained = TRUE)
-#webshot::webshot(url = "table.html", file = "table.png", 
- #              vwidth = 1200, vheight = 275)
-            
-```
-
-
-### Data Pre-Processing
+  
+### Data Pre-processing
 
   All the relevant LEQ data were manually entered from LEQ forms into excel spreadsheets. The data were entered twice by two different researchers to to catch errors, and discrepancies were resolved by a third individual who checked the original paper form. Demographic data were exported from Filemaker. 
   
   In preliminary analyses, we noticed that the one-parent-one-language strict and flexible categories both categories behaved similarly as predictors when performing statistical tests and other exploratory analyses. Moreover, splitting the categories split the sample size for the one-parent-one-language group, thus decreasing statistical power. Thus we ultimately decided to combine them into a single group. 
-  
-  Table 1
 
 
-```{r proportion of strategy use visualizations, include=FALSE}
+## Study 1: French-English data
+
+```{r Study 1: proportion of strategy use visualizations, include=FALSE}
 #Family language strategy visualization
 
-######## FOR THE WHOLE SAMPLE ############
+####### FOR THE FRENCH- ENGLISH SAMPLE ############
 
 #Calculating how many families use each strategy and its corresponding %
-prop_strategy<- first_visit_only %>%
+prop_strategy_FE<- FEH %>%
+  filter(bilingual_type == "fre-eng")%>%
 group_by(strategy) %>%
   tally() %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
 #Reordering levels so legend in the graph is in order.
-prop_strategy$strategy<- factor(prop_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+prop_strategy_FE$strategy<- factor(prop_strategy_FE$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
 
-prop_strategy<- prop_strategy %>%
+prop_strategy_FE<- prop_strategy_FE %>%
  arrange(desc(prop))
 
 #Creating dataframes of each strategy to save their percentages and prnt them on the text
@@ -363,9 +311,9 @@ perc_one_language_at_home<- round(one_parent_biling$perc, 1)
 
 
 #Waffle plot
-V1<- setNames(prop_strategy$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
+V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
-figure_1<- waffle(parts = V1, rows=20, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "Proportion of Use of Family Strategies", size=0.6)
+figure_1_FE<- waffle(parts = V1_FE, rows=15, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-English sample", size=0.6)
 
 
 #Making a figure of most used strategies divided by lang exposure
@@ -383,29 +331,6 @@ for_breakdown$strategy<- factor(for_breakdown$strategy, levels= c("both-parents-
 ggplot(for_breakdown, aes(x=l1, y=n, fill=strategy)) + 
   geom_bar(stat="identity", position="fill") +
   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple))
-
-
-####### FOR THE FRENCH- ENGLISH SAMPLE ############
-
-#Calculating how many families use each strategy and its corresponding %
-prop_strategy_FE<- FEH %>%
-  filter(bilingual_type == "fre-eng")%>%
-group_by(strategy) %>%
-  tally() %>%
-  mutate(prop = n/sum(n)) %>%
-  mutate(perc= prop*100)
-
-#Reordering levels so legend in the graph is in order.
-prop_strategy_FE$strategy<- factor(prop_strategy_FE$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
-
-prop_strategy_FE<- prop_strategy_FE %>%
- arrange(desc(prop))
-
-#Waffle plot
-V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
-
-figure_1_FE<- waffle(parts = V1_FE, rows=15, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-English sample", size=0.6)
-
 
 
 ###### FOR THE FRENCH- HERITAGE SAMPLE ###########
@@ -453,20 +378,130 @@ figure_1_EH<- waffle(parts = V1_EH, rows=5, colors = c(my_orange, my_yellow, my_
 
 
 ```
-### Analytic approach
-  Once characterized, we described the proportions in which family language strategies were used in our sample (See Figure 1). The most common strategy was the both parents bilingual strategy which was used by `r perc_both_parents_biling`% of the sample, and the least common strategy was the one language at home strategy (`r perc_one_language_at_home`%).  One-parent-bilingual (`r perc_one_parents_biling`%), and one-language-at-home (`r perc_one_language_at_home`%) were intermediate. Note that we had 11 single parent families who were not classified in the avobe mentioned strategies.
 
-Figure 1
 
-```{r, echo=FALSE}
-print(figure_1)
-print(figure_1_FE)
-print(figure_1_FH)
-print(figure_1_EH)
+
+```{r Study 1: Goodness of fit analysis, include=FALSE}
+
+for_chisq <- FEH %>%
+  filter(!strategy %in% c("single-parent", "one-language-at-home")) 
+
+xsq_test<- chisq.test(for_chisq$n)
+
+chisq_value<- round(xsq_test$statistic, 2)
+chisq_p<- round(xsq_test$p.value, 4)
 
 ```
 
-```{r}
+
+
+```{r Study 1: ANOVA graphs, include=FALSE}
+
+FE_for_anova_graphs<-FEH %>%
+  filter(bilingual_type == "fre-eng")
+
+FE_for_anova_graphs$strategy<- factor(FE_for_anova_graphs$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+FE_for_anova_graphs <- FE_for_anova_graphs %>%
+  filter(!strategy == "single-parent") %>%
+  filter(!strategy == "one-language-at-home")
+  
+
+figure_2_a <-ggplot(FE_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
+  stat_summary(geom="bar")+
+  stat_summary() +
+  ylim(0,100) +
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "A. Mean French exposure by strategy")
+
+figure_2_b <-ggplot(FE_for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
+  stat_summary(geom="bar")+
+  stat_summary() +
+  ylim(0,100) +
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
+  labs(title= "B. Mean English exposure by strategy")
+
+figure_2_c <-ggplot(FE_for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strategy )) +
+  stat_summary(geom="bar")+
+  stat_summary() +
+  ylim(0,50) +
+   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+    theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "C. Mean exposure balance by strategy")
+
+figure_2<- figure_2_a + figure_2_b + figure_2_c 
+
+
+```
+
+
+```{r Study 1: ANOVA analysis, include=FALSE}
+
+FE_for_anovas<- FEH %>%
+  filter(bilingual_type == "fre-eng") %>%
+  filter(!strategy == "single-parent") %>%
+  filter(!strategy == "one-language-at-home") %>%
+  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
+                              strategy=="one-parent-bilingual"~"OneParentBilingual",
+                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
+##French Anova objects
+
+FE_anova_model_french <- aov(fre_exp ~ strategy, data= FE_for_anovas)
+FE_aov_fre<- tidy(FE_anova_model_french)
+FE_tukey_fre_s<- TukeyHSD (FE_anova_model_french)
+FE_fre_F <- FE_aov_fre$statistic
+FE_fre_p <- FE_aov_fre$p.value
+
+
+##English ANOVA objects
+FE_anova_model_english <- aov(eng_exp ~ strategy, data= FE_for_anovas)
+FE_aov_eng<- tidy(FE_anova_model_english)
+FE_tukey_eng_s<- TukeyHSD(FE_anova_model_english)
+
+
+FE_eng_F <- FE_aov_eng$statistic
+FE_eng_p <- FE_aov_eng$p.value
+
+#model_performance(anova_model_english)
+#check_model(anova_model_english)
+
+## Exposure balance
+FE_for_blc_anova <- FEH %>%
+  filter(bilingual_type == "fre-eng")%>%
+  filter(!strategy == "single-parent") %>%
+    filter(!strategy == "one-language-at-home") %>%
+  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
+                              strategy=="one-parent-bilingual"~"OneParentBilingual",
+                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
+
+
+FE_blc_model <- aov(exp_l2 ~ strategy, data= FE_for_blc_anova)
+FE_aov_blc<- tidy(FE_blc_model)
+FE_tukey_blc_s<- TukeyHSD(FE_blc_model)
+
+
+model_performance(anova_model_french)
+model_performance(anova_model_english)
+model_performance(anova_model_heritage)
+model_performance(blc_model)
+
+check_model(blc_model)
+check_model(anova_model_french)
+check_model(anova_model_english)
+
+plot(anova_model_french)
+
+
+```
+
+
+```{r Study 1: Mother and father language exploration, include=FALSE}
+
 ### Looking at the one parent bilingual data to see which parent tends to be bilingual
 
 
@@ -596,218 +631,10 @@ E_l2 %>%
   facet_grid(cols = vars(strategy))
 
 
-########################## HERITAGE DATA ##################
-H_l1 <- FEH %>%
-select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy, bilingual_type)) %>%
-  filter(!bilingual_type == "fre-eng") %>%
-  filter(!l1 %in% c("French", "English"))
-  filter(!strategy %in% c("single-parent", "one-language-at-home"))
-
-H_l2 <- FEH %>%
-select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy, bilingual_type)) %>%
-  filter(!bilingual_type == "fre-eng") %>%
-  filter(!l2 %in% c("French", "English"))
-  filter(!strategy %in% c("single-parent", "one-language-at-home"))
-
-#Plotting mothers distribution of English use as L1
-ggplot(data = H_l1, aes(x=care1_l1, fill= care1_l1)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))
-
-#Plotting mothers distribution of French use as L2
-H_l2 %>%
-  filter(!care1_l2 == "NA")%>%
-  ggplot(aes(x=care1_l2, fill= care1_l2)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))
-
-
-#Plotting fathers distribution of French use as L1
-
-ggplot(data = E_l1, aes(x=care2_l1, fill= care2_l1)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))
-
-#Plotting mothers distribution of French use as L2
-E_l2 %>%
-  filter(!care2_l2 == "NA")%>%
-  ggplot(aes(x=care2_l2, fill= care2_l2)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))
-
-
 ```
 
 
-```{r goodness of fit, include=FALSE}
-for_chisq <- prop_strategy %>%
-  filter(!strategy=="single-parent") 
-
-xsq_test<- chisq.test(for_chisq$n)
-
-chisq_value<- round(xsq_test$statistic, 2)
-chisq_p<- round(xsq_test$p.value, 4)
-
-
-for_chisq_s_olah <- prop_strategy %>%
-  filter(!strategy=="single-parent") %>%
- filter(!strategy=="one-language-at-home")# filter these two strategies cause cell sizes are small
-
-xsq_test_s_olah<- chisq.test(for_chisq_s_olah$n)
-```
-
-  We performed a chi-square goodness of fit test to determine whether the difference in proportion of usage between strategies was statistically significant, where the null hypothesis was that the strategies were used in the same proportion across the sample. The chi-squared goodness of fit test revealed a statistically significant difference between the distribution of proportions in our data and a distribution in which all the proportions are equal (X= `r chisq_value`, p= <.001).
-```{r, include=FALSE}
-
-FE_for_anova_graphs<-FEH %>%
-  filter(bilingual_type == "fre-eng")
-
-FE_for_anova_graphs$strategy<- factor(FE_for_anova_graphs$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
-
-FE_for_anova_graphs <- FE_for_anova_graphs %>%
-  filter(!strategy == "single-parent") %>%
-  filter(!strategy == "one-language-at-home")
-  
-
-figure_2_a <-ggplot(FE_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
-  stat_summary(geom="bar")+
-  stat_summary() +
-  ylim(0,100) +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "A. Mean French exposure by strategy")
-
-figure_2_b <-ggplot(FE_for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
-  stat_summary(geom="bar")+
-  stat_summary() +
-  ylim(0,100) +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
-  labs(title= "B. Mean English exposure by strategy")
-
-figure_2_c <-ggplot(FE_for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strategy )) +
-  stat_summary(geom="bar")+
-  stat_summary() +
-  ylim(0,50) +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-    theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "C. Mean exposure balance by strategy")
-
-figure_2<- figure_2_a + figure_2_b + figure_2_c 
-
-
-```
-
-
-
-```{r performing ANOVAs and Hukey post hoc test, include=FALSE}
-
-FE_for_anovas<- FEH %>%
-  filter(bilingual_type == "fre-eng") %>%
-  filter(!strategy == "single-parent") %>%
-  filter(!strategy == "one-language-at-home") %>%
-  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
-                              strategy=="one-parent-bilingual"~"OneParentBilingual",
-                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
-##French Anova objects
-
-FE_anova_model_french <- aov(fre_exp ~ strategy, data= FE_for_anovas)
-FE_aov_fre<- tidy(FE_anova_model_french)
-FE_tukey_fre_s<- TukeyHSD (FE_anova_model_french)
-FE_fre_F <- FE_aov_fre$statistic
-FE_fre_p <- FE_aov_fre$p.value
-
-
-##English ANOVA objects
-FE_anova_model_english <- aov(eng_exp ~ strategy, data= FE_for_anovas)
-FE_aov_eng<- tidy(FE_anova_model_english)
-FE_tukey_eng_s<- TukeyHSD(FE_anova_model_english)
-
-
-FE_eng_F <- FE_aov_eng$statistic
-FE_eng_p <- FE_aov_eng$p.value
-
-#model_performance(anova_model_english)
-#check_model(anova_model_english)
-
-## Exposure balance
-FE_for_blc_anova <- FEH %>%
-  filter(bilingual_type == "fre-eng")%>%
-  filter(!strategy == "single-parent") %>%
-    filter(!strategy == "one-language-at-home") %>%
-  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
-                              strategy=="one-parent-bilingual"~"OneParentBilingual",
-                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
-
-
-FE_blc_model <- aov(exp_l2 ~ strategy, data= FE_for_blc_anova)
-FE_aov_blc<- tidy(FE_blc_model)
-FE_tukey_blc_s<- TukeyHSD(FE_blc_model)
-
-
-model_performance(anova_model_french)
-model_performance(anova_model_english)
-model_performance(anova_model_heritage)
-model_performance(blc_model)
-
-check_model(blc_model)
-check_model(anova_model_french)
-check_model(anova_model_english)
-
-plot(anova_model_french)
-
-
-```
-
-We were also interested to learn how different family language strategies related to the overall amount of language exposure infants were getting. We observed that different family language strategies led to different a different mean exposure to French, English and Heritage languages (See Figure 2a, 2b, and 2c respectively).
-
-```{r print combined figure 2, echo=FALSE, message=FALSE, warning=FALSE}
-
-print(figure_2)
-
-```
-
-
-  
-  To test this statistically, we conducted a one-way analysis of variance (ANOVA test) to explore weather some family language strategies contributed more variance to the amount of exposure babies got in French, English and/or a heritage language, regardless of whether each of those languages was their L1 or L2 language. 
-
-In terms of French exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r fre_F`, p= `r fre_p`). We then conducted a Tukey HSD post-hoc analysis to determine which observed difference between means accounted for more variance(See Table 2). The post-hoc analyses showed that the one parent bilingual strategy was significantly different than the both parents bilingual, one-parent-one-language, and the one language at home strategies. The one parent bilingual strategy was associated with the lowest mean French exposure out all the strategies (see Figure 2a).
-
-In terms of English exposure, we found a statistically significant difference in how much variance the family language strategies contribute (F=`r eng_F`, p= `r eng_p`). We then conducted a Tukey HSD post-hoc analysis to determine which observed difference between means accounted for more variance(See Table 3). The post-hoc analyses showed again that the one parent bilingual strategy was statistically significantly different than the one-parent-one-language, and the one language at home strategies. However, in the case of English, the one parent bilingual strategy was associated with the highest mean English exposure out of all the strategies (See Figure 2b).This makes sense as most of the families in our sample were French-English bilinguals, and thus English exposure was in most cases a complement to French exposure.
-
-Finally, in terms of exposure to a heritage language, we found a difference that approached statistical difference in how much variance the family language strategies contribute (F=`r min_F`, p= `r min_p`). The fact that the the difference between strategies only approaches significance might be due to a lack of power, since the sample of families who used a heritage language was relatively small. We thus decided to also conduct a Tukey HSD post-hoc analysis. The post-hoc analysis showed that the one language at home strategy was statistically significantly different than the one-parent-one-language strategy. The one language at home strategy was associated with the lowest mean heritage language exposure, while the one-parent-one-language strategy was associated with the highest mean heritage language exposure (see Figure 2c). 
-
-Table 2. Tukey HSD Test on the Effect of Strategies on French Exposure
-
-```{r, echo=FALSE}
-kable(tidy(tukey_fre_s))
-
-```
-
-Table 3. Tukey HSD Test on the Effect of Strategies on English Exposure
-
-```{r, echo=FALSE}
-kable(tidy(tukey_eng_s))
-```
-
-Table 4. Tukey HSD Test on the Effect of Strategies on Heritage Langauge Exposure
-
-```{r, echo=FALSE}
-kable(tidy(tukey_min_s))
-```
-
-Table 5. Tukey HSD Test on the Effect of Strategies on Balance of Exposure
-```{r, echo=FALSE}
-kable(tidy(tukey_blc_s))
-```
-
-
-
-```{r ploting strategies by lang_Exp by age before running betta models}
-
+```{r Study 1: beta model graphs, include=FALSE}
 
 figure_3_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
   geom_smooth(alpha=0.2)+
@@ -825,18 +652,6 @@ figure_3_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
   labs(title= "B. English exposure changes by age divided by strategy")
 
-
-#Figure 3 c with data points to explore why the confidence bands are choppy
-
-#ggplot(for_anova_graphs, aes( x=age , y=min_exp, color=strategy)) +
- # geom_smooth(alpha=0.2)+
-  #geom_point()+
-  #scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  #theme_bw() +
-  #ylim(0, 100)+
-  #     theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), #legend.position = "none")+
- # labs(title= "c. HL exposure changes by age divided by strategy")
-
 figure_3_d <-ggplot(FE_for_anova_graphs, aes( x=age , y=exp_l2, color=strategy )) +
   geom_smooth(alpha=0.2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
@@ -851,7 +666,7 @@ figure_3<- figure_3_a + figure_3_b + figure_3_d
 ```
 
 
-```{r performing beta models, include=FALSE}
+```{r Study 1: beta model analysis, include=FALSE}
 
 # Create the dataframes to run the models for each language. Monolinguals are excluded, as are the rows 
 # where exposure for a given language equals 100. Since exposure is on a 0-100 scale and the beta distributions 
@@ -996,61 +811,102 @@ beta_fre_effects <- ggpredict(beta_fre, terms = c("age", "strategy"))
 beta_min_effects <- ggpredict(beta_min, terms = c("age", "strategy"))
 beta_blc_effects <- ggpredict(beta_blc, terms = c("age", "strategy"))
 
+
 ```
 
-We also explored the data using beta regression models. While these models are not broadly used in this field, they are especially appropriate for continuous proportions that are bounded between 1 and 0 (REF), which is the case for our outcome variables, as they use a structure that does not assume a normal error structure (REF). Estimation in these kinds of models is performed by maximum likelihood. Beta regressions fit both a conditional model, which models the mean of the response, and a dispersion model, which models the error. 
-
-We constructed four beta regression models where the proportion of either English, French, a Heritage language or the exposure to the non-dominant language were predicted both by the strategy used and the age of the baby (e.g.eng_exp ~ strategy * age). We decided not to include the one-language-at-home strategy in these analyses because there were too few families who used the strategy which introduced noise to the models. We performed model diagnostics in all of our models and corroborated they met model assumptions (model diagnostics can be found in the Appendices).
-
-We found a significant effect of the both-parents-bilingual strategy on total amount of French and total amount of English exposure in the dispersion models. We also found a significant effect of the both-parents-bilingual strategy on balance of exposure both in the conditional and the dispersion models. We did not find significant effects of any of the strategies on total amount of heritage language exposure.
-
-We found a significant effect of the interaction between age and the one-parent-one-language strategy where for older children the one-parent-one-langauge strategy is more associated with a balanced exposure than for older children. While we did not find statistical effects of age as a separate predictor or in its interaction with family strategies for our other models, the visual inspection of the data (Figure 3) shows a fanning shape where there appears to be no difference between strategies at younger ages and a growing difference with age. With this in mind we do not discard the possibility that age plays a role in all of our models, but the models were under-powered to find it. 
-
+## Study 2
 
 ```{r}
-figure_mother_french <-ggplot(for_beta, aes( x= as.factor(caregiver_1_french_use) , y=fre_exp, fill=strategy)) +
-  geom_boxplot() +
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
-  labs(title= "Role of mothers' use of French by strategy in amount of French exposure")
+###### FOR THE FRENCH- HERITAGE SAMPLE ###########
+#Calculating how many families use each strategy and its corresponding %
+prop_strategy_FH<- FEH %>%
+  filter(bilingual_type == "fre-her")%>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+#Reordering levels so legend in the graph is in order.
+prop_strategy_FH$strategy<- factor(prop_strategy_FH$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+prop_strategy_FH<- prop_strategy_FH %>%
+ arrange(desc(prop))
+
+#Waffle plot
+V1_FH<- setNames(prop_strategy_FH$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
+
+figure_1_FH<- waffle(parts = V1_FH, rows=5, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-heritage sample", size=0.6)
 
 
-figure_mother_english <-ggplot(for_beta, aes( x= as.factor(caregiver_1_english_use) , y=eng_exp, fill=strategy)) +
-  geom_boxplot(na.rm=T) +
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
-  labs(title= "Role of mothers' use of English by strategy in amount of English exposure")
+##### FOR THE ENGLISH- HERITAGE SAMPLE ###########
+prop_strategy_EH<- FEH %>%
+  filter(bilingual_type == "eng-her")%>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+#Reordering levels so legend in the graph is in order.
+prop_strategy_EH$strategy<- factor(prop_strategy_EH$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+prop_strategy_EH<- prop_strategy_EH %>%
+ arrange(desc(prop))
+
+#Waffle plot
+V1_EH<- setNames(prop_strategy_EH$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "single-parent"))
+
+figure_1_EH<- waffle(parts = V1_EH, rows=5, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the English-heritage sample", size=0.6)
+```
 
 
-figure_father_french <-ggplot(for_beta, aes( x= as.factor(caregiver_2_french_use) , y=fre_exp, fill=strategy)) +
-  geom_boxplot() +
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
-  labs(title= "Role of fathers' use of French by strategy in amount of French exposure")
+```{r Study 2}
 
 
-figure_father_english <-ggplot(for_beta, aes( x= as.factor(caregiver_2_english_use) , y=eng_exp, fill=strategy)) +
-  geom_boxplot() +
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
-  labs(title= "Role of fathers' use of English by strategy in amount of English exposure")
+
+########################## HERITAGE DATA ##################
+H_l1 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy, bilingual_type)) %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  filter(!l1 %in% c("French", "English"))
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+H_l2 <- FEH %>%
+select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy, bilingual_type)) %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  filter(!l2 %in% c("French", "English"))
+  filter(!strategy %in% c("single-parent", "one-language-at-home"))
+
+#Plotting mothers distribution of English use as L1
+ggplot(data = H_l1, aes(x=care1_l1, fill= care1_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of French use as L2
+H_l2 %>%
+  filter(!care1_l2 == "NA")%>%
+  ggplot(aes(x=care1_l2, fill= care1_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+
+#Plotting fathers distribution of French use as L1
+
+ggplot(data = E_l1, aes(x=care2_l1, fill= care2_l1)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
+
+#Plotting mothers distribution of French use as L2
+E_l2 %>%
+  filter(!care2_l2 == "NA")%>%
+  ggplot(aes(x=care2_l2, fill= care2_l2)) +
+  geom_bar() +
+  facet_grid(cols = vars(strategy))
 
 
 ```
 
 
-
-Figure 3
-```{r, echo=FALSE}
-
-print(figure_3)
-
-```
-
+## Longitudinal exploratory analyses
   
 ```{r, include=FALSE}
 ## LONGITUDINAL DATA ANALYSES ##
@@ -1181,4 +1037,122 @@ kable(percentages_visits)
 ```
 
   
-  
+```{r}
+
+## Extra code
+
+######## FOR THE WHOLE SAMPLE ############
+
+#Calculating how many families use each strategy and its corresponding %
+prop_strategy<- first_visit_only %>%
+group_by(strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+#Reordering levels so legend in the graph is in order.
+prop_strategy$strategy<- factor(prop_strategy$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+prop_strategy<- prop_strategy %>%
+ arrange(desc(prop))
+
+#Creating dataframes of each strategy to save their percentages and prnt them on the text
+
+##Both parents bilingual
+both_parents_biling<- prop_strategy %>%
+  filter(strategy=="both-parents-bilingual") %>%
+  select(perc)
+
+perc_both_parents_biling<- round(both_parents_biling$perc, 1)
+
+##One parent bilingual
+one_parent_biling<- prop_strategy %>%
+  filter(strategy=="one-parent-bilingual") %>%
+  select(perc)
+
+perc_one_parents_biling<- round(one_parent_biling$perc, 1)
+
+
+##One parent one lang
+one_parent_one_lang<- prop_strategy %>%
+  filter(strategy=="one-parent-one-lang") %>%
+  select(perc)
+
+perc_one_parent_one_lang<- round(one_parent_biling$perc, 1)
+
+##one language at home
+one_language_at_home<- prop_strategy %>%
+  filter(strategy=="one-language-at-home") %>%
+  select(perc)
+
+perc_one_language_at_home<- round(one_parent_biling$perc, 1)
+
+
+#Waffle plot
+V1<- setNames(prop_strategy$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
+
+figure_1<- waffle(parts = V1, rows=20, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "Proportion of Use of Family Strategies", size=0.6)
+
+
+#Making a figure of most used strategies divided by lang exposure
+for_breakdown <- first_visit_only %>%
+  mutate(l1 = case_when(l1=="French" ~ "French",
+                        l1=="English" ~ "English",
+                        TRUE ~ "Heritage")) %>%
+group_by(strategy, l1) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+for_breakdown$strategy<- factor(for_breakdown$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+
+ggplot(for_breakdown, aes(x=l1, y=n, fill=strategy)) + 
+  geom_bar(stat="identity", position="fill") +
+  scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple))
+
+
+#collapse_rows_df <- function(df, variable){
+ #group_var <- enquo(variable)
+  #df %>%
+   # group_by(!! group_var) %>%
+    #mutate(groupRow = 1:n()) %>%
+    #ungroup() %>%
+    #mutate(!!quo_name(group_var) := ifelse(groupRow == 1, as.character(!! group_var), "")) %>%
+    #select(-c(groupRow))
+#}
+
+#strats_table<- final_data_strat %>%
+ # select(c(strategy, care1_l1, care1_l2, care2_l1, care2_l2))%>%
+  #rename(caregiver_A_L1 = care1_l1)%>%
+  #rename(caregiver_A_L2 = care1_l2)%>%
+  #rename(caregiver_B_L1 = care2_l1)%>%
+  #rename(caregiver_B_L2 = care2_l2)%>%
+  #arrange(strategy) %>%
+  #distinct() %>%
+  #collapse_rows_df(strategy)
+
+
+#color_formatter <- formatter(
+ # "span",
+#  style = x ~ style(
+ #   color = 'black',
+  #  'background-color' =
+   #   ifelse(x == "regularly", "#a1d76a", ifelse( x=="sometimes","#ffffbf", if_else(x=="never", "#e9a3c9", "white")))
+    #        ))
+
+ #formattable(strats_table,
+  #          list(
+   #           `caregiver_A_L1`= color_formatter,
+    #          `caregiver_A_L2`= color_formatter,
+     #         `caregiver_B_L1`= color_formatter,
+      #        `caregiver_B_L2`= color_formatter
+       #     )) %>%
+    #as.datatable(options = list(pageLength = 35)) %>%
+  #spk_add_deps() -> w
+
+#htmlwidgets::saveWidget(w, "table.html", selfcontained = TRUE)
+#webshot::webshot(url = "table.html", file = "table.png", 
+ #              vwidth = 1200, vheight = 275)
+
+```
+
