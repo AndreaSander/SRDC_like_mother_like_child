@@ -683,6 +683,7 @@ figure_3_c <-ggplot(FE_for_anova_graphs, aes( x=age , y=exp_l2, color=strategy )
 figure_3<- figure_3_a + figure_3_b + figure_3_c
 
 ggsave(file="Figure_3.png", width=25, height=7, dpi=300)
+
 ```
 
 
@@ -829,10 +830,6 @@ summary(age_by_eng)
 summary(age_by_fre)
 summary(age_by_blc)
 
-#Contrasting of age models
-
-
-
 
 #MOTHER MODELS
 mom_beta_eng<- glmmTMB(eng_exp ~ caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_1_english_use)
@@ -865,28 +862,24 @@ parents_aditive_blc_fre <- glmmTMB(exp_l2 ~ caregiver_2_french_use + caregiver_1
 
 parents_aditive_blc_eng <- glmmTMB(exp_l2 ~ caregiver_2_english_use + caregiver_1_english_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use + caregiver_1_english_use)
 
-parents_int_eng<- glmmTMB(eng_exp ~ caregiver_2_english_use * caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use * caregiver_1_english_use)
-
-parents_int_fre<- glmmTMB(fre_exp ~ caregiver_2_french_use * caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use * caregiver_1_french_use)
-
-parents_int_blc_fre <- glmmTMB(exp_l2 ~ caregiver_2_french_use * caregiver_1_french_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use * caregiver_1_french_use)
-
-parents_int_blc_eng <- glmmTMB(exp_l2 ~ caregiver_2_english_use * caregiver_1_english_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use * caregiver_1_english_use)
-
-
 ## MODEL COMPARISONS
 #ENGLISH MODELS
-test_performance(parents_int_eng, parents_aditive_eng, mom_beta_eng)
-test_performance(parents_int_eng, parents_aditive_eng, dad_beta_eng)
+test_performance(parents_aditive_eng, mom_beta_eng)
+test_performance(parents_aditive_eng, dad_beta_eng)
 
-performance::compare_performance(parents_int_eng, parents_aditive_eng, mom_beta_eng, dad_beta_eng)
+#DHARMa::simulateLRT(mom_beta_eng, parents_aditive_eng, n=100) #aditive model is better
+
+
+##Wierd marginal R square for the English models even when ran on SJ plot. Ask Nico about dharma.
+performance::compare_performance(parents_aditive_eng, mom_beta_eng, dad_beta_eng)
 
 #FRENCH MODELS
-test_performance(parents_int_fre, parents_aditive_fre, mom_beta_fre)
-test_performance(parents_int_fre, parents_aditive_fre, dad_beta_fre)
+test_performance(parents_aditive_fre, mom_beta_fre)
+test_performance(parents_aditive_fre, dad_beta_fre)
 
-performance::compare_performance(parents_int_fre, parents_aditive_fre, mom_beta_fre, dad_beta_fre)
+performance::compare_performance(parents_aditive_fre, mom_beta_fre, dad_beta_fre)
 
+#DHARMa::simulateLRT(mom_beta_fre, parents_aditive_fre, n=100) 
 
 #BALANCE MODELS
 test_performance(parents_int_blc_fre, parents_aditive_blc_fre, mom_beta_blc_fre)
@@ -897,7 +890,15 @@ test_performance(parents_int_blc_eng, parents_aditive_blc_eng, dad_beta_blc_eng)
 
 performance::compare_performance(parents_int_blc_fre, parents_aditive_blc_fre, mom_beta_blc_fre, dad_beta_blc_fre,parents_int_blc_eng, parents_aditive_blc_eng, mom_beta_blc_eng, dad_beta_blc_eng)
 
-#Summary of BEST FITTING models
+
+ summary(parents_aditive_fre)
+ summary(parents_aditive_eng)
+ summary(parents_aditive_blc_fre)
+ summary(parents_aditive_blc_eng)
+ #balance models instead of each caregiver use of french or English calculate some sort of parent balance score like ratio or L1-L2
+ #Run the models as ordered factor factors and try to run it as a linear regression.
+
+ #Summary of BEST FITTING models
 summary(parents_int_eng)
 summary(parents_int_fre)
 summary(parents_int_blc_fre)
@@ -921,7 +922,83 @@ performance::check_model(parents_int_blc_fre)
 
 ## The R2 marginal calculation is wierd, should run the models in Dhrarma to see if we get a different R2 calculation because dharma might be better suited for non normal models.
 
+
+
+## Caregiver graphs
+
+
+for_careg_graphs <- FE_for_blc_anova %>% 
+  select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
+  mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
+                                            l2=="French"~care1_l2))%>%
+  mutate(caregiver_1_french_use = case_when(caregiver_1_french_use == "regularly" ~3,
+                                            caregiver_1_french_use == "sometimes"~ 2,
+                                            caregiver_1_french_use == "never"~1))%>%
+  
+    mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
+                                            l2=="English"~care1_l2)) %>%
+
+  mutate(caregiver_1_english_use = case_when(caregiver_1_english_use == "regularly" ~3,
+                                            caregiver_1_english_use == "sometimes"~ 2,
+                                            caregiver_1_english_use == "never"~1)) %>%
+
+    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
+                                            l2=="French"~ care2_l2)) %>%
+  
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
+  filter(gender != "NA") %>%
+  filter(!strategy == "OneLanguageAtHome") %>%
+  mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, exp_l2 = exp_l2/100) %>%
+  drop_na()
+
+figure_10_a <-ggplot(for_careg_graphs, aes( x=caregiver_1_french_use , y=fre_exp)) +
+  geom_smooth(na.rm=T)+
+  facet_wrap(vars(caregiver_2_french_use))+
+  theme_bw() +
+  ylim(0, 1)
+
+figure_10_b <-ggplot(for_careg_graphs, aes( x=caregiver_1_english_use , y=eng_exp )) +
+  geom_smooth()+
+facet_wrap(vars(caregiver_2_english_use))+
+  theme_bw() +
+  ylim(0, 1)
+
+
+figure_10_c <-ggplot(for_careg_graphs, aes( x=caregiver_1_english_use , y=exp_l2 )) +
+  geom_smooth()+
+facet_wrap(vars(caregiver_2_english_use))+
+  theme_bw() +
+  ylim(0, 1)
+
+figure_10_d <-ggplot(for_careg_graphs, aes( x=caregiver_1_french_use , y=exp_l2, color=caregiver_2_french_use )) +
+  geom_smooth()+
+#facet_wrap(vars(caregiver_2_english_use))+
+  theme_bw() +
+  ylim(0, 1)
+
 ```
+
+## simple linear models
+```{r}
+
+## Seems like linear models have the same results as beta models 
+
+
+lm_mom_beta_eng<- lm(eng_exp ~ caregiver_1_english_use, data=for_beta_eng)
+
+lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=for_beta_eng)
+
+summary(lm_mom_beta_eng)
+summary(lm_parents_aditive_eng)
+
+anova(lm_parents_aditive_eng, lm_mom_beta_eng)
+
+
+#These R squared measures do make sense
+performance::compare_performance(lm_mom_beta_eng, lm_parents_aditive_eng)
+```
+
 
 ## Study 2
 
