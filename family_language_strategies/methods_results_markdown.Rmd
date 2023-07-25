@@ -693,9 +693,6 @@ ggsave(file="Figure_3.png", width=25, height=7, dpi=300)
 # where exposure for a given language equals 100. Since exposure is on a 0-100 scale and the beta distributions 
 # works with values ranging from 0-1, exposure is divided by 100. 
 
-
-
-
 for_beta <- FE_for_anovas %>% 
   select(gender, anon_baby_id, age, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
   mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
@@ -756,6 +753,8 @@ for_beta_blc <- FE_for_blc_anova %>%
   mutate(caregiver_2_english_use = case_when(caregiver_2_english_use == "regularly" ~3,
                                             caregiver_2_english_use == "sometimes"~ 2,
                                             caregiver_2_english_use == "never"~1)) %>%
+  mutate(french_abs_dif = abs(caregiver_1_french_use-caregiver_2_french_use)) %>%
+  mutate(english_abs_dif = abs(caregiver_1_english_use-caregiver_2_english_use)) %>%
   filter(gender != "NA") %>%
     filter(!strategy == "OneLanguageAtHome")
 
@@ -779,7 +778,7 @@ for_beta_fre <- for_beta %>%
 
 #Dataframe for balance
 for_balance<- for_beta_blc%>% 
-  select(age, exp_l2, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use, caregiver_2_english_use) %>%
+  select(age, exp_l2, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, french_abs_dif, english_abs_dif) %>%
   filter(exp_l2 != "NA") %>% 
   mutate(exp_l2 = exp_l2/100,
          strategy = as.factor(strategy)) %>%
@@ -815,7 +814,7 @@ age_plus_eng<- glmmTMB(eng_exp ~ age + strategy, data=for_beta_eng, family= beta
 age_plus_fre<- glmmTMB(fre_exp ~ age + strategy, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~  age + strategy)
 age_plus_blc<- glmmTMB(exp_l2 ~ age + strategy, data=for_balance, family= beta_family(link="logit"), dispformula = ~  age + strategy)
 
-#Summary of just age AGE models
+#Summary of age plus strategy AGE models
 summary(age_plus_eng)
 summary(age_plus_fre)
 summary(age_plus_blc)
@@ -834,23 +833,27 @@ summary(age_by_blc)
 #MOTHER MODELS
 mom_beta_eng<- glmmTMB(eng_exp ~ caregiver_1_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_1_english_use)
 mom_beta_fre<- glmmTMB(fre_exp ~ caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_1_french_use)
-mom_beta_blc_fre<- glmmTMB(exp_l2 ~ caregiver_1_french_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_1_french_use)
-mom_beta_blc_eng<- glmmTMB(exp_l2 ~ caregiver_1_english_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_1_english_use)
+mom_beta_blc_fre<- glmmTMB(exp_l2 ~ french_abs_dif, data=for_balance, family= beta_family(link="logit"), dispformula = ~ french_abs_dif)
+mom_beta_blc_eng<- glmmTMB(exp_l2 ~ english_abs_dif, data=for_balance, family= beta_family(link="logit"), dispformula = ~ english_abs_dif)
 
 #Summary of MOTHER models
 summary(mom_beta_eng)
 summary(mom_beta_fre)
+summary(mom_beta_blc_fre)
+summary(mom_beta_blc_eng)
 
 
 #FATHER MODELS 
 dad_beta_eng<- glmmTMB(eng_exp ~ caregiver_2_english_use, data=for_beta_eng, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use)
 dad_beta_fre<- glmmTMB(fre_exp ~ caregiver_2_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use)
-dad_beta_blc_fre<- glmmTMB(exp_l2 ~ caregiver_2_french_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use)
-dad_beta_blc_eng<- glmmTMB(exp_l2 ~ caregiver_2_english_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use)
+dad_beta_blc_fre<- glmmTMB(exp_l2 ~ french_abs_dif, data=for_balance, family= beta_family(link="logit"), dispformula = ~ french_abs_dif)
+dad_beta_blc_eng<- glmmTMB(exp_l2 ~ english_abs_dif, data=for_balance, family= beta_family(link="logit"), dispformula = ~ english_abs_dif)
 
 #Summary of FATHER models
 summary(dad_beta_eng)
 summary(dad_beta_fre)
+summary(dad_beta_blc_fre)
+sumamry(dad_beta_blc_eng)
 
 
 #MOTHER AND FATHER MODELS
@@ -858,9 +861,13 @@ parents_aditive_eng<- glmmTMB(eng_exp ~ caregiver_2_english_use + caregiver_1_en
 
 parents_aditive_fre<- glmmTMB(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=for_beta_fre, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use + caregiver_1_french_use)
 
-parents_aditive_blc_fre <- glmmTMB(exp_l2 ~ caregiver_2_french_use + caregiver_1_french_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_french_use + caregiver_1_french_use)
+parents_aditive_blc <- glmmTMB(exp_l2 ~ french_abs_dif + english_abs_dif, data=for_balance, family= beta_family(link="logit"), dispformula = ~ french_abs_dif  + english_abs_dif)
 
-parents_aditive_blc_eng <- glmmTMB(exp_l2 ~ caregiver_2_english_use + caregiver_1_english_use, data=for_balance, family= beta_family(link="logit"), dispformula = ~ caregiver_2_english_use + caregiver_1_english_use)
+#Summary of Mother and Father models
+summary(parents_aditive_eng)
+summary(parents_aditive_fre)
+summary(parents_aditive_blc)
+
 
 ## MODEL COMPARISONS
 #ENGLISH MODELS
@@ -984,23 +991,104 @@ figure_10_d <-ggplot(for_careg_graphs, aes( x=caregiver_1_french_use , y=exp_l2,
 
 ## Seems like linear models have the same results as beta models 
 
+#STRATEGY LINEAR MODELS
+lm_strat_eng<- lm(eng_exp ~ strategy, data=for_beta_eng)
+lm_strat_fre <- lm(fre_exp ~ strategy, data=for_beta_fre)
+lm_strat_blc<- lm(exp_l2 ~ strategy, data=for_balance)
 
+
+#Summary of STRATEGY LINEAR models
+summary(lm_strat_eng) #Slightly different, one parent bilingual is just a tad significant here and not for beta. 
+summary(lm_strat_fre) #Same as above, one parent bilingual is significant and not for beta.
+summary(lm_strat_blc) #Same pattern of results 
+
+#AGE MODELS
+
+#just age models
+lm_just_age_eng<- lm(eng_exp ~ age, data=for_beta_eng)
+lm_just_age_fre<- lm(fre_exp ~ age, data=for_beta_fre)
+lm_just_age_blc<- lm(exp_l2 ~ age, data=for_balance)
+
+#Summary of just age AGE models
+summary(lm_just_age_eng) #Similar pattern of results for beta and lm
+summary(lm_just_age_fre) #Same pattern of results for beta and lm
+summary(lm_just_age_blc) #Same pattern of results for beta anf lm
+
+#age plus strategy models
+lm_age_plus_eng<- lm(eng_exp ~ age + strategy, data=for_beta_eng) # Different results, in lm one parent bilingual sig
+lm_age_plus_fre<- lm(fre_exp ~ age + strategy, data=for_beta_fre) 
+lm_age_plus_blc<- lm(exp_l2 ~ age + strategy, data=for_balance)  
+
+#Summary of just age AGE models
+summary(lm_age_plus_eng) # Different results, in lm one parent bilingual sig
+summary(lm_age_plus_fre) # Same as avobe
+summary(lm_age_plus_blc) # Different results, in beta models age is approaching sig, and opol is sig, in lm one parent bi, and opol are sig
+
+#age by strategy models
+lm_age_by_eng<- lm(eng_exp ~ age * strategy, data=for_beta_eng)
+lm_age_by_fre<- lm(fre_exp ~ age * strategy, data=for_beta_fre)
+lm_age_by_blc<- lm(exp_l2 ~ age * strategy, data=for_balance)
+
+#Summary of just age AGE models
+summary(lm_age_by_eng) #same pattern of results
+summary(lm_age_by_fre) #SImilar pattern of results
+summary(lm_age_by_blc) #Difference, one parent bilingual strategy sig for lm 
+
+
+#MOTHER MODELS
 lm_mom_beta_eng<- lm(eng_exp ~ caregiver_1_english_use, data=for_beta_eng)
+lm_mom_beta_fre<- lm(fre_exp ~ caregiver_1_french_use, data=for_beta_fre)
+lm_mom_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
+lm_mom_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
 
+#Summary of MOTHER models
+summary(lm_mom_beta_eng) #Similar pattern of results
+summary(lm_mom_beta_fre) #same pattern of results
+summary(lm_mom_beta_blc_fre) #same pattern of results
+summary(lm_mom_beta_blc_eng) #same pattern of results
+
+
+#FATHER MODELS 
+lm_dad_beta_eng<- lm(eng_exp ~ caregiver_2_english_use, data=for_beta_eng) 
+lm_dad_beta_fre<- lm(fre_exp ~ caregiver_2_french_use, data=for_beta_fre)
+lm_dad_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
+lm_dad_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
+
+#Summary of FATHER models
+summary(lm_dad_beta_eng) #Same pattern of results
+summary(lm_dad_beta_fre) #same pattern of results
+summary(lm_dad_beta_blc_fre) #Same pattern of results
+summary(lm_dad_beta_blc_eng) #same pattern of results
+
+
+#MOTHER AND FATHER MODELS
 lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=for_beta_eng)
 
-summary(lm_mom_beta_eng)
-summary(lm_parents_aditive_eng)
+lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=for_beta_fre)
+lm_parents_aditive_blc <- lm(exp_l2 ~ french_abs_dif + english_abs_dif, data=for_balance)
 
-anova(lm_parents_aditive_eng, lm_mom_beta_eng)
+#Summary of Mother and Father models
+summary(lm_parents_aditive_eng) #same pattern of results
+summary(lm_parents_aditive_fre) #same pattern of results
+summary(lm_parents_aditive_blc) #similar pattern but the french abs difference is significant for the beta model and not for the lm
 
 
+ ## LINEAR MODEL COMPARISON
 #These R squared measures do make sense
 performance::compare_performance(lm_mom_beta_eng, lm_parents_aditive_eng)
 ```
+##Categorical parental input predictors
+
+```{r}
+
+```
 
 
-## Study 2
+
+
+
+
+##################### Study 2
 
 ```{r}
 ###### FOR THE FRENCH- HERITAGE SAMPLE ###########
