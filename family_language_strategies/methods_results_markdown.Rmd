@@ -936,22 +936,18 @@ performance::check_model(parents_int_blc_fre)
 
 for_careg_graphs <- FE_for_blc_anova %>% 
   select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
+  mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
+                              TRUE ~ care1_l2)) %>%  #2023-07 going to need to fix this NAs in the cleaning script
+    mutate(care2_l1 = case_when(care2_l1 =="NA" ~ "never",
+                              TRUE ~ care2_l1)) %>%
+      mutate(care2_l2 = case_when(care2_l2 =="NA" ~ "never",
+                              TRUE ~ care2_l2)) %>%
   mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
-                                            l2=="French"~care1_l2))%>%
-  mutate(caregiver_1_french_use = case_when(caregiver_1_french_use == "regularly" ~3,
-                                            caregiver_1_french_use == "sometimes"~ 2,
-                                            caregiver_1_french_use == "never"~1))%>%
-  
+                                            l2=="French"~care1_l2)) %>%
     mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
                                             l2=="English"~care1_l2)) %>%
-
-  mutate(caregiver_1_english_use = case_when(caregiver_1_english_use == "regularly" ~3,
-                                            caregiver_1_english_use == "sometimes"~ 2,
-                                            caregiver_1_english_use == "never"~1)) %>%
-
     mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
                                             l2=="French"~ care2_l2)) %>%
-  
     mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
                                             l2=="English"~care2_l2)) %>%
   filter(gender != "NA") %>%
@@ -959,30 +955,42 @@ for_careg_graphs <- FE_for_blc_anova %>%
   mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, exp_l2 = exp_l2/100) %>%
   drop_na()
 
-figure_10_a <-ggplot(for_careg_graphs, aes( x=caregiver_1_french_use , y=fre_exp)) +
-  geom_smooth(na.rm=T)+
-  facet_wrap(vars(caregiver_2_french_use))+
-  theme_bw() +
-  ylim(0, 1)
 
-figure_10_b <-ggplot(for_careg_graphs, aes( x=caregiver_1_english_use , y=eng_exp )) +
-  geom_smooth()+
-facet_wrap(vars(caregiver_2_english_use))+
+#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPH
+for_careg_graphs$caregiver_1_french_use <- factor(for_careg_graphs$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
+for_careg_graphs$caregiver_1_english_use <- factor(for_careg_graphs$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
+for_careg_graphs$caregiver_2_french_use <- factor(for_careg_graphs$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
+for_careg_graphs$caregiver_2_english_use <- factor(for_careg_graphs$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
+
+figure_10_a <-ggplot(for_careg_graphs, aes( x=caregiver_1_french_use , y=fre_exp, fill=caregiver_1_french_use)) +
+  geom_boxplot() +
   theme_bw() +
-  ylim(0, 1)
+       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none") +
+  labs(title= "A. Mothers' French use on French exposure")
+
+figure_10_b <-ggplot(for_careg_graphs, aes( x=caregiver_1_english_use , y=eng_exp, fill=caregiver_1_english_use)) +
+  geom_boxplot() +
+  theme_bw() +
+       theme(axis.text.x = element_blank(), 
+         axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20),legend.title= element_text(size=20))+
+  labs(title= "B. Mothers' English use on English exposure") +
+  scale_fill_discrete(name = "Parental language use categories")
+
+figure_10_c <-ggplot(for_careg_graphs, aes( x=caregiver_2_french_use , y=fre_exp, fill=caregiver_2_french_use)) +
+  geom_boxplot() +
+  theme_bw() +
+       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "C. Fathers' French use on French exposure")
+
+figure_10_d <-ggplot(for_careg_graphs, aes( x=caregiver_2_english_use , y=eng_exp, fill=caregiver_2_english_use)) +
+  geom_boxplot() +
+  theme_bw() +
+       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "D. Fathers' English use on English exposure")
+
+figure_10<- figure_10_a + figure_10_b + figure_10_c + figure_10_d 
 
 
-figure_10_c <-ggplot(for_careg_graphs, aes( x=caregiver_1_english_use , y=exp_l2 )) +
-  geom_smooth()+
-facet_wrap(vars(caregiver_2_english_use))+
-  theme_bw() +
-  ylim(0, 1)
-
-figure_10_d <-ggplot(for_careg_graphs, aes( x=caregiver_1_french_use , y=exp_l2, color=caregiver_2_french_use )) +
-  geom_smooth()+
-#facet_wrap(vars(caregiver_2_english_use))+
-  theme_bw() +
-  ylim(0, 1)
 
 ```
 
@@ -1080,6 +1088,70 @@ performance::compare_performance(lm_mom_beta_eng, lm_parents_aditive_eng)
 ##Categorical parental input predictors
 
 ```{r}
+
+#For careg graphs already has the categorical levels, and the levels have been re-ordered in the chunk above
+
+# Dataframe for english exposure
+for_cat_eng <- for_careg_graphs %>% 
+  select(age, eng_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use,caregiver_2_english_use) %>% 
+  filter(eng_exp != "NA") %>% 
+  mutate(eng_exp = eng_exp/100) %>%
+  drop_na()
+
+# Dataframe for french exposure
+for_cat_fre <- for_careg_graphs %>% 
+  select(age, fre_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use, caregiver_2_english_use) %>%
+  filter(fre_exp != "NA") %>% 
+  mutate(fre_exp = fre_exp/100) %>%
+  drop_na()
+
+
+#Dataframe for balance 
+for_cat_balance<- for_careg_graphs %>% 
+  select(age, exp_l2, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, french_abs_dif, english_abs_dif) %>% ##have to make the difference measure here
+  filter(exp_l2 != "NA") %>% 
+  mutate(exp_l2 = exp_l2/100,
+         strategy = as.factor(strategy)) %>%
+  drop_na()
+
+
+
+#MOTHER MODELS
+cat_mom_eng<- lm(eng_exp ~ caregiver_1_english_use, data=for_cat_eng)
+cat_mom_fre<- lm(fre_exp ~ caregiver_1_french_use, data=for_cat_fre)
+cat_mom_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
+cat_mom_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
+
+#Summary of MOTHER models
+summary(cat_mom_eng) #Similar pattern of results
+summary(cat_mom_fre) #same pattern of results
+summary(lm_mom_beta_blc_fre) #same pattern of results
+summary(lm_mom_beta_blc_eng) #same pattern of results
+
+
+#FATHER MODELS 
+lm_dad_beta_eng<- lm(eng_exp ~ caregiver_2_english_use, data=for_beta_eng) 
+lm_dad_beta_fre<- lm(fre_exp ~ caregiver_2_french_use, data=for_beta_fre)
+lm_dad_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
+lm_dad_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
+
+#Summary of FATHER models
+summary(lm_dad_beta_eng) #Same pattern of results
+summary(lm_dad_beta_fre) #same pattern of results
+summary(lm_dad_beta_blc_fre) #Same pattern of results
+summary(lm_dad_beta_blc_eng) #same pattern of results
+
+
+#MOTHER AND FATHER MODELS
+lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=for_beta_eng)
+
+lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=for_beta_fre)
+lm_parents_aditive_blc <- lm(exp_l2 ~ french_abs_dif + english_abs_dif, data=for_balance)
+
+#Summary of Mother and Father models
+summary(lm_parents_aditive_eng) #same pattern of results
+summary(lm_parents_aditive_fre) #same pattern of results
+summary(lm_parents_aditive_blc)
 
 ```
 
