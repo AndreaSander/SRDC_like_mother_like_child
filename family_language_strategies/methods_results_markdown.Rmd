@@ -34,6 +34,7 @@ library(glmmTMB)
 library(DHARMa)
 library(betareg)
 library(emmeans)
+library(ggiraphExtra)
 library(ggeffects)
 library(mvtnorm)
 library(boot)
@@ -195,7 +196,16 @@ longitudinal_data_analyses <- longitudinal_data %>%
   fill(first_visit_date, second_visit_date, .direction="updown") %>% #to collapse the rows and be able to calculate visit
   ungroup() %>%
   mutate(length_between_visits = abs(interval(start= first_visit_date, end=second_visit_date)/ duration (n=1, unit="days" ))) %>%
-  filter(! length_between_visits < 15) 
+  filter(! length_between_visits < 15) %>%
+  mutate(l1 = case_when(l1=="French" ~ "French",
+                        l1=="English" ~ "English",
+                        TRUE ~ "Heritage")) %>%
+    mutate(l2 = case_when(l2=="French" ~ "French",
+                        l2=="English" ~ "English",
+                        TRUE ~ "Heritage")) %>%
+  mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
+                                    l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
+                                    l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
 
 #Longitudinal data set n
 n_long <-longitudinal_data_analyses %>%
@@ -457,10 +467,44 @@ plot(anova_model_french)
 
 ```{r Study 1: Mother and father language exploration, include=FALSE}
 
-### Looking at the one parent bilingual data to see which parent tends to be bilingual
+### Looking at the individual parent strategies in each family language strategy
+
+##Both parents bilingual
+FE_both_parent_b<- FEH %>%
+  filter(bilingual_type == "fre-eng") %>%
+  filter(strategy=="both-parents-bilingual") %>%
+  mutate(caregiver1_French =  case_when (l1== "French"~care1_l1,
+                                         l1== "English"~care1_l2)) %>%
+    mutate(caregiver1_English =  case_when (l1== "English"~care1_l1,
+                                         l1== "French"~care1_l2)) %>%
+    mutate(caregiver2_French =  case_when (l1== "French"~care2_l1,
+                                         l1== "English"~care2_l2)) %>%
+    mutate(caregiver2_English =  case_when (l1== "English"~care2_l1,
+                                         l1== "French"~care2_l2)) %>%
+  mutate(mom_use_strategy = case_when( caregiver1_French == "regularly" & caregiver1_English == "regularly" ~ "both regularly",
+                                       caregiver1_French == "regularly" & caregiver1_English == "sometimes" ~ "french-reg-english-some",
+                                       caregiver1_French == "sometimes" & caregiver1_English == "regularly" ~ "french-some-english-reg"))%>%
+  mutate(dad_use_strategy = case_when( caregiver2_French == "regularly" & caregiver2_English == "regularly" ~ "both regularly",
+                                       caregiver2_French == "regularly" & caregiver2_English == "sometimes" ~ "french-reg-english-some",
+                                       caregiver2_French == "sometimes" & caregiver2_English == "regularly" ~ "french-some-english-reg",
+                                       TRUE~"both-sometimes")) 
+
+# what are the percentages ?
+mom_biling_strat<- FE_both_parent_b %>%
+  group_by(mom_use_strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+dad_biling_strat<- FE_both_parent_b %>%
+  group_by(dad_use_strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
 
 
-## In the French-English dataset ##
+
+## One-parent-bilingual
 
 #Which parent is the bilingual parent?
 FE_one_parent_b<- FEH %>%
@@ -475,7 +519,7 @@ FE_caregiver_bi_prop <- FE_one_parent_b %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100) ## 81% mothers are the bilingual caregiver
 
-#Which languages are spoken by the monolingual parent
+#Which languages are spoken by the monolingual parent?
 
 monoling_careg_lang<- FE_one_parent_b %>%
   mutate(monolingual_care_lang = case_when(caregiver_biling == "caregiver1" & care2_l1 %in% c("regularly", "sometimes") ~ l1,
@@ -491,198 +535,42 @@ monoling_careg_lang<- FE_one_parent_b %>%
 
 ##Also looking at OPOL to see who speaks French
 
-opol_b <- first_visit_only %>%
+FE_opol<- FEH %>%
+  filter(bilingual_type == "fre-eng") %>%
   filter(strategy=="one-parent-one-lang") %>%
-  mutate(who_speaks_fre = case_when(l1=="French" & care1_l1 %in% c("regularly", "sometimes") ~ "mother",
-                                    l1=="French" & care2_l1 %in% c("regularly", "sometimes")~"father",
-                                    l2=="French" & care1_l2 %in% c("regularly", "sometimes")~"mother",
-                                    l2=="French" & care2_l2 %in% c("regularly", "sometimes")~"father",
-                                    TRUE ~ "English-heritage")) %>%
-  mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
-                                    l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
-                                    l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
+  mutate(parents_lang_use = case_when(l1== "French" & care1_l1 == "regularly" & care1_l2=="never" & care2_l1 =="never" & care2_l2=="regularly"~ "mom__french_dad_english",
+                                      l1== "English" & care1_l1 == "regularly" & care1_l2=="never" & care2_l1 =="never" & care2_l2=="regularly"~ "mom__english_dad_french",
+                                      l1== "French" & care1_l1 == "never" & care1_l2=="regularly" & care2_l1 =="regularly" & care2_l2=="never"~ "mom__english_dad_french",
+                                      l1== "English" & care1_l1 == "never" & care1_l2=="regularly" & care2_l1 =="regularly" & care2_l2=="never"~ "mom__french_dad_english",
+                                      
+                                      
+                                      l1== "French" & care1_l1 =="regularly" & care1_l2 == "sometimes" & care2_l1 =="never" & care2_l2=="regularly"  ~ "mom_flex_dad_eng",
+                                      l1== "English" & care1_l1 =="regularly" & care1_l2 == "sometimes" & care2_l1 =="regularly" & care2_l2=="never"  ~ "mom_flex_dad_eng",
+                                      l1== "French" & care1_l1 =="sometimes" & care1_l2 == "regularly" & care2_l1 =="never" & care2_l2=="regularly"  ~ "mom_flex_dad_eng",
+                                      l1== "English" & care1_l1 =="sometimes" & care1_l2 == "regularly" & care2_l1 =="regularly" & care2_l2=="never"  ~ "mom_flex_dad_eng",
+                                      l1== "French" & care1_l1 =="regularly" & care1_l2 == "sometimes" & care2_l1 =="regularly" & care2_l2=="never"~ "mom_flex_dad_fre",
+                                      l1== "English" & care1_l1 =="regularly" & care1_l2 == "sometimes" & care2_l1 =="never" & care2_l2=="regularly"~ "mom_flex_dad_fre",
+                                      l1== "French" & care1_l1 =="sometimes" & care1_l2 == "regularly" & care2_l1 =="regularly" & care2_l2=="never"  ~ "mom_flex_dad_fre",
+                                      l1== "English" & care1_l1 =="sometimes" & care1_l2 == "regularly" & care2_l1 =="never" & care2_l2=="regularly"  ~ "mom_flex_dad_fre",
 
-opol_b_fre_count <- opol_b %>%
-  filter(bilingual_type=="fre-eng")%>%
-  group_by(who_speaks_fre)%>%
-  tally()%>%
-  mutate(prop = n/sum(n))
-
-##Looking at the responses distribution between mothers and fathers
-
-########################## FRENCH DATA ##################
-F_l1 <- FEH %>%
-select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
-  filter(l1=="French") %>%
-  filter(!strategy %in% c("single-parent", "one-language-at-home"))
-
-F_l2 <- FEH %>%
-select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
-  filter(l2=="French") %>%
-  filter(!strategy %in% c("single-parent", "one-language-at-home"))
-
-#Plotting mothers distribution of French use as L1
-F_l1$care1_l1<- factor(F_l1$care1_l1, levels= c("regularly", "sometimes", "never"))
-
-figure_4_a<- ggplot(data = F_l1, aes(x=care1_l1, fill= care1_l1)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))+
-  scale_fill_manual (name = "Frequency use of French as L1", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-   xlab("Mothers' French as L1 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "A. Mothers' use of French as L1 by strategy")
-
-#Plotting mothers distribution of French use as L2
-F_l2$care1_l2<- factor(F_l2$care1_l2, levels= c("regularly", "sometimes", "never"))
-
-figure_4_b<- F_l2 %>%
-  filter(!care1_l2 == "NA")%>%
-  ggplot(aes(x=care1_l2, fill= care1_l2)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy)) +
-  scale_fill_manual (name = "Frequency use of French as L2", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-   xlab("Mothers' French as L2 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
-  labs(title= "B. Mothers' use of French as L2 by strategy")
+                                      
+                                      l1== "French" & care1_l1 =="never" & care1_l2 == "regularly" & care2_l1 =="regularly" & care2_l2=="sometimes"  ~ "dad_flex_mom_eng",
+                                      l1== "English" & care1_l1 =="regularly" & care1_l2 == "never" & care2_l1 =="regularly" & care2_l2=="sometimes"  ~ "dad_flex_mom_eng",
+                                      l1== "French" & care1_l1 =="never" & care1_l2 == "regularly" & care2_l1 =="sometimes" & care2_l2=="regularly"  ~ "dad_flex_mom_eng",
+                                      l1== "English" & care1_l1 =="regularly" & care1_l2 == "never" & care2_l1 =="sometimes" & care2_l2=="regularly"  ~ "dad_flex_mom_eng",
+                                      l1== "French" & care1_l1 =="regularly" & care1_l2 == "never" & care2_l1 =="regularly" & care2_l2=="sometimes"~ "dad_flex_mom_fre",
+                                      l1== "English" & care1_l1 =="never" & care1_l2 == "regularly" & care2_l1 =="regularly" & care2_l2=="sometimes"~ "dad_flex_mom_fre",
+                                      l1== "French" & care1_l1 =="regularly" & care1_l2 == "never" & care2_l1 =="sometimes" & care2_l2=="regularly"  ~ "dad_flex_mom_fre",
+                                      l1== "English" & care1_l1 =="never" & care1_l2 == "regularly" & care2_l1 =="sometimes" & care2_l2=="regularly"  ~ "dad_flex_mom_fre",
+                                      
+  ))
 
 
-#Plotting fathers distribution of French use as L1
-
-F_l1$care2_l1<- factor(F_l1$care2_l1, levels= c("regularly", "sometimes", "never"))
-
-figure_5_a<- ggplot(data = F_l1, aes(x=care2_l1, fill= care2_l1)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))+
-  scale_fill_manual (name = "Frequency use of French as L1", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-   xlab("Fathers' French as L1 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "A. Fathers' use of French as L1 by strategy")
-
-#Plotting fathers distribution of French use as L2
-
-F_l2$care2_l2<- factor(F_l2$care2_l2, levels= c("regularly", "sometimes", "never"))
-
-figure_5_b<- F_l2 %>%
-  filter(!care2_l2 == "NA")%>%
-  ggplot(aes(x=care2_l2, fill= care2_l2)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))+
-  scale_fill_manual (name = "Frequency use of French as L2", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-   xlab("Fathers' French as L2 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
-  labs(title= "B. Fathers' use of French as L2 by strategy")
-
-
-########################## ENGLISH DATA ##################
-E_l1 <- FEH %>%
-select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
-  filter(l1=="English") %>%
-  filter(!strategy %in% c("single-parent", "one-language-at-home"))
-
-E_l2 <- FEH %>%
-select(c(unique_id, l1, exp_l1, l2, exp_l2, care1_l1, care1_l2, care2_l1, care2_l2, strategy)) %>%
-  filter(l2=="English") %>%
-  filter(!strategy %in% c("single-parent", "one-language-at-home"))
-
-#Plotting mothers distribution of English use as L1
-E_l1$care1_l1<- factor(E_l1$care1_l1, levels= c("regularly", "sometimes", "never"))
-
-figure_4_c<- ggplot(data = E_l1, aes(x=care1_l1, fill= care1_l1)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))+
-  scale_fill_manual (name = "Frequency use of English as L1", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-   xlab("Mothers' English as L1 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "C. Mothers' use of English as L1 by strategy")
-
-#Plotting mothers distribution of English use as L2
-E_l2$care1_l2<- factor(E_l2$care1_l2, levels= c("regularly", "sometimes", "never"))
-
-figure_4_d<- E_l2 %>%
-  filter(!care1_l2 == "NA")%>%
-  ggplot(aes(x=care1_l2, fill= care1_l2)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy)) +
-  scale_fill_manual (name = "Frequency use of English as L1", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-   xlab("Mothers' English as L2 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "D. Mothers' use of English as L2 by strategy")
-
-
-
-#Plotting fathers distribution of English use as L1
-
-E_l1$care2_l1<- factor(E_l1$care2_l1, levels= c("regularly", "sometimes", "never"))
-
-figure_5_c<- ggplot(data = E_l1, aes(x=care2_l1, fill= care2_l1)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))+
-  scale_fill_manual (name = "Frequency use of English as L1", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-   xlab("Fathers' English as L1 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "C. Fathers' use of English as L1 by strategy")
-
-
-#Plotting fathers' distribution of French use as L2
-E_l2$care2_l2<- factor(E_l2$care2_l2, levels= c("regularly", "sometimes", "never"))
-
-figure_5_d<- E_l2 %>%
-  filter(!care2_l2 == "NA")%>%
-  ggplot(aes(x=care2_l2, fill= care2_l2)) +
-  geom_bar() +
-  facet_grid(cols = vars(strategy))+
-  scale_fill_manual (name = "Frequency use of English as L2", values = c("#2c7fb8","#7fcdbb", "#edf8b1")) +
-  theme_bw() +
-  xlab("Fathers' English as L2 use")+
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "D. Fathers' use of English as L2 by strategy")
-
-
-#Constructing mother and father figures of language use distribution
-
-figure_5<- figure_5_a+figure_5_b+figure_5_c+figure_5_d
-figure_4<- figure_4_a+figure_4_b+figure_4_c+figure_4_d
-
-```
-
-
-```{r Study 1: beta model graphs, include=FALSE}
-
-figure_3_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
-  geom_smooth(alpha=0.2)+
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-  ylim(0, 100)+
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "A. French exposure changes by age/strategy")
-
-figure_3_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)) +
-  geom_smooth(alpha=0.2)+
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-  ylim(0, 100)+
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "B. English exposure changes by age/strategy")
-
-figure_3_c <-ggplot(FE_for_anova_graphs, aes( x=age , y=exp_l2, color=strategy )) +
-  geom_smooth(alpha=0.2)+
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-  ylim(0, 50)+
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20),legend.title= element_text(size=20))+
-  labs(title= "C. Exposure balance changes by age/strategy")
-
-
-figure_3<- figure_3_a + figure_3_b + figure_3_c
-
-ggsave(file="Figure_3.png", width=25, height=7, dpi=300)
+opol_count<- FE_opol %>%
+  group_by(parents_lang_use) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
 
 ```
 
@@ -931,10 +819,13 @@ performance::check_model(parents_int_blc_fre)
 
 
 
-## Caregiver graphs
+```
 
+## simple linear models
 
-for_careg_graphs <- FE_for_blc_anova %>% 
+```{r}
+
+for_lms <- FE_for_blc_anova %>% 
   select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
   mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
                               TRUE ~ care1_l2)) %>%  #2023-07 going to need to fix this NAs in the cleaning script
@@ -957,204 +848,243 @@ for_careg_graphs <- FE_for_blc_anova %>%
 
 
 #REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPH
-for_careg_graphs$caregiver_1_french_use <- factor(for_careg_graphs$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
-for_careg_graphs$caregiver_1_english_use <- factor(for_careg_graphs$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
-for_careg_graphs$caregiver_2_french_use <- factor(for_careg_graphs$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
-for_careg_graphs$caregiver_2_english_use <- factor(for_careg_graphs$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
-
-figure_10_a <-ggplot(for_careg_graphs, aes( x=caregiver_1_french_use , y=fre_exp, fill=caregiver_1_french_use)) +
-  geom_boxplot() +
-  theme_bw() +
-       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none") +
-  labs(title= "A. Mothers' French use on French exposure")
-
-figure_10_b <-ggplot(for_careg_graphs, aes( x=caregiver_1_english_use , y=eng_exp, fill=caregiver_1_english_use)) +
-  geom_boxplot() +
-  theme_bw() +
-       theme(axis.text.x = element_blank(), 
-         axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20),legend.title= element_text(size=20))+
-  labs(title= "B. Mothers' English use on English exposure") +
-  scale_fill_discrete(name = "Parental language use categories")
-
-figure_10_c <-ggplot(for_careg_graphs, aes( x=caregiver_2_french_use , y=fre_exp, fill=caregiver_2_french_use)) +
-  geom_boxplot() +
-  theme_bw() +
-       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "C. Fathers' French use on French exposure")
-
-figure_10_d <-ggplot(for_careg_graphs, aes( x=caregiver_2_english_use , y=eng_exp, fill=caregiver_2_english_use)) +
-  geom_boxplot() +
-  theme_bw() +
-       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "D. Fathers' English use on English exposure")
-
-figure_10<- figure_10_a + figure_10_b + figure_10_c + figure_10_d 
-
-
-
-```
-
-## simple linear models
-```{r}
-
-## Seems like linear models have the same results as beta models 
-
-#STRATEGY LINEAR MODELS
-lm_strat_eng<- lm(eng_exp ~ strategy, data=for_beta_eng)
-lm_strat_fre <- lm(fre_exp ~ strategy, data=for_beta_fre)
-lm_strat_blc<- lm(exp_l2 ~ strategy, data=for_balance)
-
-
-#Summary of STRATEGY LINEAR models
-summary(lm_strat_eng) #Slightly different, one parent bilingual is just a tad significant here and not for beta. 
-summary(lm_strat_fre) #Same as above, one parent bilingual is significant and not for beta.
-summary(lm_strat_blc) #Same pattern of results 
-
-#AGE MODELS
-
-#just age models
-lm_just_age_eng<- lm(eng_exp ~ age, data=for_beta_eng)
-lm_just_age_fre<- lm(fre_exp ~ age, data=for_beta_fre)
-lm_just_age_blc<- lm(exp_l2 ~ age, data=for_balance)
-
-#Summary of just age AGE models
-summary(lm_just_age_eng) #Similar pattern of results for beta and lm
-summary(lm_just_age_fre) #Same pattern of results for beta and lm
-summary(lm_just_age_blc) #Same pattern of results for beta anf lm
-
-#age plus strategy models
-lm_age_plus_eng<- lm(eng_exp ~ age + strategy, data=for_beta_eng) # Different results, in lm one parent bilingual sig
-lm_age_plus_fre<- lm(fre_exp ~ age + strategy, data=for_beta_fre) 
-lm_age_plus_blc<- lm(exp_l2 ~ age + strategy, data=for_balance)  
-
-#Summary of just age AGE models
-summary(lm_age_plus_eng) # Different results, in lm one parent bilingual sig
-summary(lm_age_plus_fre) # Same as avobe
-summary(lm_age_plus_blc) # Different results, in beta models age is approaching sig, and opol is sig, in lm one parent bi, and opol are sig
-
-#age by strategy models
-lm_age_by_eng<- lm(eng_exp ~ age * strategy, data=for_beta_eng)
-lm_age_by_fre<- lm(fre_exp ~ age * strategy, data=for_beta_fre)
-lm_age_by_blc<- lm(exp_l2 ~ age * strategy, data=for_balance)
-
-#Summary of just age AGE models
-summary(lm_age_by_eng) #same pattern of results
-summary(lm_age_by_fre) #SImilar pattern of results
-summary(lm_age_by_blc) #Difference, one parent bilingual strategy sig for lm 
-
-
-#MOTHER MODELS
-lm_mom_beta_eng<- lm(eng_exp ~ caregiver_1_english_use, data=for_beta_eng)
-lm_mom_beta_fre<- lm(fre_exp ~ caregiver_1_french_use, data=for_beta_fre)
-lm_mom_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
-lm_mom_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
-
-#Summary of MOTHER models
-summary(lm_mom_beta_eng) #Similar pattern of results
-summary(lm_mom_beta_fre) #same pattern of results
-summary(lm_mom_beta_blc_fre) #same pattern of results
-summary(lm_mom_beta_blc_eng) #same pattern of results
-
-
-#FATHER MODELS 
-lm_dad_beta_eng<- lm(eng_exp ~ caregiver_2_english_use, data=for_beta_eng) 
-lm_dad_beta_fre<- lm(fre_exp ~ caregiver_2_french_use, data=for_beta_fre)
-lm_dad_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
-lm_dad_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
-
-#Summary of FATHER models
-summary(lm_dad_beta_eng) #Same pattern of results
-summary(lm_dad_beta_fre) #same pattern of results
-summary(lm_dad_beta_blc_fre) #Same pattern of results
-summary(lm_dad_beta_blc_eng) #same pattern of results
-
-
-#MOTHER AND FATHER MODELS
-lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=for_beta_eng)
-
-lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=for_beta_fre)
-lm_parents_aditive_blc <- lm(exp_l2 ~ french_abs_dif + english_abs_dif, data=for_balance)
-
-#Summary of Mother and Father models
-summary(lm_parents_aditive_eng) #same pattern of results
-summary(lm_parents_aditive_fre) #same pattern of results
-summary(lm_parents_aditive_blc) #similar pattern but the french abs difference is significant for the beta model and not for the lm
-
-
- ## LINEAR MODEL COMPARISON
-#These R squared measures do make sense
-performance::compare_performance(lm_mom_beta_eng, lm_parents_aditive_eng)
-```
-##Categorical parental input predictors
-
-```{r}
-
-#For careg graphs already has the categorical levels, and the levels have been re-ordered in the chunk above
+for_lms$caregiver_1_french_use <- factor(for_lms$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
+for_lms$caregiver_1_english_use <- factor(for_lms$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
+for_lms$caregiver_2_french_use <- factor(for_lms$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
+for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
 
 # Dataframe for english exposure
-for_cat_eng <- for_careg_graphs %>% 
+lm_eng <- for_lms %>% 
   select(age, eng_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use,caregiver_2_english_use) %>% 
   filter(eng_exp != "NA") %>% 
   mutate(eng_exp = eng_exp/100) %>%
   drop_na()
 
 # Dataframe for french exposure
-for_cat_fre <- for_careg_graphs %>% 
+lm_fre <- for_lms %>% 
   select(age, fre_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use, caregiver_2_english_use) %>%
   filter(fre_exp != "NA") %>% 
   mutate(fre_exp = fre_exp/100) %>%
   drop_na()
 
+#STRATEGY LINEAR MODELS
+lm_strat_eng<- lm(eng_exp ~ strategy, data=lm_eng)
+lm_strat_fre <- lm(fre_exp ~ strategy, data=lm_fre)
 
-#Dataframe for balance 
-for_cat_balance<- for_careg_graphs %>% 
-  select(age, exp_l2, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, french_abs_dif, english_abs_dif) %>% ##have to make the difference measure here
-  filter(exp_l2 != "NA") %>% 
-  mutate(exp_l2 = exp_l2/100,
-         strategy = as.factor(strategy)) %>%
-  drop_na()
-
+#Summary of STRATEGY LINEAR models
+summary(lm_strat_eng) #Slightly different, one parent bilingual is just a tad significant here and not for beta. 
+summary(lm_strat_fre) #Same as above, one parent bilingual is significant and not for beta.
 
 
+###### Careviver models 
 #MOTHER MODELS
-cat_mom_eng<- lm(eng_exp ~ caregiver_1_english_use, data=for_cat_eng)
-cat_mom_fre<- lm(fre_exp ~ caregiver_1_french_use, data=for_cat_fre)
-cat_mom_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
-cat_mom_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
+lm_mom_eng<- lm(eng_exp ~ caregiver_1_english_use, data=lm_eng)
+lm_mom_fre<- lm(fre_exp ~ caregiver_1_french_use, data=lm_fre)
+
 
 #Summary of MOTHER models
-summary(cat_mom_eng) #Similar pattern of results
-summary(cat_mom_fre) #same pattern of results
-summary(lm_mom_beta_blc_fre) #same pattern of results
-summary(lm_mom_beta_blc_eng) #same pattern of results
-
+summary(lm_mom_eng) #Similar pattern of results
+summary(lm_mom_fre) #same pattern of results
 
 #FATHER MODELS 
-lm_dad_beta_eng<- lm(eng_exp ~ caregiver_2_english_use, data=for_beta_eng) 
-lm_dad_beta_fre<- lm(fre_exp ~ caregiver_2_french_use, data=for_beta_fre)
-lm_dad_beta_blc_fre<- lm(exp_l2 ~ french_abs_dif, data=for_balance)
-lm_dad_beta_blc_eng<- lm(exp_l2 ~ english_abs_dif, data=for_balance)
+lm_dad_eng<- lm(eng_exp ~ caregiver_2_english_use, data=lm_eng) 
+lm_dad_fre<- lm(fre_exp ~ caregiver_2_french_use, data=lm_fre)
+
 
 #Summary of FATHER models
-summary(lm_dad_beta_eng) #Same pattern of results
-summary(lm_dad_beta_fre) #same pattern of results
-summary(lm_dad_beta_blc_fre) #Same pattern of results
-summary(lm_dad_beta_blc_eng) #same pattern of results
+summary(lm_dad_eng) #Same pattern of results
+summary(lm_dad_fre) #same pattern of results
+
 
 
 #MOTHER AND FATHER MODELS
-lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=for_beta_eng)
+lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=lm_eng)
+lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=lm_fre)
 
-lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=for_beta_fre)
-lm_parents_aditive_blc <- lm(exp_l2 ~ french_abs_dif + english_abs_dif, data=for_balance)
 
 #Summary of Mother and Father models
 summary(lm_parents_aditive_eng) #same pattern of results
 summary(lm_parents_aditive_fre) #same pattern of results
-summary(lm_parents_aditive_blc)
+
+
+
+performance::compare_performance(lm_parents_aditive_fre, lm_dad_fre, lm_mom_fre)
+performance::compare_performance(lm_parents_aditive_eng, lm_dad_eng, lm_mom_eng)
+
+
+##Comparison of strategy versus parents models
+performance::compare_performance(lm_parents_aditive_fre, lm_strat_fre)
+performance::compare_performance(lm_parents_aditive_eng, lm_strat_eng)
+
+
+#plot the aditive caregiver models
+
+figure_p_A<-ggPredict(lm_parents_aditive_eng)+
+  theme_bw() +
+         theme(axis.text.x = element_text(size=12), 
+         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
+  labs(title= "A. Mothers and father interaction predicting English")
+  
+figure_p_B<-ggPredict(lm_parents_aditive_fre)+
+  theme_bw() +
+         theme(axis.text.x = element_text(size=12), 
+         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
+  labs(title= "B. Mothers and father interaction predicting French")
+
+figure_p<- figure_p_A+figure_p_B
+
+#AGE MODELS
+
+#just age models
+lm_just_age_eng<- lm(eng_exp ~ age, data=lm_eng)
+lm_just_age_fre<- lm(fre_exp ~ age, data=lm_fre)
+
+#Summary of just age AGE models
+summary(lm_just_age_eng) #Similar pattern of results for beta and lm
+summary(lm_just_age_fre) #Same pattern of results for beta and lm
+
+#age by strategy models
+lm_age_by_eng<- lm(eng_exp ~ age * strategy, data=lm_eng)
+lm_age_by_fre<- lm(fre_exp ~ age * strategy, data=lm_fre)
+
+#Summary of age by strategy models
+summary(lm_age_by_eng) #same pattern of results
+summary(lm_age_by_fre) #SImilar pattern of results
+
+#age by parent individual strategy models
+lm_eng_age_by_parents <- lm(eng_exp ~ age*(caregiver_2_english_use + caregiver_1_english_use), data= lm_eng)
+lm_fre_age_by_parents <- lm(fre_exp ~ age*(caregiver_2_french_use + caregiver_1_french_use), data= lm_fre)
+
+#Summary of age by parent individual strategy models
+summary(lm_eng_age_by_parents) #same pattern of results
+summary(lm_fre_age_by_parents) #SImilar pattern of results
 
 ```
 
+### Age graphs
+```{r}
+## LONGITUDINAL DATA ANALYSES ##
+FE_long_analyses<- longitudinal_data_analyses %>%
+  filter(bilingual_type=="fre-eng") 
+
+
+########### Count proportions ##########
+
+v1_strat_prop <- FE_long_analyses %>%
+  select(visit, strategy) %>%
+  filter(visit==1) %>%
+  filter(!strategy == "single-parent") %>%
+  group_by(strategy) %>%
+  tally()%>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+
+v2_strat_prop <- FE_long_analyses %>%
+  select(visit, strategy) %>%
+  filter(visit==2) %>%
+  filter(!strategy == "single-parent") %>%
+  group_by(strategy) %>%
+  tally()%>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+FE_percentages_visits <- merge(v1_strat_prop, v2_strat_prop, by="strategy")
+
+FE_percentages_visits <- FE_percentages_visits %>%
+  select(strategy, n.x, n.y, perc.x, perc.y) %>%
+  rename(n_first_visit = n.x) %>%
+  rename(n_second_visit = n.y) %>%
+  rename(percentage_first_visit = perc.x) %>%
+  rename(percentage_second_visit = perc.y)
+
+
+
+###########################
+
+###################### GLMER MODEL To learn weather changing strategy was related to the time between visits ########
+
+FE_for_long_glmer<- FE_long_analyses %>%
+    select(visit, strategy, length_between_visits, anon_baby_id) %>%
+  filter(visit == c(1,2)) %>%
+  filter(!strategy == "single-parent") %>%
+  pivot_wider(names_from = visit, values_from = strategy) %>%
+  rename(visit_1 = "1") %>%
+  rename(visit_2 = "2") %>%
+  mutate(change_strat = case_when(visit_1 == visit_2 ~"no_change",
+                                  TRUE~ "change")) 
+  FE_for_long_glmer<- FE_for_long_glmer %>%
+drop_na("visit_1") #One NA because family used french and Heritage in the first visit and french and english in the second.
+  
+
+  FE_count_change <- FE_for_long_glmer %>%
+      group_by(change_strat) %>%
+  tally() %>%
+  mutate(perc = (n/sum(n)*100))
+  
+  FE_strategy_change <- FE_for_long_glmer %>%
+    filter(change_strat=="change") %>%
+      group_by(visit_2) %>%
+  tally() %>%
+  mutate(perc = (n/sum(n)*100))
+  
+long_model<- glmer(as.factor(change_strat) ~ scale(length_between_visits) +(1|anon_baby_id), data = FE_for_long_glmer, family="binomial")
+
+summary(long_model)
+
+
+############ make sankey graph ########
+
+FE_for_sankey <- FE_for_long_glmer %>%
+  select(-change_strat) %>%
+  make_long("visit_1", "visit_2") 
+
+FE_for_sankey <- FE_for_sankey %>%
+  mutate(node= fct_relevel (node, "both-parents-bilingual", "one-parent-bilingual", "one-language-at-home", "one-parent-one-language"))
+
+
+FE_p1<- ggplot(FE_for_sankey, aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node )) +
+  geom_sankey() 
+
+FE_p2<- FE_p1+ 
+      scale_fill_manual(name= "x", values = c(my_orange, my_yellow, my_green, my_blue))
+
+FE_p2<- FE_p2 + 
+  geom_sankey_label(size=5, color="black", fill="white")+
+  theme_bw()+
+  theme(axis.text.x = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank())+
+  labs(title="Stability of Family Strategies Across Visits", x="")
+
+
+
+## AGE BY STRATEGY GRAPHS
+
+figure_3_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
+  geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "A. French exposure changes by age/strategy")
+
+figure_3_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)) +
+  geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=12),legend.title= element_text(size=12))+
+  labs(title= "B. English exposure changes by age/strategy")
+
+
+figure_3<- figure_3_a + figure_3_b 
+
+#ggsave(file="Figure_3.png", width=25, height=7, dpi=300)
+
+```
 
 
 
@@ -1165,76 +1095,158 @@ summary(lm_parents_aditive_blc)
 ```{r}
 ###### FOR THE FRENCH- HERITAGE SAMPLE ###########
 #Calculating how many families use each strategy and its corresponding %
-prop_strategy_FH<- FEH %>%
-  filter(bilingual_type == "fre-her")%>%
+her_prop_strategy<- FEH %>%
+  filter(!bilingual_type == "fre-eng")%>%
 group_by(strategy) %>%
   tally() %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
 #Reordering levels so legend in the graph is in order.
-prop_strategy_FH$strategy<- factor(prop_strategy_FH$strategy, levels= c("one-parent-bilingual","both-parents-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+her_prop_strategy$strategy<- factor(her_prop_strategy$strategy, levels= c("one-parent-bilingual","both-parents-bilingual", "one-parent-one-lang", "single-parent", "one-language-at-home"))
 
-prop_strategy_FH<- prop_strategy_FH %>%
+her_prop_strategy<- her_prop_strategy %>%
  arrange(desc(prop))
 
 #Waffle plot
-V1_FH<- setNames(prop_strategy_FH$n, c( "one-parent-bilingual","both-parents-bilingual","one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
+her_V1<- setNames(her_prop_strategy$n, c( "one-parent-bilingual","both-parents-bilingual","one-parent-one-lanaguage",  "single-parent", "one-language-at-home"))
 
-figure_6_a<- waffle(parts = V1_FH, rows=5, colors = c(my_yellow, my_orange, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-heritage sample", size=0.6)
-
-
-##### FOR THE ENGLISH- HERITAGE SAMPLE ###########
-prop_strategy_EH<- FEH %>%
-  filter(bilingual_type == "eng-her")%>%
-group_by(strategy) %>%
-  tally() %>%
-  mutate(prop = n/sum(n)) %>%
-  mutate(perc= prop*100)
-
-#Reordering levels so legend in the graph is in order.
-prop_strategy_EH$strategy<- factor(prop_strategy_EH$strategy, levels= c("one-parent-bilingual","both-parents-bilingual","one-parent-one-lang", "one-language-at-home", "single-parent"))
-
-prop_strategy_EH<- prop_strategy_EH %>%
- arrange(desc(prop))
-
-#Waffle plot
-V1_EH<- setNames(prop_strategy_EH$n, c("one-parent-bilingual", "both-parents-bilingual", "one-parent-one-lanaguage", "single-parent"))
-
-figure_6_b<- waffle(parts = V1_EH, rows=5, colors = c(my_yellow, my_orange, my_blue, my_purple), keep = T, title = "% Family Strategies for the English-heritage sample", size=0.6)
-
-figure_6<- figure_6_a + figure_6_b
-
+figure_6 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, title = "% Family Strategies for the French/English-heritage sample", size=0.6)
 
 ```
 
 
 ```{r study 2 chisq tests}
-for_chisq_FH <- prop_strategy_FH %>%
+her_for_chisq <- her_prop_strategy %>%
   filter(!strategy %in% c("single-parent", "one-language-at-home")) 
 
-for_chisq_EH <- prop_strategy_EH %>%
-  filter(!strategy== "single-parent")
 
-xsq_test_FH<- chisq.test(for_chisq_FH$n)
-xsq_test_EH<- chisq.test(for_chisq_EH$n)
+her_xsq_test<- chisq.test(her_for_chisq$n)
+
 
 ```
 
 
+```{r Study 2: Mother and father language exploration, include=FALSE}
+
+### Looking at the individual parent strategies in each family language strategy
+
+##Both parents bilingual
+her_both_parent_b<- FEH %>%
+  filter(!bilingual_type == "fre-eng")%>%
+  filter(strategy=="both-parents-bilingual") %>%
+  mutate(caregiver1_French =  case_when (l1== "French"~care1_l1,
+                                         l2== "French"~care1_l2)) %>%
+    mutate(caregiver1_English =  case_when (l1== "English"~care1_l1,
+                                         l2== "English"~care1_l2)) %>%
+      mutate(caregiver1_heritage =  case_when (l1== "Heritage"~care1_l1,
+                                         l2== "Heritage"~care1_l2)) %>%
+    mutate(caregiver2_French =  case_when (l1== "French"~care2_l1,
+                                         l2== "French"~care2_l2)) %>%
+    mutate(caregiver2_English =  case_when (l1== "English"~care2_l1,
+                                         l2== "English"~care2_l2)) %>%
+      mutate(caregiver2_heritage =  case_when (l1== "Heritage"~care2_l1,
+                                         l2== "Heritage"~care2_l2)) %>%
+  mutate(mom_use_strategy = case_when( caregiver1_heritage == "regularly" & caregiver1_heritage == "regularly" ~ "both regularly",
+                                       caregiver1_French == "regularly" & caregiver1_heritage == "regularly" ~ "both regularly",
+                                       caregiver1_English == "regularly" & caregiver1_heritage == "regularly" ~ "both regularly",
+                                       caregiver1_French == "regularly" & caregiver1_heritage == "sometimes" ~ "french-reg-heritage-some",
+                                       caregiver1_French == "sometimes" & caregiver1_heritage == "regularly" ~ "french-some-heritage-reg",
+                                       caregiver1_English == "regularly" & caregiver1_heritage == "sometimes" ~ "english-reg-heritage-some",
+                                       caregiver1_English == "sometimes" & caregiver1_heritage == "regularly" ~ "english-some-heritage-reg",
+))%>%
+  mutate(dad_use_strategy = case_when( caregiver2_heritage == "regularly" & caregiver2_heritage == "regularly" ~ "both regularly",
+                                       caregiver2_French == "regularly" & caregiver2_heritage == "regularly" ~ "both regularly",
+                                       caregiver2_English == "regularly" & caregiver2_heritage == "regularly" ~ "both regularly",
+                                       caregiver2_French == "regularly" & caregiver2_heritage == "sometimes" ~ "french-reg-heritage-some",
+                                       caregiver2_French == "sometimes" & caregiver2_heritage == "regularly" ~ "french-some-heritage-reg",
+                                       caregiver2_English == "regularly" & caregiver2_heritage == "sometimes" ~ "english-reg-heritage-some",
+                                       caregiver2_English == "sometimes" & caregiver2_heritage == "regularly" ~ "english-some-heritage-reg",
+                                       TRUE~"both-sometimes")) 
+
+# what are the percentages ?
+her_mom_biling_strat<- her_both_parent_b %>%
+  group_by(mom_use_strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+her_dad_biling_strat<- her_both_parent_b %>%
+  group_by(dad_use_strategy) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+
+
+## One-parent-bilingual
+
+#Which parent is the bilingual parent?
+her_one_parent_b<- FEH %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  filter(strategy=="one-parent-bilingual") %>%
+    mutate(caregiver_biling = case_when(care1_l1 %in% c("regularly", "sometimes") & care1_l2 %in% c("regularly", "sometimes") ~ "caregiver1",
+                                      TRUE ~ "caregiver2"))
+#What are the percentages
+her_caregiver_bi_prop <- her_one_parent_b %>%
+  group_by(caregiver_biling) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) ## 67% mothers are the bilingual caregiver
+
+#Which languages are spoken by the monolingual parent?
+
+her_monoling_careg_lang<- her_one_parent_b %>%
+  mutate(monolingual_care_lang = case_when(caregiver_biling == "caregiver1" & care2_l1 %in% c("regularly", "sometimes") ~ l1,
+                                           caregiver_biling == "caregiver1" & care2_l2 %in% c("regularly", "sometimes") ~ l2,
+                                           caregiver_biling == "caregiver2" & care1_l1 %in% c("regularly", "sometimes") ~l1,
+                                           caregiver_biling == "caregiver2" & care1_l2 %in% c("regularly", "sometimes") ~l2)) %>%
+  group_by(monolingual_care_lang) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) ## 69% on the parents who are monolingual speak English
+                                    
+  
+
+##Also looking at OPOL strategy
+
+her_opol<- FEH %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  filter(strategy=="one-parent-one-lang") %>%
+  mutate(parents_flexible_use = case_when( care1_l1 == "sometimes"| care1_l2 == "sometimes"|care2_l1 == "sometimes"|care2_l2 == "sometimes" ~ "flex_use",
+                                           TRUE ~ "strict_use"
+  ))
+
+
+her_flex_opol_count<- her_opol %>%
+  group_by(parents_flexible_use) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+her_opol_flex<- her_opol %>%
+  filter(parents_flexible_use == "flex_use") %>%
+  mutate(flex_parent = case_when(care1_l1 == "sometimes" | care1_l2  == "sometimes" ~ "mom",
+                                  TRUE~ "dad"))
+
+her_opol_strict<- her_opol %>%
+  filter(!parents_flexible_use == "flex_use") 
+
+
+```
 
 ```{r Study 2 ANOVA graphs, include=FALSE}
 
-FH_for_anova_graphs<-FEH %>%
-  filter(bilingual_type == "fre-her")
+her_for_anova_graphs<-FEH %>%
+  filter(!bilingual_type == "fre-eng")
 
-FH_for_anova_graphs$strategy<- factor(FH_for_anova_graphs$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
+her_for_anova_graphs$strategy<- factor(her_for_anova_graphs$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "one-language-at-home", "single-parent"))
 
-FH_for_anova_graphs <- FH_for_anova_graphs %>%
+her_for_anova_graphs <- her_for_anova_graphs %>%
   filter(!strategy %in% c("single-parent", "one-language-at-home"))
   
 
-figure_7_a <-ggplot(FH_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
+figure_7_a <-ggplot(her_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
   ylim(0,100) +
@@ -1243,72 +1255,32 @@ figure_7_a <-ggplot(FH_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = str
        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. Mean French exposure by strategy")
 
-figure_7_b <-ggplot(FH_for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
+figure_7_b <- ggplot(her_for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
   ylim(0,100) +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "B. Mean heritage exposure by strategy")
+  labs(title= "B. Mean English exposure by strategy")
 
-figure_7_c <-ggplot(FH_for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strategy )) +
+figure_7_c <-ggplot(her_for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
-  ylim(0,50) +
+  ylim(0,100) +
    scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
-  labs(title= "C. Mean exposure balance by strategy")
+       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
+  labs(title= "C. Mean heritage exposure by strategy")
 
 figure_7<- figure_7_a + figure_7_b + figure_7_c 
-
-#### English Heritage
-
-EH_for_anova_graphs<-FEH %>%
-  filter(bilingual_type == "eng-her")
-
-EH_for_anova_graphs$strategy<- factor(EH_for_anova_graphs$strategy, levels= c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lang", "single-parent"))
-
-EH_for_anova_graphs <- EH_for_anova_graphs %>%
-  filter(!strategy %in% c("single-parent", "one-language-at-home"))
-  
-
-figure_8_a <-ggplot(EH_for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
-  stat_summary(geom="bar")+
-  stat_summary() +
-  ylim(0,100) +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "A. Mean French exposure by strategy")
-
-figure_8_b <-ggplot(EH_for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
-  stat_summary(geom="bar")+
-  stat_summary() +
-  ylim(0,100) +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-       theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "B. Mean heritage exposure by strategy")
-
-figure_8_c <-ggplot(EH_for_anova_graphs, aes( x=strategy , y=exp_l2, fill = strategy )) +
-  stat_summary(geom="bar")+
-  stat_summary() +
-  ylim(0,50) +
-   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
-  labs(title= "C. Mean exposure balance by strategy")
-
-figure_8<- figure_8_a + figure_8_b + figure_8_c 
 
 ```
 
 ```{r Study 2: ANOVA analysis, include=FALSE}
 
-FH_for_anovas<- FEH %>%
-  filter(bilingual_type == "fre-her") %>%
+her_for_anovas<- FEH %>%
+  filter(!bilingual_type == "fre-eng") %>%
   filter(!strategy == "single-parent") %>%
   filter(!strategy == "one-language-at-home") %>%
   mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
@@ -1316,46 +1288,158 @@ FH_for_anovas<- FEH %>%
                               strategy=="one-parent-one-lang"~"OneParentOneLang"))
 ##French-Heritage Anova objects
 
-FH_anova_model_french <- aov(fre_exp ~ strategy, data= FH_for_anovas)
-FH_anova_model_heritage <- aov(min_exp ~ strategy, data= FH_for_anovas)
-FH_anova_model_balance <- aov(exp_l2 ~ strategy, data= FH_for_anovas)
+her_anova_model_french <- aov(fre_exp ~ strategy, data= her_for_anovas)
+her_anova_model_heritage <- aov(min_exp ~ strategy, data= her_for_anovas)
+her_anova_model_english <- aov(eng_exp ~ strategy, data= her_for_anovas)
 
-FH_aov_fre<- tidy(FH_anova_model_french)
-FH_aov_her<- tidy(FH_anova_model_heritage)
-FH_aov_blc<- tidy(FH_anova_model_balance)
+her_aov_fre<- tidy(her_anova_model_french)
+her_aov_her<- tidy(her_anova_model_heritage)
+her_aov_eng<- tidy(her_anova_model_english)
 
 
-##### English-Heritage sample
+her_tukey_eng<- TukeyHSD (her_anova_model_english)
+her_tukey_her<- TukeyHSD (her_anova_model_heritage)
+```
 
-EH_for_anovas<- FEH %>%
-  filter(bilingual_type == "eng-her") %>%
-  filter(!strategy == "single-parent") %>%
-  mutate(strategy = case_when(strategy=="both-parents-bilingual"~"BothParentsBilingual",
-                              strategy=="one-parent-bilingual"~"OneParentBilingual",
-                              strategy=="one-parent-one-lang"~"OneParentOneLang"))
-##French-Heritage Anova objects
+##linear models
+```{r}
 
-EH_anova_model_english <- aov(eng_exp ~ strategy, data= EH_for_anovas)
-EH_anova_model_heritage <- aov(min_exp ~ strategy, data= EH_for_anovas)
-EH_anova_model_balance <- aov(exp_l2 ~ strategy, data= EH_for_anovas)
+her_for_lms <- her_for_anovas %>% 
+  select(gender, anon_baby_id, age, exp_l2, min_exp,fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
+  mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
+                              TRUE ~ care1_l2)) %>%  #2023-07 going to need to fix this NAs in the cleaning script
+    mutate(care2_l1 = case_when(care2_l1 =="NA" ~ "never",
+                              TRUE ~ care2_l1)) %>%
+      mutate(care2_l2 = case_when(care2_l2 =="NA" ~ "never",
+                              TRUE ~ care2_l2)) %>%
+  mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
+                                            l2=="French"~care1_l2)) %>%
+    mutate(caregiver_1_heritage_use = case_when(l1=="Heritage"~care1_l1,
+                                            l2=="Heritage"~care1_l2)) %>%
+    mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
+                                            l2=="English"~care1_l2)) %>%
+    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
+                                            l2=="French"~ care2_l2)) %>%
+      mutate(caregiver_2_heritage_use = case_when(l1=="Heritage"~ care2_l1,
+                                            l2=="Heritage"~ care2_l2)) %>%
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
+  filter(gender != "NA") %>%
+  filter(!strategy == "OneLanguageAtHome") %>%
+  mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, exp_l2 = exp_l2/100) 
 
-EH_aov_eng<- tidy(EH_anova_model_english)
-EH_aov_her<- tidy(EH_anova_model_heritage)
-EH_aov_blc<- tidy(EH_anova_model_balance)
 
-EH_tukey_eng<- TukeyHSD (EH_anova_model_english)
-EH_tukey_her<- TukeyHSD (EH_anova_model_heritage)
+#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPH
+her_for_lms$caregiver_1_french_use <- factor(her_for_lms$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_1_heritage_use <- factor(her_for_lms$caregiver_1_heritage_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_1_english_use <- factor(her_for_lms$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_2_french_use <- factor(her_for_lms$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_2_heritage_use <- factor(her_for_lms$caregiver_2_heritage_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_2_english_use <- factor(her_for_lms$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
+
+
+#STRATEGY LINEAR MODELS
+her_lm_strat_eng<- lm(eng_exp ~ strategy, data=her_for_lms)
+her_lm_strat_fre <- lm(fre_exp ~ strategy, data=her_for_lms)
+her_lm_strat_her <- lm(min_exp ~ strategy, data=her_for_lms)
+
+#Summary of STRATEGY LINEAR models
+summary(lm_strat_eng) #Slightly different, one parent bilingual is just a tad significant here and not for beta. 
+summary(lm_strat_fre) #Same as above, one parent bilingual is significant and not for beta.
+
+
+###### Careviver models 
+#MOTHER MODELS
+her_lm_mom_eng<- lm(eng_exp ~ caregiver_1_english_use, data=her_for_lms)
+her_lm_mom_fre<- lm(fre_exp ~ caregiver_1_french_use, data=her_for_lms)
+her_lm_mom_her<- lm(min_exp ~ caregiver_1_heritage_use, data=her_for_lms)
+
+#Summary of MOTHER models
+summary(her_lm_mom_eng) 
+summary(her_lm_mom_fre) 
+summary(her_lm_mom_her)
+
+#FATHER MODELS 
+her_lm_dad_eng<- lm(eng_exp ~ caregiver_2_english_use, data=her_for_lms)
+her_lm_dad_fre<- lm(fre_exp ~ caregiver_2_french_use, data=her_for_lms)
+her_lm_dad_her<- lm(min_exp ~ caregiver_2_heritage_use, data=her_for_lms)
+
+
+#Summary of FATHER models
+summary(lm_dad_eng) 
+summary(lm_dad_fre) 
+summary(lm_dad_fre)
+
+
+#MOTHER AND FATHER MODELS
+her_lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=her_for_lms)
+her_lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=her_for_lms)
+her_lm_parents_aditive_her<- lm(min_exp ~ caregiver_2_heritage_use + caregiver_1_heritage_use, data=her_for_lms)
+
+#Summary of Mother and Father models
+summary(her_lm_parents_aditive_eng) 
+summary(her_lm_parents_aditive_fre) 
+summary(her_lm_parents_aditive_her) 
+
+
+
+performance::compare_performance(her_lm_parents_aditive_fre, her_lm_dad_fre, her_lm_mom_fre)
+performance::compare_performance(her_lm_parents_aditive_eng, her_lm_dad_eng, her_lm_mom_eng)
+performance::compare_performance(her_lm_parents_aditive_her, her_lm_dad_her, her_lm_mom_her)
+
+##Comparison of strategy versus parents models
+performance::compare_performance(her_lm_mom_fre, her_lm_strat_fre)
+performance::compare_performance(her_lm_parents_aditive_eng, her_lm_strat_eng)
+performance::compare_performance(her_lm_parents_aditive_her, her_lm_strat_her)
+
+#plot the aditive caregiver models
+
+figure_q_A<-ggPredict(her_lm_mom_fre)+
+  theme_bw() +
+         theme(axis.text.x = element_text(size=12), 
+         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
+  labs(title= "A. Mothers French use on French exposure")
+  
+figure_q_B<-ggPredict(her_lm_parents_aditive_eng)+
+  theme_bw() +
+         theme(axis.text.x = element_text(size=12), 
+         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.position="none")+
+  labs(title= "B. Mothers and fathers Eng use on Eng exposure")
+
+figure_q_C<-ggPredict(her_lm_parents_aditive_her)+
+  theme_bw() +
+         theme(axis.text.x = element_text(size=12), 
+         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
+  labs(title= "c. Mothers and fathers heritage use on heritage exposure")
+
+
+figure_q<- figure_q_A+figure_q_B+figure_q_C
+
+#AGE MODELS
+
+## no age models cause there us just too few data.
+
+
+
+
 ```
 
 
-## Longitudinal exploratory analyses
-  
-```{r, include=FALSE}
+### Age graphs
+```{r study 2 Age exploration}
 ## LONGITUDINAL DATA ANALYSES ##
+her_long_analyses<- longitudinal_data_analyses %>%
+  filter(!bilingual_type=="fre-eng") %>% 
+  filter(visit %in% c(1,2)) %>%
+  group_by(anon_baby_id) %>%
+  mutate(visit22 = row_number())
+filter(n()>1) %>% #Just want to keep the families that have data for two visits
+ungroup()
+
 
 ########### Count proportions ##########
 
-v1_strat_prop <- longitudinal_data_analyses %>%
+her_v1_strat_prop <- her_long_analyses %>%
   select(visit, strategy) %>%
   filter(visit==1) %>%
   filter(!strategy == "single-parent") %>%
@@ -1365,7 +1449,7 @@ v1_strat_prop <- longitudinal_data_analyses %>%
   mutate(perc= prop*100)
 
 
-v2_strat_prop <- longitudinal_data_analyses %>%
+her_v2_strat_prop <- her_long_analyses %>%
   select(visit, strategy) %>%
   filter(visit==2) %>%
   filter(!strategy == "single-parent") %>%
@@ -1374,108 +1458,23 @@ v2_strat_prop <- longitudinal_data_analyses %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
-percentages_visits <- merge(v1_strat_prop, v2_strat_prop, by="strategy")
-
-percentages_visits <- percentages_visits %>%
-  select(strategy, n.x, n.y, perc.x, perc.y) %>%
-  rename(n_first_visit = n.x) %>%
-  rename(n_second_visit = n.y) %>%
-  rename(percentage_first_visit = perc.x) %>%
-  rename(percentage_second_visit = perc.y)
-
-perc_family_change <- longitudinal_data_analyses %>%
-  select(visit, strategy, anon_baby_id) %>%
-  filter(visit == c(1,2)) %>%
-  filter(!strategy == "single-parent") %>%
-  pivot_wider(names_from = visit, values_from = strategy) %>%
-  rename(visit_1 = "1") %>%
-  rename(visit_2 = "2") %>%
-  mutate(change_strat = case_when(visit_1 == visit_2 ~"no_change",
-                                  TRUE~ "change")) %>%
-  group_by(change_strat) %>%
-  tally() %>%
-  mutate(perc = (n/sum(n)*100))
-
-change_perc<- perc_family_change %>%
-  filter(change_strat == "change") 
-
-change_perc <- change_perc$perc
-  
-no_change_perc<- 100-change_perc
-
-###########################
-
-###################### GLMER MODEL To learn weather changing strategy was related to the time between visits ########
-
-for_long_glmer<- longitudinal_data_analyses %>%
-    select(visit, strategy, length_between_visits, anon_baby_id) %>%
-  filter(visit == c(1,2)) %>%
-  filter(!strategy == "single-parent") %>%
-  pivot_wider(names_from = visit, values_from = strategy) %>%
-  rename(visit_1 = "1") %>%
-  rename(visit_2 = "2") %>%
-  mutate(change_strat = case_when(visit_1 == visit_2 ~"no_change",
-                                  TRUE~ "change"))
-  
-
-long_model<- glmer(as.factor(change_strat) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_long_glmer, family="binomial")
-
-summary(long_model)
 
 
 
 
-############ make sankey graph ########
 
-wider_longitudinal <- longitudinal_data_analyses %>%
-  select(anon_baby_id, visit, strategy) %>%
-  filter(str_detect(strategy, "single-parent", negate=T))
+## AGE BY STRATEGY GRAPHS
 
-wider_longitudinal <- pivot_wider(wider_longitudinal,
-                                names_from = visit, values_from = strategy ) %>%
-  rename(visits_1 = "1", visits_2 = "2", visit_3 ="3", visit_4 ="4" ) 
+figure_x_a <-ggplot(her_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
+  geom_smooth(alpha=0.2)+
+  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "A. French exposure changes by age/strategy")
 
+## There is too few data to run the model. The graph is super noisy
 
-
-for_sankey <- wider_longitudinal %>%
-  make_long(visits_1, visits_2) 
-
-for_sankey <- for_sankey %>%
-  mutate(node= fct_relevel (node, "both-parents-bilingual", "one-parent-bilingual", "one-language-at-home", "one-parent-one-language"))
-
-
-p1<- ggplot(for_sankey, aes(x = x, 
-               next_x = next_x, 
-               node = node, 
-               next_node = next_node,
-               fill = factor(node), label=node )) +
-  geom_sankey() 
-
-p2<- p1+ 
-      scale_fill_manual(name= "x", values = c(my_orange, my_yellow, my_green, my_blue))
-
-p2<- p2 + 
-  geom_sankey_label(size=3, color="black", fill="white")+
-  theme_bw()+
-  theme(legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank()) +
-  labs(title="Stability of Family Strategies Across Visits", x="")
-  
-
-```
-  Finally, we wanted to explore whether families switched in their use of family language strategies across time. To explore this, we used a subset of our data that included families that had provided LEQ data two separate visits (i.e. longitudinal data). We plotted the longitudinal data (See Figure 3) to determine the stability of family strategy use across time. As can be observed, most families maintain the same family language strategy throughout both visits. Specifically, `r no_change_perc`% kept the same strategy, and `r change_perc`% changed strategies  (See Table 5 for the breakdown of strategy use by visit). The biggest gain between visits was for the both parents bilingual strategy which gained around 6%. The biggest loss between visits was for the one language at home strategy which lost around 5%. The most common change between strategies was from the one parent bilingual strategy, to the both parents bilingual strategy, followed by changing from the one language at home strategy to the one parent bilingual strategy.  
-
-
-  Figure 4
-  
-```{r echo=FALSE}
-print(p2)
-```
-
-Table 5 Percentage of Family Strategy Use in Each Visit
-
-```{r echo=FALSE}
-
-kable(percentages_visits)
 ```
 
   
