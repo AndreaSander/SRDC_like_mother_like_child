@@ -1091,7 +1091,7 @@ figure_3<- figure_3_a + figure_3_b
 ```{r}
 FE_mother_long_analyses <- FE_long_analyses %>% 
   filter(!strategy=="single-parent") %>%
-  select(unique_id, l1, l2, care1_l1, care1_l2, visit, strategy) %>%
+  select(anon_baby_id, unique_id, l1, l2, care1_l1, care1_l2, visit, strategy) %>%
     mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
                                             l2=="French"~care1_l2)) %>%
     mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
@@ -1103,7 +1103,7 @@ FE_mother_long_analyses <- FE_long_analyses %>%
 
 FE_father_long_analyses <- FE_long_analyses %>% 
     filter(!strategy=="single-parent") %>%
-    select(unique_id, l1, l2, care2_l1, care2_l2, visit, strategy) %>%
+    select(anon_baby_id, unique_id, l1, l2, care2_l1, care2_l2, visit, strategy) %>%
     mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
                                             l2=="French"~ care2_l2)) %>%
     mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
@@ -1116,11 +1116,63 @@ FE_mother_father_long <- inner_join(FE_mother_long_analyses, FE_father_long_anal
 
 
 FE_mother_father_long <- FE_mother_father_long %>%
-  select(unique_id, visit, individual_strategy_mother, individual_strategy_father, strategy) %>%
+  select(anon_baby_id, visit, individual_strategy_mother, individual_strategy_father, strategy) %>%
     filter(visit == c(1,2)) %>%
-  pivot_wider(names_from = visit, values_from = strategy) %>%
-  dplyr::rename(visit_1 = "1") %>%
-  dplyr::rename(visit_2 = "2") %>%
+  mutate(visit = as.character(as.numeric(visit)))%>%
+  mutate(visit_a = visit) %>%#need two visit columns to give the df the appropriate shape for the sankey graph
+ mutate(visit_b= visit) %>%
+   pivot_wider(names_from = visit, values_from = strategy) %>%
+  rename("Visit_1_FLS" = "1") %>%
+  rename("Visit_2_FLS" = "2") 
+
+FE_mother_father_long <- FE_mother_father_long %>%
+ pivot_wider(names_from = visit_a, values_from = individual_strategy_mother) %>% 
+ rename("Visit_1_Mom" = "1") %>%
+  rename("Visit_2_Mom" = "2") 
+   
+ FE_mother_father_long <- FE_mother_father_long %>%
+   pivot_wider(names_from = visit_b, values_from = individual_strategy_father) %>%
+  rename("Visit_1_Dad" = "1") %>%
+  rename("Visit_2_Dad" = "2") 
+ 
+  FE_mother_father_long <- FE_mother_father_long %>%
+   group_by(anon_baby_id)%>%
+  summarise_all(na.omit) %>%#Collapsing IDs so that there is one row per baby cause otherwise the sankey wont work
+  ungroup() 
+
+ 
+##Make sankey graph
+
+FE_mom_for_sankey <- FE_mother_father_long %>%
+  make_long("Visit_1_FLS","Visit_1_Mom", "Visit_2_Mom", "Visit_2_FLS") 
+
+FE_indi_mom_p1<- ggplot(FE_mom_for_sankey , aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node)) +
+  geom_sankey(flow.color = "black") + 
+      scale_fill_manual(name= "x", values = c(my_yellow,"#F66D7A","#8b2e57",my_green, my_blue, my_orange)) + 
+  geom_sankey_label(size=5, color="black", fill="white")+
+  theme_bw()+
+  theme(legend.position = "none")
+
+FE_dad_for_sankey <- FE_mother_father_long %>%
+  make_long("Visit_1_FLS","Visit_1_Dad", "Visit_2_Dad", "Visit_2_FLS") 
+
+FE_indi_dad_p1<- ggplot(FE_dad_for_sankey , aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node)) +
+  geom_sankey(flow.color = "black") + 
+      scale_fill_manual(name= "x", values = c(my_yellow,"#F66D7A","#8b2e57",my_green, my_blue, my_orange)) + 
+  geom_sankey_label(size=5, color="black", fill="white")+
+  theme_bw()
+
+
+
+figure_x<- FE_indi_mom_p1 + FE_indi_dad_p1
 
 
 ```
