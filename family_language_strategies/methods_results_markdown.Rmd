@@ -961,7 +961,7 @@ summary(lm_fre_age_by_parents) #SImilar pattern of results
 
 ```
 
-### Age graphs
+### Age graphs by strategy
 ```{r}
 ## LONGITUDINAL DATA ANALYSES ##
 FE_long_analyses<- longitudinal_data_analyses %>%
@@ -1086,6 +1086,44 @@ figure_3<- figure_3_a + figure_3_b
 
 ```
 
+
+## Age graphs by parent strategy
+```{r}
+FE_mother_long_analyses <- FE_long_analyses %>% 
+  filter(!strategy=="single-parent") %>%
+  select(unique_id, l1, l2, care1_l1, care1_l2, visit, strategy) %>%
+    mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
+                                            l2=="French"~care1_l2)) %>%
+    mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
+                                            l2=="English"~care1_l2)) %>%
+  mutate(individual_strategy_mother = case_when( caregiver_1_french_use %in% c("regularly", "sometimes") & caregiver_1_english_use %in% c("regularly", "sometimes") ~ "mother_bilingual" ,
+                                          TRUE ~ "mother_monolingual"
+                                          ))
+
+
+FE_father_long_analyses <- FE_long_analyses %>% 
+    filter(!strategy=="single-parent") %>%
+    select(unique_id, l1, l2, care2_l1, care2_l2, visit, strategy) %>%
+    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
+                                            l2=="French"~ care2_l2)) %>%
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
+  mutate(individual_strategy_father = case_when( caregiver_2_french_use %in% c("regularly", "sometimes") & caregiver_2_english_use %in% c("regularly", "sometimes") ~ "father_bilingual" ,
+                                          TRUE ~ "father_monolingual"
+                                          ))
+
+FE_mother_father_long <- inner_join(FE_mother_long_analyses, FE_father_long_analyses)
+
+
+FE_mother_father_long <- FE_mother_father_long %>%
+  select(unique_id, visit, individual_strategy_mother, individual_strategy_father, strategy) %>%
+    filter(visit == c(1,2)) %>%
+  pivot_wider(names_from = visit, values_from = strategy) %>%
+  dplyr::rename(visit_1 = "1") %>%
+  dplyr::rename(visit_2 = "2") %>%
+
+
+```
 
 
 
