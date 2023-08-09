@@ -1091,7 +1091,7 @@ figure_3<- figure_3_a + figure_3_b
 ```{r}
 FE_mother_long_analyses <- FE_long_analyses %>% 
   filter(!strategy=="single-parent") %>%
-  select(anon_baby_id, unique_id, l1, l2, care1_l1, care1_l2, visit, strategy) %>%
+  select(anon_baby_id, unique_id, l1, l2, care1_l1, care1_l2, visit, strategy, length_between_visits) %>%
     mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
                                             l2=="French"~care1_l2)) %>%
     mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
@@ -1103,7 +1103,7 @@ FE_mother_long_analyses <- FE_long_analyses %>%
 
 FE_father_long_analyses <- FE_long_analyses %>% 
     filter(!strategy=="single-parent") %>%
-    select(anon_baby_id, unique_id, l1, l2, care2_l1, care2_l2, visit, strategy) %>%
+    select(anon_baby_id, unique_id, l1, l2, care2_l1, care2_l2, visit, strategy, length_between_visits) %>%
     mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
                                             l2=="French"~ care2_l2)) %>%
     mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
@@ -1116,7 +1116,7 @@ FE_mother_father_long <- inner_join(FE_mother_long_analyses, FE_father_long_anal
 
 
 FE_mother_father_long <- FE_mother_father_long %>%
-  select(anon_baby_id, visit, individual_strategy_mother, individual_strategy_father, strategy) %>%
+  select(anon_baby_id, visit, individual_strategy_mother, individual_strategy_father, strategy, length_between_visits) %>%
     filter(visit == c(1,2)) %>%
   mutate(visit = as.character(as.numeric(visit)))%>%
   mutate(visit_a = visit) %>%#need two visit columns to give the df the appropriate shape for the sankey graph
@@ -1173,6 +1173,62 @@ FE_indi_dad_p1<- ggplot(FE_dad_for_sankey , aes(x = x,
 
 
 figure_x<- FE_indi_mom_p1 + FE_indi_dad_p1
+
+
+### Logistic model
+
+for_parents_glmer <- FE_mother_father_long  %>%
+  mutate(mother_change = case_when(Visit_1_Mom == Visit_2_Mom ~ "No change",
+                                   TRUE~ "change")) %>%
+  mutate(father_change = case_when(Visit_1_Dad == Visit_2_Dad ~ "No change",
+                                   TRUE~ "change"))
+
+
+#Mother change model
+
+mother_change_model<- glmer(as.factor(mother_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_parents_glmer, family="binomial")
+
+summary(mother_change_model)
+
+father_change_model<- glmer(as.factor(father_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_parents_glmer, family="binomial")
+
+summary(father_change_model)
+
+
+##### Linear model graphs
+
+figure_y_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=caregiver_1_french_use)) +
+  geom_smooth(alpha=0.2)+
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "A. French exposure changes by age/mother French use")
+
+figure_y_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=caregiver_2_french_use)) +
+  geom_smooth(alpha=0.2)+
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "B. French exposure changes by age/father French use")
+
+figure_y_c <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=caregiver_1_english_use)) +
+  geom_smooth(alpha=0.2)+
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "C. English exposure changes by age/mother English use")
+
+figure_y_d <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=caregiver_2_english_use)) +
+  geom_smooth(alpha=0.2)+
+  theme_bw() +
+  ylim(0, 100)+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  labs(title= "D. English exposure changes by age/father English use")
+
+
+
+figure_3<- figure_3_a + figure_3_b 
+
 
 
 ```
