@@ -56,9 +56,7 @@ my_purple<- "#683f6d"
 
 ```
 
-## Methods
 
-### Participants
 ```{r participants information, include=FALSE}
 #### CONSTRUCTING AND DESCRIBING ALL RELEVANT DATA SETS ####
 
@@ -236,36 +234,6 @@ min_visit_l <- round(min(visit_length$length_between_visits),2)
 max_visit_l <- round(max(visit_length$length_between_visits),2)
 sd_visit_l <- round(sd(visit_length$length_between_visits),2)
 ```
-
-  Families were contacted from a database of interested families in Montréal, Canada, largely via provincial birth lists, social media, and in-person recruitment, for example at libraries and community events. Data were collected through convenience sampling when they visited Concordia Infant Research Laboratory to participate in various studies examining bilingual language acquisition. 
-  
-  Our dataset consists of demographic and language exposure information collected between the years 2013 and 2020 via parental questionnaires and forms (described below). Caregivers filled out the questionnaires during each visit as part of the lab standard practice. At each visit, the infants also participated in one or more experimental tasks, and parents completed additional questionnaires, but these are not the focus of this research. All parents signed a consent form, and they were given a small thank-you gift for their participation. The current study was approved by Concordia University Human Research Ethics Board (Certification Number 10000439). 
- 
- The original sample consisted of data from `r n` participants. This sample included repeated measures from some families who visited the lab twice (`r twice_visit`), three times (`r three_visit`), and four or more times (`r four_visit`). However, for our main analyses we decided to only keep one observation per family, thus we kept families who contributed data once as well as the data from the first visit of families who contributed data during multiple visits. We decided to keep data from the first visit only because that made the data from families with multiple visits and families with a single visit easier to compare. 
- 
- Most infants in our data were exposed to two languages. We defined the first language (L1) as the language to which they were most exposed which ranged from `r min_exp_range`  to `r max_exp_range` in our sample, as some infants were exposed to a small amount of a third language. We therefore defined the second language (L2) as the language to which they were second most exposed. We excluded `r total_excluded_triling` children who heard more than 10% of a third language from our original sample. Because the purpose of the present study is to explore bilingual family language strategies we also excluded families whose babies were getting monolingual input defined as hearing less than 95% of their L1 or less than 5% of their L2. We excluded a total of `r total_monoling_excluded` families based on this criteria.
- 
-  After exclusions, the final main analyses dataset consisted of `r n_keep_first_visit` participants  aged `r age_min` to `r age_max` months (M=`r age_mean`, SD=`r age_sd`). Of whom `r female` were female. Our sample was composed of infants who heard `r fre_l1`% of French, `r eng_l1`% of English, and `r min_l1`% of a heritage language as L1; and `r fre_l2`% of which heard French, `r eng_l2`% of English and `r min_l2`% of a Heritage language as L2. A heritage language was defined as any language other than French or English. There were two reasons behind this decision. First, in Montreal, Canada, both French and English hold a majority language status, making other languages heritage or minority languages. Second, infants who heard a language other than English and French heard one of a wide variety of the following languages: Kabyle, Russian, Romanian, German, Japanese, Arabic, Tamil, Mandarin, Spanish, Italian,   Cantonese, Tagalog, Portuguese, Persian, Greek, Creole, Polish, Edo, Armenian, Hindi, Khasi, Berber, Korean, Lithuanian, Wolof, or Yoruba. Since it would have been impractical to divide the sample in so many language groups, and since those groups had few participants, we decided to collapse them into a single heritage language group.
- 
-  While for the main analyses we excluded the second visit data of families' who contributed data during multiple visits, we constructed a secondary longitudinal data set (n= `r n_long`) which included first and second visit data from these families. We used the longitudinal data for some descriptive analyses (described below). We however excluded the third and fourth visit data from both the main and the exploratory analyses because there were very few data points. We also excluded a second visit that occurred in less than 15 days from the first visit. The length between visits one and two varied between `r min_visit_l` and `r max_visit_l` days (m= `r avg_visit_l`days, sd= `r sd_visit_l` days).
-
-
-### Instrument
-  Information concerning the language environment of the infant was gathered through the Language Exposure Questionnaire (LEQ; Bosch & Sebastián-Gallés, 2001; See appendix A) following the Multilingual Approach to Language Estimates (MAPLE; Byers-Heinlein et al, 2019), in which interviewers walk caregivers through a series of questions designed to help them accurately remember and realize the language environment and exposure of their infant. 
-  
-  The first set of questions for the LEQ with MAPLE interview aim to understand how caregivers use their languages in daily life, particularly when talking to their infant. These questions use a likert type of scale to describe the frequency with which parents use each language when talking to their child (regularly, sometimes, or never). We used the responses from the first section of the LEQ questionnaire to characterize the family language strategy used by each family. As a reminder, parents answer the frequency with which they used each language, so the responses “regularly”, “sometimes”, “never” were given for each language. For example, for a family where both parents indicated they used both their first and second language regularly we assigned the both parents bilingual strategy. By contrast, for a family where each parent spoke a different first language regularly we assigned the one-parent-one-language strategy.  In this manner we identified four distinct strategies: both parents bilingual, one parent bilingual, one-parent-one-language, and one language at home (see Table 1). In these subcategories parents that spoke their first language regularly and never spoke another language would be categorized as strict, and parents who each spoke their first language regularly but one of them sometimes would speak another language were categorized as flexible. As we discuss further below, these two categories were ultimately collapsed into a single one-parent-one-language category. Finally, we identified a few families with a single caregiver and we characterized them as single parent families, as we didn’t have enough cases to identify distinct strategies which single parents might use.
-  
-  The second set of questions for the LEQ with MAPLE interview aim to give a set of estimates of the amount of time babies spend hearing each of their languages throughout their lives based on a detailed calculation made by the interviewer from caregiver responses (cumulative exposure estimate), a rough estimate made by the caregivers themselves (global exposure estimate), and an overall estimate that averages the interviewer and the caregiver estimations (overall exposure estimate). We only used data from the overall exposure estimate to determine how much exposure to each language infants in our sample were getting.
-  
-  The overall exposure estimate made with LEQ with MAPLE have high reliability (r = .77–.97) when compared to transcriptions of daylong home recordings, which are a direct measure of the infants’ linguistic environment (Orena et al., 2018).
-  
-  We additionally collected demographic information about our participants and their families via a short paper form.
-  
-### Data Pre-processing
-
-  All the relevant LEQ data were manually entered from LEQ forms into excel spreadsheets. The data were entered twice by two different researchers to to catch errors, and discrepancies were resolved by a third individual who checked the original paper form. Demographic data were exported from Filemaker. 
-  
-  In preliminary analyses, we noticed that the one-parent-one-language strict and flexible categories both categories behaved similarly as predictors when performing statistical tests and other exploratory analyses. Moreover, splitting the categories split the sample size for the one-parent-one-language group, thus decreasing statistical power. Thus we ultimately decided to combine them into a single group. 
 
 
 ## Study 1: French-English data
@@ -821,9 +789,9 @@ performance::check_model(parents_int_blc_fre)
 
 ```
 
-## simple linear models
 
-```{r}
+
+```{r Study 1: linear models analysis, include=FALSE}
 
 for_lms <- FE_for_blc_anova %>% 
   select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
@@ -857,14 +825,12 @@ for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, level
 lm_eng <- for_lms %>% 
   select(age, eng_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use,caregiver_2_english_use) %>% 
   filter(eng_exp != "NA") %>% 
-  mutate(eng_exp = eng_exp/100) %>%
   drop_na()
 
 # Dataframe for french exposure
 lm_fre <- for_lms %>% 
   select(age, fre_exp, strategy, anon_baby_id, caregiver_1_french_use, caregiver_1_english_use, caregiver_2_french_use, caregiver_2_english_use) %>%
   filter(fre_exp != "NA") %>% 
-  mutate(fre_exp = fre_exp/100) %>%
   drop_na()
 
 #STRATEGY LINEAR MODELS
@@ -920,13 +886,17 @@ performance::compare_performance(lm_parents_aditive_eng, lm_strat_eng)
 #plot the aditive caregiver models
 
 figure_p_A<-ggPredict(lm_parents_aditive_eng)+
+    geom_line(size=2)+
   theme_bw() +
+    scale_color_manual(values = c("#dac291", "#41ae76", "#75638b"))+
          theme(axis.text.x = element_text(size=12), 
-         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
+         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.position="none")+
   labs(title= "A. Mothers and father interaction predicting English")
   
 figure_p_B<-ggPredict(lm_parents_aditive_fre)+
+  geom_line(size=2)+
   theme_bw() +
+    scale_color_manual(values = c("#dac291", "#41ae76", "#75638b"))+
          theme(axis.text.x = element_text(size=12), 
          axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
   labs(title= "B. Mothers and father interaction predicting French")
@@ -961,8 +931,8 @@ summary(lm_fre_age_by_parents) #SImilar pattern of results
 
 ```
 
-### Age graphs by strategy
-```{r}
+
+```{r Study 1: age by strategy exploratory analysis, include=FALSE}
 ## LONGITUDINAL DATA ANALYSES ##
 FE_long_analyses<- longitudinal_data_analyses %>%
   filter(bilingual_type=="fre-eng") 
@@ -1064,7 +1034,7 @@ FE_p2<- FE_p2 +
 ## AGE BY STRATEGY GRAPHS
 
 figure_3_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
-  geom_smooth(alpha=0.2)+
+  geom_smooth(alpha=0.2, size=2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
   ylim(0, 100)+
@@ -1072,7 +1042,7 @@ figure_3_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)
   labs(title= "A. French exposure changes by age/strategy")
 
 figure_3_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)) +
-  geom_smooth(alpha=0.2)+
+  geom_smooth(alpha=0.2, size= 2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
   ylim(0, 100)+
@@ -1087,156 +1057,226 @@ figure_3<- figure_3_a + figure_3_b
 ```
 
 
-## Age graphs by parent strategy
-```{r}
-FE_mother_long_analyses <- FE_long_analyses %>% 
+
+```{r Study 1: age by parental role exploratory analysis, include=FALSE}
+
+##Mother sankey
+
+mom_long<- FE_long_analyses %>% 
   filter(!strategy=="single-parent") %>%
   select(anon_baby_id, unique_id, l1, l2, care1_l1, care1_l2, visit, strategy, length_between_visits) %>%
     mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
                                             l2=="French"~care1_l2)) %>%
     mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
                                             l2=="English"~care1_l2)) %>%
-  mutate(individual_strategy_mother = case_when( caregiver_1_french_use %in% c("regularly", "sometimes") & caregiver_1_english_use %in% c("regularly", "sometimes") ~ "mother_bilingual" ,
-                                          TRUE ~ "mother_monolingual"
-                                          ))
-
-
-FE_father_long_analyses <- FE_long_analyses %>% 
-    filter(!strategy=="single-parent") %>%
-    select(anon_baby_id, unique_id, l1, l2, care2_l1, care2_l2, visit, strategy, length_between_visits) %>%
-    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
-                                            l2=="French"~ care2_l2)) %>%
-    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
-                                            l2=="English"~care2_l2)) %>%
-  mutate(individual_strategy_father = case_when( caregiver_2_french_use %in% c("regularly", "sometimes") & caregiver_2_english_use %in% c("regularly", "sometimes") ~ "father_bilingual" ,
-                                          TRUE ~ "father_monolingual"
-                                          ))
-
-FE_mother_father_long <- inner_join(FE_mother_long_analyses, FE_father_long_analyses)
-
-
-FE_mother_father_long <- FE_mother_father_long %>%
-  select(anon_baby_id, visit, individual_strategy_mother, individual_strategy_father, strategy, length_between_visits) %>%
     filter(visit == c(1,2)) %>%
-  mutate(visit = as.character(as.numeric(visit)))%>%
-  mutate(visit_a = visit) %>%#need two visit columns to give the df the appropriate shape for the sankey graph
- mutate(visit_b= visit) %>%
-   pivot_wider(names_from = visit, values_from = strategy) %>%
-  rename("Visit_1_FLS" = "1") %>%
-  rename("Visit_2_FLS" = "2") 
-
-FE_mother_father_long <- FE_mother_father_long %>%
- pivot_wider(names_from = visit_a, values_from = individual_strategy_mother) %>% 
- rename("Visit_1_Mom" = "1") %>%
-  rename("Visit_2_Mom" = "2") 
-   
- FE_mother_father_long <- FE_mother_father_long %>%
-   pivot_wider(names_from = visit_b, values_from = individual_strategy_father) %>%
-  rename("Visit_1_Dad" = "1") %>%
-  rename("Visit_2_Dad" = "2") 
- 
-  FE_mother_father_long <- FE_mother_father_long %>%
-   group_by(anon_baby_id)%>%
+  mutate(visit = as.character(as.numeric(visit))) %>%
+    mutate(visit_a = visit) %>%#need two visit columns to give the df the appropriate shape for the sankey graph
+     pivot_wider(names_from = visit, values_from = caregiver_1_french_use) %>%
+  rename("Visit_1_Fre" = "1") %>%
+  rename("Visit_2_Fre" = "2") %>%
+  pivot_wider(names_from = visit_a, values_from = caregiver_1_english_use) %>%
+    rename("Visit_1_Eng" = "1") %>%
+  rename("Visit_2_Eng" = "2") %>%
+  group_by(anon_baby_id)%>%
   summarise_all(na.omit) %>%#Collapsing IDs so that there is one row per baby cause otherwise the sankey wont work
-  ungroup() 
+  ungroup()
 
- 
-##Make sankey graph
+mom_long_french<- mom_long %>%
+  select(anon_baby_id, length_between_visits, Visit_1_Fre, Visit_2_Fre)
 
-FE_mom_for_sankey <- FE_mother_father_long %>%
-  make_long("Visit_1_FLS","Visit_1_Mom", "Visit_2_Mom", "Visit_2_FLS") 
+mom_long_english<- mom_long %>%
+  select(anon_baby_id, length_between_visits, Visit_1_Eng, Visit_2_Eng)
 
-FE_indi_mom_p1<- ggplot(FE_mom_for_sankey , aes(x = x, 
+mom_long_fre_s <- mom_long_french %>%
+  make_long("Visit_1_Fre","Visit_2_Fre") 
+
+mom_long_eng_s <- mom_long_english %>%
+  make_long("Visit_1_Eng", "Visit_2_Eng")
+
+figure_m_a <- ggplot(mom_long_fre_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") + 
-      scale_fill_manual(name= "x", values = c(my_yellow,"#F66D7A","#8b2e57",my_green, my_blue, my_orange)) + 
+  geom_sankey_label(size=5, color="black", fill="white")+
+  scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+  theme_bw()+
+  theme(legend.position = "none") +
+  labs(title= "A. Mothers' change of language use French")
+
+figure_m_b <- ggplot(mom_long_eng_s , aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node)) +
+  geom_sankey(flow.color = "black") +
+    scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
   geom_sankey_label(size=5, color="black", fill="white")+
   theme_bw()+
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  labs(title= "B. Mothers' change of language use English")
 
-FE_dad_for_sankey <- FE_mother_father_long %>%
-  make_long("Visit_1_FLS","Visit_1_Dad", "Visit_2_Dad", "Visit_2_FLS") 
 
-FE_indi_dad_p1<- ggplot(FE_dad_for_sankey , aes(x = x, 
+figure_m<- figure_m_a + figure_m_b
+
+#### Father sankey
+
+dad_long<- FE_long_analyses %>% 
+  filter(!strategy=="single-parent") %>%
+  select(anon_baby_id, unique_id, l1, l2, care2_l1, care2_l2, visit, strategy, length_between_visits) %>%
+    mutate(caregiver_2_french_use = case_when(l1=="French"~care2_l1,
+                                            l2=="French"~care2_l2)) %>%
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
+    filter(visit == c(1,2)) %>%
+  mutate(visit = as.character(as.numeric(visit))) %>%
+    mutate(visit_a = visit) %>%#need two visit columns to give the df the appropriate shape for the sankey graph
+     pivot_wider(names_from = visit, values_from = caregiver_2_french_use) %>%
+  rename("Visit_1_Fre" = "1") %>%
+  rename("Visit_2_Fre" = "2") %>%
+  pivot_wider(names_from = visit_a, values_from = caregiver_2_english_use) %>%
+    rename("Visit_1_Eng" = "1") %>%
+  rename("Visit_2_Eng" = "2") %>%
+  group_by(anon_baby_id)%>%
+  summarise_all(na.omit) %>%#Collapsing IDs so that there is one row per baby cause otherwise the sankey wont work
+  ungroup()
+
+dad_long_french<- dad_long %>%
+  select(anon_baby_id, length_between_visits, Visit_1_Fre, Visit_2_Fre) %>%
+mutate(Visit_1_Fre = case_when(Visit_1_Fre == "NA"~"never",
+                               TRUE~ Visit_1_Fre))
+
+dad_long_english<- dad_long %>%
+  select(anon_baby_id, length_between_visits, Visit_1_Eng, Visit_2_Eng)
+
+dad_long_fre_s <- dad_long_french %>%
+  make_long("Visit_1_Fre","Visit_2_Fre") 
+
+dad_long_eng_s <- dad_long_english %>%
+  make_long("Visit_1_Eng", "Visit_2_Eng")
+
+figure_d_a <- ggplot(dad_long_fre_s , aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node)) +
+  geom_sankey(flow.color = "black") +
+    scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+  geom_sankey_label(size=5, color="black", fill="white")+
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(title= "A. Fathers' change of language use French")
+
+figure_d_b <- ggplot(dad_long_eng_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") + 
-      scale_fill_manual(name= "x", values = c(my_yellow,"#F66D7A","#8b2e57",my_green, my_blue, my_orange)) + 
+    scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
   geom_sankey_label(size=5, color="black", fill="white")+
-  theme_bw()
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(title= "B. Fathers' change of language use English")
 
 
+figure_d<- figure_d_a + figure_d_b
 
-figure_x<- FE_indi_mom_p1 + FE_indi_dad_p1
 
 
 ### Logistic model
 
-for_parents_glmer <- FE_mother_father_long  %>%
-  mutate(mother_change = case_when(Visit_1_Mom == Visit_2_Mom ~ "No change",
+for_mother_glmer <- mom_long  %>%
+  mutate(French_change = case_when(Visit_1_Fre == Visit_2_Fre ~ "No change",
                                    TRUE~ "change")) %>%
-  mutate(father_change = case_when(Visit_1_Dad == Visit_2_Dad ~ "No change",
+  mutate(English_change = case_when(Visit_1_Eng == Visit_2_Eng ~ "No change",
                                    TRUE~ "change"))
 
 
+for_father_glmer <- dad_long  %>%
+  mutate(French_change = case_when(Visit_1_Fre == Visit_2_Fre ~ "No change",
+                                   TRUE~ "change")) %>%
+  mutate(English_change = case_when(Visit_1_Eng == Visit_2_Eng ~ "No change",
+                                   TRUE~ "change"))
+
+
+
+mother_long_prop<- for_mother_glmer %>%
+group_by(French_change, English_change) %>%
+  tally() 
+
+father_long_prop<- for_father_glmer %>%
+group_by(French_change, English_change) %>%
+  tally() 
+
 #Mother change model
 
-mother_change_model<- glmer(as.factor(mother_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_parents_glmer, family="binomial")
+mother_french_change_model<- glmer(as.factor(French_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_mother_glmer, family="binomial")
 
-summary(mother_change_model)
+summary(mother_french_change_model)
 
-father_change_model<- glmer(as.factor(father_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_parents_glmer, family="binomial")
+mother_english_change_model<- glmer(as.factor(English_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_mother_glmer, family="binomial")
 
-summary(father_change_model)
+summary(mother_english_change_model)
+
+
+#Father change model
+
+father_french_change_model<- glmer(as.factor(French_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_father_glmer, family="binomial")
+
+summary(father_french_change_model)
+
+father_english_change_model<- glmer(as.factor(English_change) ~ scale(length_between_visits) +(1|anon_baby_id), data = for_father_glmer, family="binomial")
+
+summary(father_english_change_model)
 
 
 ##### Linear model graphs
 
-figure_y_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=caregiver_1_french_use)) +
-  geom_smooth(alpha=0.2)+
+figure_y_a <-ggplot(data= lm_fre, aes( x=age , y=fre_exp, color=caregiver_1_french_use)) +
+  geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
-  ylim(0, 100)+
+  ylim(0, 1)+
+     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. French exposure changes by age/mother French use")
 
-figure_y_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=caregiver_2_french_use)) +
-  geom_smooth(alpha=0.2)+
+figure_y_b <-ggplot(data= lm_fre, aes( x=age , y=fre_exp, color=caregiver_2_french_use)) +
+  geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
-  ylim(0, 100)+
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
+  ylim(0, 1)+
+     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
+       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
   labs(title= "B. French exposure changes by age/father French use")
 
-figure_y_c <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=caregiver_1_english_use)) +
-  geom_smooth(alpha=0.2)+
+figure_y_c <-ggplot(data= lm_eng, aes( x=age , y=eng_exp, color=caregiver_1_english_use)) +
+  geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
-  ylim(0, 100)+
+  ylim(0, 1)+
+     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "C. English exposure changes by age/mother English use")
 
-figure_y_d <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=caregiver_2_english_use)) +
-  geom_smooth(alpha=0.2)+
+figure_y_d <-ggplot(data= lm_eng, aes( x=age , y=eng_exp, color=caregiver_2_english_use)) +
+  geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
-  ylim(0, 100)+
+  ylim(0, 1)+
+     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "D. English exposure changes by age/father English use")
 
 
 
-figure_3<- figure_3_a + figure_3_b 
+figure_y<- figure_y_a + figure_y_b + figure_y_c + figure_y_d
 
 
 
 ```
 
 
-
-
-##################### Study 2
+## Study 2: French/English-- heritage data
 
 ```{r}
 ###### FOR THE FRENCH- HERITAGE SAMPLE ###########
@@ -1740,6 +1780,88 @@ ggplot(for_breakdown, aes(x=l1, y=n, fill=strategy)) +
 #htmlwidgets::saveWidget(w, "table.html", selfcontained = TRUE)
 #webshot::webshot(url = "table.html", file = "table.png", 
  #              vwidth = 1200, vheight = 275)
+
+
+FE_mother_long_analyses <- FE_long_analyses %>% 
+  filter(!strategy=="single-parent") %>%
+  select(anon_baby_id, unique_id, l1, l2, care1_l1, care1_l2, visit, strategy, length_between_visits) %>%
+    mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
+                                            l2=="French"~care1_l2)) %>%
+    mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
+                                            l2=="English"~care1_l2)) %>%
+  mutate(individual_strategy_mother = case_when( caregiver_1_french_use %in% c("regularly", "sometimes") & caregiver_1_english_use %in% c("regularly", "sometimes") ~ "mother_bilingual" ,
+                                          TRUE ~ "mother_monolingual"
+                                          ))
+
+
+FE_father_long_analyses <- FE_long_analyses %>% 
+    filter(!strategy=="single-parent") %>%
+    select(anon_baby_id, unique_id, l1, l2, care2_l1, care2_l2, visit, strategy, length_between_visits) %>%
+    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
+                                            l2=="French"~ care2_l2)) %>%
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
+  mutate(individual_strategy_father = case_when( caregiver_2_french_use %in% c("regularly", "sometimes") & caregiver_2_english_use %in% c("regularly", "sometimes") ~ "father_bilingual" ,
+                                          TRUE ~ "father_monolingual"
+                                          ))
+
+FE_mother_father_long <- inner_join(FE_mother_long_analyses, FE_father_long_analyses)
+
+
+FE_mother_father_long <- FE_mother_father_long %>%
+  select(anon_baby_id, visit, individual_strategy_mother, individual_strategy_father, strategy, length_between_visits) %>%
+    filter(visit == c(1,2)) %>%
+  mutate(visit = as.character(as.numeric(visit)))%>%
+  mutate(visit_a = visit) %>%#need two visit columns to give the df the appropriate shape for the sankey graph
+ mutate(visit_b= visit) %>%
+   pivot_wider(names_from = visit, values_from = strategy) %>%
+  rename("Visit_1_FLS" = "1") %>%
+  rename("Visit_2_FLS" = "2") 
+
+FE_mother_father_long <- FE_mother_father_long %>%
+ pivot_wider(names_from = visit_a, values_from = individual_strategy_mother) %>% 
+ rename("Visit_1_Mom" = "1") %>%
+  rename("Visit_2_Mom" = "2") 
+   
+ FE_mother_father_long <- FE_mother_father_long %>%
+   pivot_wider(names_from = visit_b, values_from = individual_strategy_father) %>%
+  rename("Visit_1_Dad" = "1") %>%
+  rename("Visit_2_Dad" = "2") 
+ 
+  FE_mother_father_long <- FE_mother_father_long %>%
+   group_by(anon_baby_id)%>%
+  summarise_all(na.omit) %>%#Collapsing IDs so that there is one row per baby cause otherwise the sankey wont work
+  ungroup() 
+
+ 
+##Make sankey graph
+
+FE_mom_for_sankey <- FE_mother_father_long %>%
+  make_long("Visit_1_FLS","Visit_1_Mom", "Visit_2_Mom", "Visit_2_FLS") 
+
+FE_indi_mom_p1<- ggplot(FE_mom_for_sankey , aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node)) +
+  geom_sankey(flow.color = "black") + 
+      scale_fill_manual(name= "x", values = c(my_yellow,"#F66D7A","#8b2e57",my_green, my_blue, my_orange)) + 
+  geom_sankey_label(size=5, color="black", fill="white")+
+  theme_bw()+
+  theme(legend.position = "none")
+
+FE_dad_for_sankey <- FE_mother_father_long %>%
+  make_long("Visit_1_FLS","Visit_1_Dad", "Visit_2_Dad", "Visit_2_FLS") 
+
+FE_indi_dad_p1<- ggplot(FE_dad_for_sankey , aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node), label=node)) +
+  geom_sankey(flow.color = "black") + 
+      scale_fill_manual(name= "x", values = c(my_yellow,"#F66D7A","#8b2e57",my_green, my_blue, my_orange)) + 
+  geom_sankey_label(size=5, color="black", fill="white")+
+  theme_bw()
 
 ```
 

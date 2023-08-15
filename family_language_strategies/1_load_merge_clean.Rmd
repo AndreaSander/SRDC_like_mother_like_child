@@ -86,6 +86,15 @@ final_data <- final_data %>%
   mutate(age= interval(start= do_birth, end=leq_date)/                      
            duration(n=1, unit="months"))
 
+#Create a type of family column. NOTE this column was created after thoroughly reviewing parents' answers and it reflects the places where it was explicitly noted that a child had two same-gender caregivers, or where it is obvious by the parents answers that the child has a single caregiver. Otherwise it was assumed that the child had a mother and a father, and that mothers' answers were entered in the caregiver 1 slot, as it is explicitly instructed in the questionnaire.
+
+final_data <- final_data %>%
+  mutate (type_of_family= case_when(anon_baby_id == 5815080 ~ "same_sex_parents",
+                                    anon_baby_id == 5373360 ~ "same_sex_parents",
+                                    care1_l1 %in% c("never", "NA") & care1_l2 %in% c("never", "NA") & care1_l3 %in% c("never", "NA") & care1_l4 %in% c("never", "NA") ~ "single-parent",
+                                    care2_l1 %in% c("never", "NA") & care2_l2 %in% c("never", "NA") & care2_l3 %in% c("never", "NA") & care2_l4 %in% c("never", "NA") ~ "single-parent",
+                                    TRUE ~ "mother-father family"))
+
 #save data before exclusions
 
 final_data_no_exc<- final_data
