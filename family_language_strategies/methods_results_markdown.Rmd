@@ -292,7 +292,7 @@ perc_one_language_at_home<- round(one_parent_biling$perc, 1)
 #Waffle plot
 V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
-figure_1_FE<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-English sample", size=0.6)
+figure_1<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "% Family Strategies for the French-English sample", size=0.6)
 
 
 #Making a figure of most used strategies divided by lang exposure
@@ -816,10 +816,10 @@ for_lms <- FE_for_blc_anova %>%
 
 
 #REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPH
-for_lms$caregiver_1_french_use <- factor(for_lms$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
-for_lms$caregiver_1_english_use <- factor(for_lms$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
-for_lms$caregiver_2_french_use <- factor(for_lms$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
-for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
+for_lms$caregiver_1_french_use <- factor(for_lms$caregiver_1_french_use, levels= c("regularly","sometimes", "never"))
+for_lms$caregiver_1_english_use <- factor(for_lms$caregiver_1_english_use, levels= c("regularly","sometimes", "never"))
+for_lms$caregiver_2_french_use <- factor(for_lms$caregiver_2_french_use, levels= c("regularly","sometimes", "never"))
+for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, levels= c("regularly","sometimes", "never"))
 
 # Dataframe for english exposure
 lm_eng <- for_lms %>% 
@@ -885,23 +885,23 @@ performance::compare_performance(lm_parents_aditive_eng, lm_strat_eng)
 
 #plot the aditive caregiver models
 
-figure_p_A<-ggPredict(lm_parents_aditive_eng)+
+figure_3_A<-ggPredict(lm_parents_aditive_eng)+
     geom_line(size=2)+
   theme_bw() +
-    scale_color_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+    scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
          theme(axis.text.x = element_text(size=12), 
          axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.position="none")+
   labs(title= "A. Mothers and father interaction predicting English")
   
-figure_p_B<-ggPredict(lm_parents_aditive_fre)+
+figure_3_B<-ggPredict(lm_parents_aditive_fre)+
   geom_line(size=2)+
   theme_bw() +
-    scale_color_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+    scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
          theme(axis.text.x = element_text(size=12), 
          axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
   labs(title= "B. Mothers and father interaction predicting French")
 
-figure_p<- figure_p_A+figure_p_B
+figure_3<- figure_3_A+figure_3_B
 
 #AGE MODELS
 
@@ -1020,10 +1020,10 @@ FE_p1<- ggplot(FE_for_sankey, aes(x = x,
                fill = factor(node), label=node )) +
   geom_sankey() 
 
-FE_p2<- FE_p1+ 
+figure_4 <- FE_p1+ 
       scale_fill_manual(name= "x", values = c(my_orange, my_yellow, my_green, my_blue))
 
-FE_p2<- FE_p2 + 
+figure_4<- figure_4 + 
   geom_sankey_label(size=5, color="black", fill="white")+
   theme_bw()+
   theme(axis.text.x = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank())+
@@ -1033,7 +1033,7 @@ FE_p2<- FE_p2 +
 
 ## AGE BY STRATEGY GRAPHS
 
-figure_3_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
+figure_7_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
   geom_smooth(alpha=0.2, size=2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
@@ -1041,7 +1041,7 @@ figure_3_a <-ggplot(FE_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. French exposure changes by age/strategy")
 
-figure_3_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)) +
+figure_7_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)) +
   geom_smooth(alpha=0.2, size= 2)+
   scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
   theme_bw() +
@@ -1050,9 +1050,9 @@ figure_3_b <-ggplot(FE_for_anova_graphs, aes( x=age , y=eng_exp, color=strategy)
   labs(title= "B. English exposure changes by age/strategy")
 
 
-figure_3<- figure_3_a + figure_3_b 
+figure_7<- figure_7_a + figure_7_b 
 
-#ggsave(file="Figure_3.png", width=25, height=7, dpi=300)
+#ggsave(file="Figure_7.png", width=25, height=7, dpi=300)
 
 ```
 
@@ -1091,35 +1091,42 @@ mom_long_english<- mom_long %>%
 mom_long_fre_s <- mom_long_french %>%
   make_long("Visit_1_Fre","Visit_2_Fre") 
 
+#Changeing the levels so that the graph is in order
+mom_long_fre_s$node <- factor(mom_long_fre_s$node, levels= c("never","sometimes", "regularly"))
+mom_long_fre_s$next_node <- factor(mom_long_fre_s$next_node, levels= c("never","sometimes","regularly"))
+
 mom_long_eng_s <- mom_long_english %>%
   make_long("Visit_1_Eng", "Visit_2_Eng")
 
-figure_m_a <- ggplot(mom_long_fre_s , aes(x = x, 
+mom_long_eng_s$node <- factor(mom_long_eng_s$node, levels= c("never","sometimes", "regularly"))
+mom_long_eng_s$next_node <- factor(mom_long_eng_s$next_node, levels= c("never","sometimes","regularly"))
+
+figure_5_a <- ggplot(mom_long_fre_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") + 
   geom_sankey_label(size=5, color="black", fill="white")+
-  scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+  scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
   theme_bw()+
   theme(legend.position = "none") +
   labs(title= "A. Mothers' change of language use French")
 
-figure_m_b <- ggplot(mom_long_eng_s , aes(x = x, 
+figure_5_b <- ggplot(mom_long_eng_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") +
-    scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+    scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
   geom_sankey_label(size=5, color="black", fill="white")+
   theme_bw()+
   theme(legend.position = "none")+
   labs(title= "B. Mothers' change of language use English")
 
 
-figure_m<- figure_m_a + figure_m_b
+figure_5<- figure_5_a + figure_5_b
 
 #### Father sankey
 
@@ -1154,35 +1161,41 @@ dad_long_english<- dad_long %>%
 dad_long_fre_s <- dad_long_french %>%
   make_long("Visit_1_Fre","Visit_2_Fre") 
 
+dad_long_fre_s$node <- factor(dad_long_fre_s$node, levels= c("never","sometimes", "regularly"))
+dad_long_fre_s$next_node <- factor(dad_long_fre_s$next_node, levels= c("never","sometimes","regularly"))
+
 dad_long_eng_s <- dad_long_english %>%
   make_long("Visit_1_Eng", "Visit_2_Eng")
 
-figure_d_a <- ggplot(dad_long_fre_s , aes(x = x, 
+dad_long_eng_s$node <- factor(dad_long_eng_s$node, levels= c("never","sometimes", "regularly"))
+dad_long_eng_s$next_node <- factor(dad_long_eng_s$next_node, levels= c("never","sometimes","regularly"))
+
+figure_6_a <- ggplot(dad_long_fre_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") +
-    scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+    scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
   geom_sankey_label(size=5, color="black", fill="white")+
   theme_bw()+
   theme(legend.position = "none")+
   labs(title= "A. Fathers' change of language use French")
 
-figure_d_b <- ggplot(dad_long_eng_s , aes(x = x, 
+figure_6_b <- ggplot(dad_long_eng_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") + 
-    scale_fill_manual(values = c("#dac291", "#41ae76", "#75638b"))+
+    scale_fill_manual(values =c("#dac291","#41ae76", "#75638b"))+
   geom_sankey_label(size=5, color="black", fill="white")+
   theme_bw()+
   theme(legend.position = "none")+
   labs(title= "B. Fathers' change of language use English")
 
 
-figure_d<- figure_d_a + figure_d_b
+figure_6<- figure_6_a + figure_6_b
 
 
 
@@ -1235,41 +1248,41 @@ summary(father_english_change_model)
 
 ##### Linear model graphs
 
-figure_y_a <-ggplot(data= lm_fre, aes( x=age , y=fre_exp, color=caregiver_1_french_use)) +
+figure_8_a <-ggplot(data= lm_fre, aes( x=age , y=fre_exp, color=caregiver_1_french_use)) +
   geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
   ylim(0, 1)+
-     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
+       scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. French exposure changes by age/mother French use")
 
-figure_y_b <-ggplot(data= lm_fre, aes( x=age , y=fre_exp, color=caregiver_2_french_use)) +
+figure_8_b <-ggplot(data= lm_fre, aes( x=age , y=fre_exp, color=caregiver_2_french_use)) +
   geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
   ylim(0, 1)+
-     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
+      scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20))+
   labs(title= "B. French exposure changes by age/father French use")
 
-figure_y_c <-ggplot(data= lm_eng, aes( x=age , y=eng_exp, color=caregiver_1_english_use)) +
+figure_8_c <-ggplot(data= lm_eng, aes( x=age , y=eng_exp, color=caregiver_1_english_use)) +
   geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
   ylim(0, 1)+
-     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
+     scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "C. English exposure changes by age/mother English use")
 
-figure_y_d <-ggplot(data= lm_eng, aes( x=age , y=eng_exp, color=caregiver_2_english_use)) +
+figure_8_d <-ggplot(data= lm_eng, aes( x=age , y=eng_exp, color=caregiver_2_english_use)) +
   geom_smooth(alpha=0.2, size=2)+
   theme_bw() +
   ylim(0, 1)+
-     scale_color_manual(values = c("#41ae76", "#dac291", "#75638b"))+
+  scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
        theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "D. English exposure changes by age/father English use")
 
 
 
-figure_y<- figure_y_a + figure_y_b + figure_y_c + figure_y_d
+figure_8<- figure_8_a + figure_8_b + figure_8_c + figure_8_d
 
 
 
@@ -1278,7 +1291,7 @@ figure_y<- figure_y_a + figure_y_b + figure_y_c + figure_y_d
 
 ## Study 2: French/English-- heritage data
 
-```{r}
+```{r study 2 proportion of strategy use visualizations, include=FALSE }
 ###### FOR THE FRENCH- HERITAGE SAMPLE ###########
 #Calculating how many families use each strategy and its corresponding %
 her_prop_strategy<- FEH %>%
@@ -1297,12 +1310,12 @@ her_prop_strategy<- her_prop_strategy %>%
 #Waffle plot
 her_V1<- setNames(her_prop_strategy$n, c( "one-parent-bilingual","both-parents-bilingual","one-parent-one-lanaguage",  "single-parent", "one-language-at-home"))
 
-figure_6 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, title = "% Family Strategies for the French/English-heritage sample", size=0.6)
+figure_9 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, title = "% Family Strategies for the French/English-heritage sample", size=0.6)
 
 ```
 
 
-```{r study 2 chisq tests}
+```{r study 2 chisq tests, include=FALSE}
 her_for_chisq <- her_prop_strategy %>%
   filter(!strategy %in% c("single-parent", "one-language-at-home")) 
 
@@ -1432,7 +1445,7 @@ her_for_anova_graphs <- her_for_anova_graphs %>%
   filter(!strategy %in% c("single-parent", "one-language-at-home"))
   
 
-figure_7_a <-ggplot(her_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
+figure_10_a <-ggplot(her_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
   ylim(0,100) +
@@ -1441,7 +1454,7 @@ figure_7_a <-ggplot(her_for_anova_graphs, aes( x=strategy , y=fre_exp, fill = st
        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "A. Mean French exposure by strategy")
 
-figure_7_b <- ggplot(her_for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
+figure_10_b <- ggplot(her_for_anova_graphs, aes( x=strategy , y=eng_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
   ylim(0,100) +
@@ -1450,7 +1463,7 @@ figure_7_b <- ggplot(her_for_anova_graphs, aes( x=strategy , y=eng_exp, fill = s
        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
   labs(title= "B. Mean English exposure by strategy")
 
-figure_7_c <-ggplot(her_for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
+figure_10_c <-ggplot(her_for_anova_graphs, aes( x=strategy , y=min_exp, fill = strategy )) +
   stat_summary(geom="bar")+
   stat_summary() +
   ylim(0,100) +
@@ -1459,7 +1472,7 @@ figure_7_c <-ggplot(her_for_anova_graphs, aes( x=strategy , y=min_exp, fill = st
        theme(axis.text.x = element_blank(), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.text= element_text(size=20), legend.title= element_text(size=20))+
   labs(title= "C. Mean heritage exposure by strategy")
 
-figure_7<- figure_7_a + figure_7_b + figure_7_c 
+figure_10<- figure_10_a + figure_10_b + figure_10_c 
 
 ```
 
@@ -1487,8 +1500,8 @@ her_tukey_eng<- TukeyHSD (her_anova_model_english)
 her_tukey_her<- TukeyHSD (her_anova_model_heritage)
 ```
 
-##linear models
-```{r}
+
+```{r Study 2: linear models analysis, include=FALSE}
 
 her_for_lms <- her_for_anovas %>% 
   select(gender, anon_baby_id, age, exp_l2, min_exp,fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
@@ -1611,8 +1624,7 @@ figure_q<- figure_q_A+figure_q_B+figure_q_C
 ```
 
 
-### Age graphs
-```{r study 2 Age exploration}
+```{r study 2: Age exploration, include= FALSE}
 ## LONGITUDINAL DATA ANALYSES ##
 her_long_analyses<- longitudinal_data_analyses %>%
   filter(!bilingual_type=="fre-eng") %>% 
@@ -1645,10 +1657,6 @@ her_v2_strat_prop <- her_long_analyses %>%
   mutate(perc= prop*100)
 
 
-
-
-
-
 ## AGE BY STRATEGY GRAPHS
 
 figure_x_a <-ggplot(her_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
@@ -1664,7 +1672,7 @@ figure_x_a <-ggplot(her_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy
 ```
 
   
-```{r}
+```{r EXTRA CODE}
 
 ## Extra code
 
