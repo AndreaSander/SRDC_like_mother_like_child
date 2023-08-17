@@ -41,6 +41,7 @@ library(boot)
 library(bbmle)
 library(performance)
 library(see)
+library(writexl)
 
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
@@ -136,6 +137,9 @@ FEH <- first_visit_only %>%
   mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
                                     l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
                                     l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
+
+#Exporting the final data set that we used in all analyses and visualizations
+#write_xlsx(FEH,"anonymized_data\\fam_Str_cross_sectional.xlsx")
   
 FEH_perc<- FEH %>%
   group_by(bilingual_type) %>%
