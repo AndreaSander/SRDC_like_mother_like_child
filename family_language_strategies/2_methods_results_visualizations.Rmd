@@ -422,14 +422,14 @@ FE_aov_blc<- tidy(FE_blc_model)
 FE_tukey_blc_s<- TukeyHSD(FE_blc_model)
 
 
-model_performance(anova_model_french)
-model_performance(anova_model_english)
-model_performance(anova_model_heritage)
-model_performance(blc_model)
+performance:: model_performance(anova_model_french)
+performance:: model_performance(anova_model_english)
+performance:: model_performance(anova_model_heritage)
+performance:: model_performance(blc_model)
 
-check_model(blc_model)
-check_model(anova_model_french)
-check_model(anova_model_english)
+performance:: check_model(blc_model)
+performance:: check_model(anova_model_french)
+performance:: check_model(anova_model_english)
 
 plot(anova_model_french)
 
