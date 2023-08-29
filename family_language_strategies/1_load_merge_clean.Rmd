@@ -58,8 +58,14 @@ demographic_data <- demographic_data %>%
 
 #gets rid of duplicated demographic data 
 demographic_data <- demographic_data %>%
-  add_count(unique_id) %>%
-  filter(n==1)
+  #add_count(unique_id) %>%
+  #filter(n==1) #HK note: I don't think this line and the one before are doing what you want... this is filtering to IDs that only had an n of 1 in the dataset, but what you want is to remove duplicates, keeping one row for EVERY ID, including the ones that had an n of 2. I have adjusted the code in the next few lines to accomplish this:
+  #first, group by ID :
+  group_by(unique_id) %>%
+  #then slice just the final row for each group. If there is only 1 row for an ID, it takes that one. If there are multiples, it keeps the last one. Usually I use slice_head(), keeping the first row instead of the last row, but one ID in this dataset has NA for gender in one instance but has gender in its duplicate, so we'll keep the row with more info
+  slice_tail(n = 1) %>%
+  #finally, ungroup the dataset:
+  ungroup()
 
 #adding unique identifier to LEQ data
 LEQ_data <-
@@ -159,7 +165,7 @@ final_data_strat <- final_data %>%
     
   #one-parent-one-lang-strict: Each parent speaks only one language and both parents don't speak the same language
     care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1 %in% c("never", "NA") & care2_l2=="regularly"~ "one-parent-one-lang",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "one-parent-one-lang",
+    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1=="regularly" & care2_l2 %in% c("never", "NA")~ "one-parent-one-lang",
     
   #one-parent-one-lang-flex: Each parent speaks mainly one language, and one of them sometimes speaks another language
   #(The same language cannot be spoken regularly by both parents or that would be considered a one-parent-bilingual strategy)
@@ -206,14 +212,6 @@ final_data_strat <- final_data %>%
   #both-parents-bilingual: Both parents speak both languages either regularly or sometimes
     care1_l1%in% c("regularly", "sometimes") & care1_l2%in% c("regularly", "sometimes") & care2_l1%in% c("regularly", "sometimes") &care2_l2%in% c("regularly", "sometimes") ~ "both-parents-bilingual",
 
-  #one-parent-one-lang-flex: Each parent speaks mainly one language, and one of them sometimes speaks another language
-  #The same language cannot be spoken regularly by both parents or it comes to be filled under the one-parent-bilingual strategy.
-  #**NOTE: we ended up having a single category for OPOL instead of divinding it into strict and flex.
-    care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="sometimes" &care2_l2=="regularly"~ "one-parent-one-lang",
-    care1_l1=="regularly" & care1_l2=="sometimes" & care2_l1 %in% c("never", "NA") &care2_l2=="regularly"~ "one-parent-one-lang",
-    care1_l1=="sometimes" & care1_l2=="regularly" & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "one-parent-one-lang",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1=="regularly" &care2_l2=="sometimes"~ "one-parent-one-lang",
-    
   #one-language-at-home: There is only one language spoken in the home by both parents
     care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "one-language-at-home",
     care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1 %in% c("never", "NA") & care2_l2=="regularly"~ "one-language-at-home",
@@ -255,8 +253,8 @@ final_data_strat <-
 ```{r make and save longitudinal dataset}
 #keeps only data where the baby participated more than once
 longitudinal_data<- final_data_strat %>%
-  add_count(anon_baby_id) %>%
-  filter(nn>1)
+  add_count(anon_baby_id, name = "num_visits") %>%
+  filter(num_visits>1) #HK note: changed the name of the add_count because earlier in the script the column n was removed, and this way it's more explicit
 
 #save(longitudinal_data, file=here("anonymized_data/longitudinal_data.Rda"))
 
@@ -267,7 +265,7 @@ longitudinal_data<- final_data_strat %>%
 
 ```{r EXPLORATORY datsa set with OPOL strategy divided between strict and flexible}
 
-final_data_strat_2opol <- final_data_language_coded%>%
+final_data_strat_2opol <- final_data_strat %>% #HK note: the data frame "final_data_language_coded" doesn't exist... changed this to final_data_strat and simplified code below, because it seems like you're doing the same thing to the two datasets except for the strict vs flexible coding.
   mutate(strategy=case_when(
     
   #one-parent-one-lang-strict: Each parent speaks only one language and both parents don't speak the same language
@@ -280,79 +278,9 @@ final_data_strat_2opol <- final_data_language_coded%>%
     care1_l1=="regularly" & care1_l2=="sometimes" & care2_l1 %in% c("never", "NA") &care2_l2=="regularly"~ "OPOL_F",
     care1_l1=="sometimes" & care1_l2=="regularly" & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "OPOL_F",
     care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1=="regularly" &care2_l2=="sometimes"~ "OPOL_F",
-    
-    
-  #one-parent-bilingual: One parent speaks 2 languages, the other parent only speaks one language
-    
-    #Starting point
-    care1_l1== "regularly" & care1_l2=="regularly" & care2_l1 == "regularly" & care2_l2 %in% c("never", "NA") ~ "one-parent-bilingual",
-    care1_l1== "regularly" & care1_l2=="regularly" & care2_l1 %in% c("never", "NA") & care2_l2=="regularly" ~ "one-parent-bilingual",
-    care1_l1== "regularly" & care1_l2 %in% c("never", "NA") & care2_l1 == "regularly" & care2_l2=="regularly" ~ "one-parent-bilingual",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1 == "regularly" & care2_l2=="regularly" ~ "one-parent-bilingual",
-
-    #Some bilingual parents put both of their languages as sometimes rather than both as regularly
-    care1_l1== "sometimes" & care1_l2=="sometimes" & care2_l1 == "regularly" & care2_l2 %in% c("never", "NA") ~ "one-parent-bilingual",
-    care1_l1== "sometimes" & care1_l2=="sometimes" & care2_l1 %in% c("never", "NA") & care2_l2=="regularly" ~ "one-parent-bilingual",
-    care1_l1== "regularly" & care1_l2 %in% c("never", "NA") & care2_l1 == "sometimes" & care2_l2=="sometimes" ~ "one-parent-bilingual",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1 == "sometimes" & care2_l2=="sometimes" ~ "one-parent-bilingual",
-
-    #One parent bilingual (R&R or S&S) and another parent that speaks one of the language but not the other (R|S & N|NA)
-    care1_l1 == "regularly" & care1_l2=="regularly" & care2_l1 %in% c("regularly", "sometimes") & care2_l2 %in% c("never", "NA") ~ "one-parent-bilingual",
-    care1_l1 == "regularly" & care1_l2=="regularly" & care2_l1 %in% c("never", "NA") & care2_l2 %in% c("regularly", "sometimes") ~ "one-parent-bilingual",
-    care1_l1 %in% c("regularly", "sometimes") & care1_l2 %in% c("never", "NA") & care2_l1 == "regularly" & care2_l2=="regularly" ~ "one-parent-bilingual",
-    care1_l1 %in% c("never", "NA") & care1_l2 %in% c("regularly", "sometimes") & care2_l1 == "regularly" & care2_l2=="regularly" ~ "one-parent-bilingual",
-
-    care1_l1 == "sometimes" & care1_l2=="sometimes" & care2_l1 %in% c("regularly", "sometimes") & care2_l2 %in% c("never", "NA") ~ "one-parent-bilingual",
-    care1_l1 == "sometimes" & care1_l2=="sometimes" & care2_l1 %in% c("never", "NA") & care2_l2 %in% c("regularly", "sometimes") ~ "one-parent-bilingual",
-    care1_l1 %in% c("regularly", "sometimes") & care1_l2 %in% c("never", "NA") & care2_l1 == "sometimes" & care2_l2=="sometimes" ~ "one-parent-bilingual",
-    care1_l1 %in% c("never", "NA") & care1_l2 %in% c("regularly", "sometimes") & care2_l1 == "sometimes" & care2_l2=="sometimes" ~ "one-parent-bilingual",
-    
-    #Both parents speak the same language regularly, and one of them speak another language sometimes 
-    #(not one-parent-one-lang-flex because both parents use the same language regularly in opposition to each parent having a different language that they use regularly)
-    care1_l1=="regularly" & care1_l2=="sometimes" & care2_l1=="regularly" & care2_l2 %in% c("never", "NA") ~ "one-parent-bilingual",
-    care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="regularly" & care2_l2=="sometimes" ~ "one-parent-bilingual",
-    care1_l1=="sometimes" & care1_l2=="regularly" & care2_l1 %in% c("never", "NA")& care2_l2=="regularly" ~ "one-parent-bilingual",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1=="sometimes" & care2_l2=="regularly" ~ "one-parent-bilingual",
-    
-    
-  #both-parents-bilingual: Both parents speak both languages either regularly or sometimes
-    care1_l1%in% c("regularly", "sometimes") & care1_l2%in% c("regularly", "sometimes") & care2_l1%in% c("regularly", "sometimes") &care2_l2%in% c("regularly", "sometimes") ~ "both-parents-bilingual",
-
-  #one-parent-one-lang-flex: Each parent speaks mainly one language, and one of them sometimes speaks another language
-  #The same language cannot be spoken regularly by both parents or it comes to be filled under the one-parent-bilingual strategy.
-  #**NOTE: we ended up having a single category for OPOL instead of divinding it into strict and flex.
-    care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="sometimes" &care2_l2=="regularly"~ "one-parent-one-lang",
-    care1_l1=="regularly" & care1_l2=="sometimes" & care2_l1 %in% c("never", "NA") &care2_l2=="regularly"~ "one-parent-one-lang",
-    care1_l1=="sometimes" & care1_l2=="regularly" & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "one-parent-one-lang",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1=="regularly" &care2_l2=="sometimes"~ "one-parent-one-lang",
-    
-  #one-language-at-home: There is only one language spoken in the home by both parents
-    care1_l1=="regularly" & care1_l2 %in% c("never", "NA") & care2_l1=="regularly" &care2_l2 %in% c("never", "NA")~ "one-language-at-home",
-    care1_l1 %in% c("never", "NA") & care1_l2=="regularly" & care2_l1 %in% c("never", "NA") & care2_l2=="regularly"~ "one-language-at-home",
-    
-    care1_l1=="sometimes" & care1_l2 %in% c("never", "NA") & care2_l1=="sometimes" &care2_l2 %in% c("never", "NA")~ "one-language-at-home",
-    care1_l1 %in% c("never", "NA") & care1_l2=="sometimes" & care2_l1 %in% c("never", "NA") & care2_l2=="sometimes"~ "one-language-at-home",
-    
-  #single-parent: Family in which there is only one caregiver
-    care1_l1 %in% c("never", "NA") & care1_l2 %in% c("never", "NA") & care1_l3 %in% c("never", "NA") & care1_l4 %in% c("never", "NA") ~ "single-parent",
-    care2_l1 %in% c("never", "NA") & care2_l2 %in% c("never", "NA") & care2_l3 %in% c("never", "NA") & care2_l4 %in% c("never", "NA") ~ "single-parent"
   
-    ))
-    
-
-final_data_strat_2opol <-
-  final_data_strat_2opol %>%
-  mutate(bilinugal_strategy= case_when(strategy=="one-language-at-home" & childcare_l1 == l1 & childcare_l2 %in% c(NA, "NA")  ~ "no",
-                                       strategy=="one-language-at-home" & childcare_l2 == l1 & childcare_l1 %in% c(NA, "NA") ~"no",
-                                       strategy=="one-language-at-home" & childcare_l1 %in% c(NA, "NA") & childcare_l2 %in% c(NA, "NA") ~"no",
-                                       TRUE~"yes")) %>%
-  filter(bilinugal_strategy=="yes")
-
-final_data_strat_2opol <- 
-  final_data_strat_2opol %>%
-  filter(exp_l1 <95) %>%
-  filter(exp_l2 >5)
-
+  #everything else the same
+  TRUE ~ strategy))
 
 #Calculate the proportion for the different strategies
 prop_strategy_2opol<-final_data_strat_2opol%>%
