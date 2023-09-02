@@ -58,9 +58,6 @@ demographic_data <- demographic_data %>%
 
 #gets rid of duplicated demographic data 
 demographic_data <- demographic_data %>%
-  #add_count(unique_id) %>%
-  #filter(n==1) #HK note: I don't think this line and the one before are doing what you want... this is filtering to IDs that only had an n of 1 in the dataset, but what you want is to remove duplicates, keeping one row for EVERY ID, including the ones that had an n of 2. I have adjusted the code in the next few lines to accomplish this:
-  #first, group by ID :
   group_by(unique_id) %>%
   #then slice just the final row for each group. If there is only 1 row for an ID, it takes that one. If there are multiples, it keeps the last one. Usually I use slice_head(), keeping the first row instead of the last row, but one ID in this dataset has NA for gender in one instance but has gender in its duplicate, so we'll keep the row with more info
   slice_tail(n = 1) %>%
@@ -246,7 +243,7 @@ final_data_strat <-
   filter(exp_l1 <95) %>%
   filter(exp_l2 >5)
 
-#save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
+save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
 
 ```
 
@@ -254,9 +251,9 @@ final_data_strat <-
 #keeps only data where the baby participated more than once
 longitudinal_data<- final_data_strat %>%
   add_count(anon_baby_id, name = "num_visits") %>%
-  filter(num_visits>1) #HK note: changed the name of the add_count because earlier in the script the column n was removed, and this way it's more explicit
+  filter(num_visits>1) 
 
-#save(longitudinal_data, file=here("anonymized_data/longitudinal_data.Rda"))
+save(longitudinal_data, file=here("anonymized_data/longitudinal_data.Rda"))
 
 
 ```
@@ -265,7 +262,7 @@ longitudinal_data<- final_data_strat %>%
 
 ```{r EXPLORATORY datsa set with OPOL strategy divided between strict and flexible}
 
-final_data_strat_2opol <- final_data_strat %>% #HK note: the data frame "final_data_language_coded" doesn't exist... changed this to final_data_strat and simplified code below, because it seems like you're doing the same thing to the two datasets except for the strict vs flexible coding.
+final_data_strat_2opol <- final_data_strat %>% 
   mutate(strategy=case_when(
     
   #one-parent-one-lang-strict: Each parent speaks only one language and both parents don't speak the same language
