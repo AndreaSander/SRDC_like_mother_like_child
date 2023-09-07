@@ -283,6 +283,7 @@ chisq_p<- round(xsq_test$p.value, 4)
 
 ##Both parents bilingual
 FE_both_parent_b<- FEH %>%
+  filter(type_of_family == "mother-father family") %>%
   filter(bilingual_type == "fre-eng") %>%
   filter(strategy=="both-parents-bilingual") %>%
   mutate(caregiver1_French =  case_when (l1== "French"~care1_l1,
@@ -320,12 +321,14 @@ dad_biling_strat<- FE_both_parent_b %>%
 
 #Which parent is the bilingual parent?
 FE_one_parent_b<- FEH %>%
+    filter(type_of_family == "mother-father family") %>%
   filter(bilingual_type == "fre-eng") %>%
   filter(strategy=="one-parent-bilingual") %>%
     mutate(caregiver_biling = case_when(care1_l1 %in% c("regularly", "sometimes") & care1_l2 %in% c("regularly", "sometimes") ~ "caregiver1",
                                       TRUE ~ "caregiver2"))
 #What are the percentages
 FE_caregiver_bi_prop <- FE_one_parent_b %>%
+    filter(type_of_family == "mother-father family") %>%
   group_by(caregiver_biling) %>%
   tally() %>%
   mutate(prop = n/sum(n)) %>%
@@ -347,7 +350,8 @@ monoling_careg_lang<- FE_one_parent_b %>%
 
 ##Also looking at OPOL to see who speaks French
 
-FE_opol <- FEH %>% 
+FE_opol <- FEH %>%
+    filter(type_of_family == "mother-father family") %>%
     filter(bilingual_type == "fre-eng") %>%
     filter(strategy=="one-parent-one-lang") %>% 
   mutate(momlangs = paste0(l1, care1_l1, "-", l2, care1_l2), #get mom languages and amount spoken
@@ -373,6 +377,7 @@ opol_count<- FE_opol %>%
 ```{r Study 1: linear models analysis, include=FALSE}
 
 FE_for_lms<- FEH %>%
+    filter(type_of_family == "mother-father family") %>%
   filter(bilingual_type == "fre-eng") %>%
   filter(!strategy == "single-parent") %>%
   filter(!strategy == "one-language-at-home") %>%
@@ -400,13 +405,6 @@ for_lms <- FE_for_lms %>%
   filter(!strategy == "OneLanguageAtHome") %>%
   mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, exp_l2 = exp_l2/100) %>%
   drop_na()
-
-
-#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPH- mOVE THIS TO LATER 
-for_lms$caregiver_1_french_use <- factor(for_lms$caregiver_1_french_use, levels= c("regularly","sometimes", "never"))
-for_lms$caregiver_1_english_use <- factor(for_lms$caregiver_1_english_use, levels= c("regularly","sometimes", "never"))
-for_lms$caregiver_2_french_use <- factor(for_lms$caregiver_2_french_use, levels= c("regularly","sometimes", "never"))
-for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, levels= c("regularly","sometimes", "never"))
 
 #STRATEGY LINEAR MODELS
 lm_strat_eng<- lm(eng_exp ~ strategy, data=for_lms)
@@ -458,51 +456,12 @@ performance::compare_performance(lm_parents_aditive_fre, lm_strat_fre)
 performance::compare_performance(lm_parents_aditive_eng, lm_strat_eng)
 
 
-#plot the aditive caregiver models
+#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPHS
+for_lms$caregiver_1_french_use <- factor(for_lms$caregiver_1_french_use, levels= c("regularly","sometimes", "never"))
+for_lms$caregiver_1_english_use <- factor(for_lms$caregiver_1_english_use, levels= c("regularly","sometimes", "never"))
+for_lms$caregiver_2_french_use <- factor(for_lms$caregiver_2_french_use, levels= c("regularly","sometimes", "never"))
+for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, levels= c("regularly","sometimes", "never"))
 
-figure_3_A<-ggPredict(lm_parents_aditive_eng)+
-    geom_line(size=2)+
-  theme_bw() +
-    scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
-         theme(axis.text.x = element_text(size=12), 
-         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.position="none")+
-  labs(title= "A. Mothers and father interaction predicting English")
-  
-figure_3_B<-ggPredict(lm_parents_aditive_fre)+
-  geom_line(size=2)+
-  theme_bw() +
-    scale_color_manual(values = c("#75638b","#41ae76", "#dac291"))+
-         theme(axis.text.x = element_text(size=12), 
-         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
-  labs(title= "B. Mothers and father interaction predicting French")
-
-figure_3<- figure_3_A+figure_3_B
-
-#AGE MODELS
-
-#just age models
-lm_just_age_eng<- lm(eng_exp ~ age, data=for_lms)
-lm_just_age_fre<- lm(fre_exp ~ age, data=for_lms)
-
-#Summary of just age AGE models
-summary(lm_just_age_eng) #Similar pattern of results for beta and lm
-summary(lm_just_age_fre) #Same pattern of results for beta and lm
-
-#age by strategy models
-lm_age_by_eng<- lm(eng_exp ~ age * strategy, data=for_lms)
-lm_age_by_fre<- lm(fre_exp ~ age * strategy, data=for_lms)
-
-#Summary of age by strategy models
-summary(lm_age_by_eng) #same pattern of results
-summary(lm_age_by_fre) #SImilar pattern of results
-
-#age by parent individual strategy models
-lm_eng_age_by_parents <- lm(eng_exp ~ age*(caregiver_2_english_use + caregiver_1_english_use), data= for_lms)
-lm_fre_age_by_parents <- lm(fre_exp ~ age*(caregiver_2_french_use + caregiver_1_french_use), data= for_lms)
-
-#Summary of age by parent individual strategy models
-summary(lm_eng_age_by_parents) #same pattern of results
-summary(lm_fre_age_by_parents) #SImilar pattern of results
 
 ```
 
@@ -510,6 +469,7 @@ summary(lm_fre_age_by_parents) #SImilar pattern of results
 ```{r Study 1: longitudinal analysis, include=FALSE}
 ## LONGITUDINAL DATA ANALYSES ##
 FE_long_analyses<- longitudinal_data_analyses %>%
+  filter(type_of_family == "mother-father family") %>%
   filter(bilingual_type=="fre-eng") 
 
 
@@ -827,6 +787,7 @@ her_xsq_test<- chisq.test(her_for_chisq$n)
 
 ##Both parents bilingual
 her_both_parent_b<- FEH %>%
+  filter(type_of_family == "mother-father family") %>%
   filter(!bilingual_type == "fre-eng")%>%
   filter(strategy=="both-parents-bilingual") %>%
   mutate(caregiver1_French =  case_when (l1== "French"~care1_l1,
@@ -877,6 +838,7 @@ her_dad_biling_strat<- her_both_parent_b %>%
 
 #Which parent is the bilingual parent?
 her_one_parent_b<- FEH %>%
+  filter(type_of_family == "mother-father family") %>%
   filter(!bilingual_type == "fre-eng") %>%
   filter(strategy=="one-parent-bilingual") %>%
     mutate(caregiver_biling = case_when(care1_l1 %in% c("regularly", "sometimes") & care1_l2 %in% c("regularly", "sometimes") ~ "caregiver1",
@@ -905,6 +867,7 @@ her_monoling_careg_lang<- her_one_parent_b %>%
 ##Also looking at OPOL strategy
 
 her_opol<- FEH %>%
+  filter(type_of_family == "mother-father family") %>%
   filter(!bilingual_type == "fre-eng") %>%
   filter(strategy=="one-parent-one-lang") %>%
   mutate(parents_flexible_use = case_when( care1_l1 == "sometimes"| care1_l2 == "sometimes"|care2_l1 == "sometimes"|care2_l2 == "sometimes" ~ "flex_use",
@@ -932,7 +895,8 @@ her_opol_strict<- her_opol %>%
 
 ```{r Study 2: linear models analysis, include=FALSE}
 
-her_for_lms <- her_for_anovas %>% 
+her_for_lms <- FEH %>% 
+  filter(type_of_family == "mother-father family") %>%
   select(gender, anon_baby_id, age, exp_l2, min_exp,fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
   mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
                               TRUE ~ care1_l2)) %>%  
@@ -955,15 +919,6 @@ her_for_lms <- her_for_anovas %>%
   filter(gender != "NA") %>%
   filter(!strategy == "OneLanguageAtHome") %>%
   mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, exp_l2 = exp_l2/100) 
-
-
-#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPH
-her_for_lms$caregiver_1_french_use <- factor(her_for_lms$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_1_heritage_use <- factor(her_for_lms$caregiver_1_heritage_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_1_english_use <- factor(her_for_lms$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_2_french_use <- factor(her_for_lms$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_2_heritage_use <- factor(her_for_lms$caregiver_2_heritage_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_2_english_use <- factor(her_for_lms$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
 
 
 #STRATEGY LINEAR MODELS
@@ -1020,83 +975,15 @@ performance::compare_performance(her_lm_mom_fre, her_lm_strat_fre)
 performance::compare_performance(her_lm_parents_aditive_eng, her_lm_strat_eng)
 performance::compare_performance(her_lm_parents_aditive_her, her_lm_strat_her)
 
-#plot the aditive caregiver models
 
-figure_q_A<-ggPredict(her_lm_mom_fre)+
-  theme_bw() +
-         theme(axis.text.x = element_text(size=12), 
-         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
-  labs(title= "A. Mothers French use on French exposure")
-  
-figure_q_B<-ggPredict(her_lm_parents_aditive_eng)+
-  theme_bw() +
-         theme(axis.text.x = element_text(size=12), 
-         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.position="none")+
-  labs(title= "B. Mothers and fathers Eng use on Eng exposure")
+#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPHs
+her_for_lms$caregiver_1_french_use <- factor(her_for_lms$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_1_heritage_use <- factor(her_for_lms$caregiver_1_heritage_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_1_english_use <- factor(her_for_lms$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_2_french_use <- factor(her_for_lms$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_2_heritage_use <- factor(her_for_lms$caregiver_2_heritage_use, levels= c("never","sometimes", "regularly"))
+her_for_lms$caregiver_2_english_use <- factor(her_for_lms$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
 
-figure_q_C<-ggPredict(her_lm_parents_aditive_her)+
-  theme_bw() +
-         theme(axis.text.x = element_text(size=12), 
-         axis.text.y = element_text(size=12),axis.title = element_text(size=12), plot.title = element_text(size=15), legend.text= element_text(size=12),legend.title= element_text(size=12))+
-  labs(title= "c. Mothers and fathers heritage use on heritage exposure")
-
-
-figure_q<- figure_q_A+figure_q_B+figure_q_C
-
-#AGE MODELS
-
-## no age models cause there us just too few data.
-
-
-
-
-```
-
-
-```{r study 2: Age exploration, include= FALSE}
-## LONGITUDINAL DATA ANALYSES ##
-her_long_analyses<- longitudinal_data_analyses %>%
-  filter(!bilingual_type=="fre-eng") %>% 
-  filter(visit %in% c(1,2)) %>%
-  group_by(anon_baby_id) %>%
-  mutate(visit = row_number()) %>% 
-filter(n()>1) %>% #Just want to keep the families that have data for two visits
-ungroup()
-
-
-########### Count proportions ##########
-
-her_v1_strat_prop <- her_long_analyses %>%
-  select(visit, strategy) %>%
-  filter(visit==1) %>%
-  filter(!strategy == "single-parent") %>%
-  group_by(strategy) %>%
-  tally()%>%
-  mutate(prop = n/sum(n)) %>%
-  mutate(perc= prop*100)
-
-
-her_v2_strat_prop <- her_long_analyses %>%
-  select(visit, strategy) %>%
-  filter(visit==2) %>%
-  filter(!strategy == "single-parent") %>%
-  group_by(strategy) %>%
-  tally()%>%
-  mutate(prop = n/sum(n)) %>%
-  mutate(perc= prop*100)
-
-
-## AGE BY STRATEGY GRAPHS
-
-figure_x_a <-ggplot(her_for_anova_graphs, aes( x=age , y=fre_exp, color=strategy)) +
-  geom_smooth(alpha=0.2)+
-  scale_color_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue)) +
-  theme_bw() +
-  ylim(0, 100)+
-       theme(axis.text.x = element_text(size=20), axis.text.y = element_text(size=20),axis.title = element_text(size=20), plot.title = element_text(size=20), legend.position = "none")+
-  labs(title= "A. French exposure changes by age/strategy")
-
-## There is too few data to run the model. The graph is super noisy
 
 ```
 
