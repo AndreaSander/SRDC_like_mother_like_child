@@ -384,8 +384,8 @@ FE_for_lms<- FEH %>%
                               strategy=="one-parent-bilingual"~"OneParentBilingual",
                               strategy=="one-parent-one-lang"~"OneParentOneLang"))
 
-for_lms <- FE_for_lms %>% 
-  select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
+for_lms<- FE_for_lms %>% 
+  select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2, type_of_family) %>% 
   mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
                               TRUE ~ care1_l2)) %>%  #2023-07 going to need to fix this NAs in the cleaning script
     mutate(care2_l1 = case_when(care2_l1 =="NA" ~ "never",
@@ -416,7 +416,7 @@ summary(lm_strat_fre) #Same as above, one parent bilingual is significant and no
 
 ###### Careviver models 
 
-  parents_for_lms %>% for_lms %>%
+  parents_for_lms <- for_lms%>%
      filter(type_of_family == "mother-father family") #Keeps only mother-father families as other configurations were to few to analyze separately
 
 #MOTHER MODELS
