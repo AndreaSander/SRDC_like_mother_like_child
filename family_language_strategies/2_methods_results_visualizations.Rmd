@@ -377,7 +377,6 @@ opol_count<- FE_opol %>%
 ```{r Study 1: linear models analysis, include=FALSE}
 
 FE_for_lms<- FEH %>%
-    filter(type_of_family == "mother-father family") %>%
   filter(bilingual_type == "fre-eng") %>%
   filter(!strategy == "single-parent") %>%
   filter(!strategy == "one-language-at-home") %>%
@@ -416,6 +415,10 @@ summary(lm_strat_fre) #Same as above, one parent bilingual is significant and no
 
 
 ###### Careviver models 
+
+  parents_for_lms %>% for_lms %>%
+     filter(type_of_family == "mother-father family") #Keeps only mother-father families as other configurations were to few to analyze separately
+
 #MOTHER MODELS
 lm_mom_eng<- lm(eng_exp ~ caregiver_1_english_use, data=for_lms)
 lm_mom_fre<- lm(fre_exp ~ caregiver_1_french_use, data=for_lms)
@@ -437,8 +440,8 @@ summary(lm_dad_fre) #same pattern of results
 
 
 #MOTHER AND FATHER MODELS
-lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=for_lms)
-lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=for_lms)
+lm_parents_aditive_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use, data=parents_for_lms)
+lm_parents_aditive_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use, data=parents_for_lms)
 
 
 #Summary of Mother and Father models
@@ -469,7 +472,6 @@ for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, level
 ```{r Study 1: longitudinal analysis, include=FALSE}
 ## LONGITUDINAL DATA ANALYSES ##
 FE_long_analyses<- longitudinal_data_analyses %>%
-  filter(type_of_family == "mother-father family") %>%
   filter(bilingual_type=="fre-eng") 
 
 
@@ -561,7 +563,9 @@ ggsave(file="Figure_2.png", width=25, height=18, dpi=300)
 
 ##Mother sankey
 
+
 mom_long<- FE_long_analyses %>% #this results in a dataframe that has one row per kid who had 2 FR-EN visits.
+    filter(type_of_family == "mother-father family") %>%
   filter(!strategy=="single-parent") %>%
   filter(visit %in% c(1,2)) %>% 
   select(anon_baby_id, l1, l2, care1_l1, care1_l2, visit, length_between_visits) %>%
@@ -597,6 +601,38 @@ mom_long_eng_s <- mom_long_english %>%
 mom_long_eng_s$node <- factor(mom_long_eng_s$node, levels= c("never","sometimes", "regularly"))
 mom_long_eng_s$next_node <- factor(mom_long_eng_s$next_node, levels= c("never","sometimes","regularly"))
 
+
+
+v1_mother_prop_fre <- mom_long %>%
+  select(Visit_1_Fre, Visit_1_Eng) %>%
+  group_by(Visit_1_Fre) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
+
+v2_mother_prop_fre <- mom_long %>%
+  select(Visit_2_Fre, Visit_2_Eng) %>%
+  group_by(Visit_2_Fre) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
+
+
+v1_mother_prop_eng <- mom_long %>%
+  select(Visit_1_Fre, Visit_1_Eng) %>%
+  group_by(Visit_1_Eng) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
+
+v2_mother_prop_eng <- mom_long %>%
+  select(Visit_2_Fre, Visit_2_Eng) %>%
+  group_by(Visit_2_Eng) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
+
+
 figure_3_a <- ggplot(mom_long_fre_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
@@ -630,6 +666,7 @@ ggsave(file="Figure_3.png", width=25, height=12, dpi=300)
 
 
 dad_long<- FE_long_analyses %>% #this results in a dataframe that has one row per kid who had 2 FR-EN visits.
+    filter(type_of_family == "mother-father family") %>%
   filter(!strategy=="single-parent") %>%
   filter(visit %in% c(1,2)) %>% 
   select(anon_baby_id, l1, l2, care2_l1, care2_l2, visit, length_between_visits) %>%
@@ -665,6 +702,35 @@ dad_long_eng_s <- dad_long_english %>%
 
 dad_long_eng_s$node <- factor(dad_long_eng_s$node, levels= c("never","sometimes", "regularly"))
 dad_long_eng_s$next_node <- factor(dad_long_eng_s$next_node, levels= c("never","sometimes","regularly"))
+
+v1_dad_prop_fre <- dad_long %>%
+  select(Visit_1_Fre, Visit_1_Eng) %>%
+  group_by(Visit_1_Fre) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
+
+v2_dad_prop_fre <- dad_long %>%
+  select(Visit_2_Fre, Visit_2_Eng) %>%
+  group_by(Visit_2_Fre) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
+
+
+v1_dad_prop_eng <- dad_long %>%
+  select(Visit_1_Fre, Visit_1_Eng) %>%
+  group_by(Visit_1_Eng) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
+
+v2_dad_prop_eng <- dad_long %>%
+  select(Visit_2_Fre, Visit_2_Eng) %>%
+  group_by(Visit_2_Eng) %>%
+  tally(name = "n_first_visit")%>%
+  mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
+  mutate(percentage_first_visit= proportion_first_visit*100)
 
 figure_4_a <- ggplot(dad_long_fre_s , aes(x = x, 
                next_x = next_x, 
@@ -765,7 +831,7 @@ her_prop_strategy<- her_prop_strategy %>%
 #Waffle plot
 her_V1<- setNames(her_prop_strategy$n, c( "one-parent-bilingual","both-parents-bilingual","one-parent-one-lanaguage",  "single-parent", "one-language-at-home"))
 
-figure_9 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, title = "% Family Strategies for the French/English-heritage sample", size=0.6)
+figure_5 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, size=0.6)
 
 ```
 
@@ -889,15 +955,21 @@ her_opol_flex<- her_opol %>%
 her_opol_strict<- her_opol %>%
   filter(!parents_flexible_use == "flex_use") 
 
+her_opol_parent_count<- her_opol_flex %>%
+  group_by(flex_parent) %>%
+  tally() %>%
+  mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
 
 ```
 
 
 ```{r Study 2: linear models analysis, include=FALSE}
 
-her_for_lms <- FEH %>% 
-  filter(type_of_family == "mother-father family") %>%
-  select(gender, anon_baby_id, age, exp_l2, min_exp,fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
+her_for_lms <- FEH %>%
+    filter(!bilingual_type == "fre-eng")%>%
+  select(gender, anon_baby_id, age, exp_l2, min_exp,fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2, type_of_family) %>% 
   mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
                               TRUE ~ care1_l2)) %>%  
     mutate(care2_l1 = case_when(care2_l1 =="NA" ~ "never",
@@ -917,8 +989,8 @@ her_for_lms <- FEH %>%
     mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
                                             l2=="English"~care2_l2)) %>%
   filter(gender != "NA") %>%
-  filter(!strategy == "OneLanguageAtHome") %>%
-  mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, exp_l2 = exp_l2/100) 
+  filter(!strategy %in% c("one-language-at-home", "single-parent")) %>%
+  mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, min_exp = min_exp/100) 
 
 
 #STRATEGY LINEAR MODELS
@@ -927,11 +999,14 @@ her_lm_strat_fre <- lm(fre_exp ~ strategy, data=her_for_lms)
 her_lm_strat_her <- lm(min_exp ~ strategy, data=her_for_lms)
 
 #Summary of STRATEGY LINEAR models
-summary(lm_strat_eng) #Slightly different, one parent bilingual is just a tad significant here and not for beta. 
-summary(lm_strat_fre) #Same as above, one parent bilingual is significant and not for beta.
-
+summary(her_lm_strat_eng) #Slightly different, one parent bilingual is just a tad significant here and not for beta. 
+summary(her_lm_strat_fre) #Same as above, one parent bilingual is significant and not for beta.
+summary(her_lm_strat_her) 
 
 ###### Careviver models 
+ her_parents_for_lms <- her_for_lms %>%
+  filter(type_of_family == "mother-father family") 
+
 #MOTHER MODELS
 her_lm_mom_eng<- lm(eng_exp ~ caregiver_1_english_use, data=her_for_lms)
 her_lm_mom_fre<- lm(fre_exp ~ caregiver_1_french_use, data=her_for_lms)
