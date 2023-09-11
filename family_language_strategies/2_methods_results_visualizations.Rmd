@@ -46,6 +46,7 @@ library(performance)
 library(see)
 library(writexl)
 
+
 load(here("anonymized_data/final_merged_data.Rda"))
 load(here("anonymized_data/final_data_no_exc.Rda"))
 load(here("anonymized_data/final_data_strat.Rda"))
@@ -459,11 +460,7 @@ performance::compare_performance(lm_parents_aditive_fre, lm_strat_fre)
 performance::compare_performance(lm_parents_aditive_eng, lm_strat_eng)
 
 
-#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPHS
-for_lms$caregiver_1_french_use <- factor(for_lms$caregiver_1_french_use, levels= c("regularly","sometimes", "never"))
-for_lms$caregiver_1_english_use <- factor(for_lms$caregiver_1_english_use, levels= c("regularly","sometimes", "never"))
-for_lms$caregiver_2_french_use <- factor(for_lms$caregiver_2_french_use, levels= c("regularly","sometimes", "never"))
-for_lms$caregiver_2_english_use <- factor(for_lms$caregiver_2_english_use, levels= c("regularly","sometimes", "never"))
+
 
 
 ```
@@ -961,6 +958,31 @@ her_opol_parent_count<- her_opol_flex %>%
   mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
 
+## Which language is spoken by which parent 
+
+l1_by_mother <- FEH %>%
+filter(type_of_family == "mother-father family") %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  group_by(l1, care1_l1) %>%
+  tally()
+
+l1_by_father <- FEH%>%
+filter(type_of_family == "mother-father family") %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  group_by(l1, care2_l1)%>%
+  tally()
+
+l2_by_mother <- FEH %>%
+filter(type_of_family == "mother-father family") %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  group_by(l2, care1_l2) %>%
+  tally()
+
+l2_by_father <- FEH%>%
+filter(type_of_family == "mother-father family") %>%
+  filter(!bilingual_type == "fre-eng") %>%
+  group_by(l2, care2_l2)%>%
+  tally()
 
 ```
 
@@ -968,8 +990,7 @@ her_opol_parent_count<- her_opol_flex %>%
 ```{r Study 2: linear models analysis, include=FALSE}
 
 her_for_lms <- FEH %>%
-    filter(!bilingual_type == "fre-eng")%>%
-  select(gender, anon_baby_id, age, exp_l2, min_exp,fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2, type_of_family) %>% 
+    filter(!bilingual_type == "fre-eng") %>% 
   mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
                               TRUE ~ care1_l2)) %>%  
     mutate(care2_l1 = case_when(care2_l1 =="NA" ~ "never",
@@ -1024,9 +1045,9 @@ her_lm_dad_her<- lm(min_exp ~ caregiver_2_heritage_use, data=her_for_lms)
 
 
 #Summary of FATHER models
-summary(lm_dad_eng) 
-summary(lm_dad_fre) 
-summary(lm_dad_fre)
+summary(her_lm_dad_eng) 
+summary(her_lm_dad_fre) 
+summary(her_lm_dad_her)
 
 
 #MOTHER AND FATHER MODELS
@@ -1046,19 +1067,9 @@ performance::compare_performance(her_lm_parents_aditive_eng, her_lm_dad_eng, her
 performance::compare_performance(her_lm_parents_aditive_her, her_lm_dad_her, her_lm_mom_her)
 
 ##Comparison of strategy versus parents models
-performance::compare_performance(her_lm_mom_fre, her_lm_strat_fre)
+performance::compare_performance(her_lm_parents_aditive_fre, her_lm_strat_fre)
 performance::compare_performance(her_lm_parents_aditive_eng, her_lm_strat_eng)
 performance::compare_performance(her_lm_parents_aditive_her, her_lm_strat_her)
-
-
-#REORDERING THE CAREGIVER LEVELS SO THAT THEY ARE ORDERED IN THE GRAPHs
-her_for_lms$caregiver_1_french_use <- factor(her_for_lms$caregiver_1_french_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_1_heritage_use <- factor(her_for_lms$caregiver_1_heritage_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_1_english_use <- factor(her_for_lms$caregiver_1_english_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_2_french_use <- factor(her_for_lms$caregiver_2_french_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_2_heritage_use <- factor(her_for_lms$caregiver_2_heritage_use, levels= c("never","sometimes", "regularly"))
-her_for_lms$caregiver_2_english_use <- factor(her_for_lms$caregiver_2_english_use, levels= c("never","sometimes", "regularly"))
-
 
 ```
 
