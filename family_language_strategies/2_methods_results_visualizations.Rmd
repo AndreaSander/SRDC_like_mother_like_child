@@ -240,7 +240,7 @@ prop_strategy_FE<- prop_strategy_FE %>%
 #Waffle plot
 V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
-figure_1<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue,"#91bfdb", "#e0f3f8"), keep = T, size=0.6)+
+figure_1<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, size=0.6)+
   theme(legend.text= element_text(size=12),legend.title= element_text(size=12))
 
 ggsave(file="Figure_1.png", width=25, height=7, dpi=300)
