@@ -240,7 +240,7 @@ prop_strategy_FE<- prop_strategy_FE %>%
 #Waffle plot
 V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
-figure_1<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, size=0.6)+
+figure_1<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue,"#91bfdb", "#e0f3f8"), keep = T, size=0.6)+
   theme(legend.text= element_text(size=12),legend.title= element_text(size=12))
 
 ggsave(file="Figure_1.png", width=25, height=7, dpi=300)
@@ -260,7 +260,7 @@ for_breakdown$strategy<- factor(for_breakdown$strategy, levels= c("both-parents-
 
 ggplot(for_breakdown, aes(x=l1, y=n, fill=strategy)) + 
   geom_bar(stat="identity", position="fill") +
-  scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, my_green, my_purple))
+  scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, "#91bfdb", "#e0f3f8"))
 
 ```
 
@@ -505,9 +505,9 @@ FE_for_long_glmer<- FE_long_analyses %>%
   filter(visit %in% c(1,2)) %>% 
   filter(!strategy == "single-parent") %>%
   pivot_wider(names_from = visit, values_from = strategy) %>%
-  rename(visit_1 = "1") %>%
-  rename(visit_2 = "2") %>%
-  mutate(change_strat = case_when(visit_1 == visit_2 ~"no_change",
+  rename(time_1 = "1") %>%
+  rename(time_2 = "2") %>%
+  mutate(change_strat = case_when(time_1 == time_2 ~"no_change",
                                   TRUE~ "change")) 
   FE_for_long_glmer<- FE_for_long_glmer 
   
@@ -519,7 +519,7 @@ FE_for_long_glmer<- FE_long_analyses %>%
   
   FE_strategy_change <- FE_for_long_glmer %>%
     filter(change_strat=="change") %>%
-      group_by(visit_2) %>%
+      group_by(time_2) %>%
   tally() %>%
   mutate(perc = (n/sum(n)*100))
   
@@ -532,7 +532,7 @@ summary(long_model)
 
 FE_for_sankey <- FE_for_long_glmer %>%
   select(-change_strat) %>%
-  make_long("visit_1", "visit_2") 
+  make_long("time_1", "time_2") 
 
 FE_for_sankey <- FE_for_sankey %>%
   mutate(node= fct_relevel (node, "both-parents-bilingual", "one-parent-bilingual", "one-language-at-home", "one-parent-one-lang")) 
@@ -570,7 +570,7 @@ mom_long<- FE_long_analyses %>% #this results in a dataframe that has one row pe
                                             l2=="French"~care1_l2)) %>%
     mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
                                             l2=="English"~care1_l2),
-           visit = paste0("Visit_", visit)) %>%
+           visit = paste0("time_", visit)) %>%
   rename("Fre" = caregiver_1_french_use,
          "Eng" = caregiver_1_english_use) %>%
   select(-care1_l1, -care1_l2, -l1, -l2) %>%
@@ -580,20 +580,20 @@ mom_long<- FE_long_analyses %>% #this results in a dataframe that has one row pe
   drop_na()
 
 mom_long_french<- mom_long %>%
-  select(anon_baby_id, length_between_visits, Visit_1_Fre, Visit_2_Fre)
+  select(anon_baby_id, length_between_visits, time_1_Fre, time_2_Fre)
 
 mom_long_english<- mom_long %>%
-  select(anon_baby_id, length_between_visits, Visit_1_Eng, Visit_2_Eng)
+  select(anon_baby_id, length_between_visits, time_1_Eng, time_2_Eng)
 
 mom_long_fre_s <- mom_long_french %>%
-  make_long("Visit_1_Fre","Visit_2_Fre") 
+  make_long("time_1_Fre","time_2_Fre") 
 
 #Changeing the levels so that the graph is in order
 mom_long_fre_s$node <- factor(mom_long_fre_s$node, levels= c("never","sometimes", "regularly"))
 mom_long_fre_s$next_node <- factor(mom_long_fre_s$next_node, levels= c("never","sometimes","regularly"))
 
 mom_long_eng_s <- mom_long_english %>%
-  make_long("Visit_1_Eng", "Visit_2_Eng")
+  make_long("time_1_Eng", "time_2_Eng")
 
 mom_long_eng_s$node <- factor(mom_long_eng_s$node, levels= c("never","sometimes", "regularly"))
 mom_long_eng_s$next_node <- factor(mom_long_eng_s$next_node, levels= c("never","sometimes","regularly"))
@@ -601,30 +601,30 @@ mom_long_eng_s$next_node <- factor(mom_long_eng_s$next_node, levels= c("never","
 
 
 v1_mother_prop_fre <- mom_long %>%
-  select(Visit_1_Fre, Visit_1_Eng) %>%
-  group_by(Visit_1_Fre) %>%
+  select(time_1_Fre, time_1_Eng) %>%
+  group_by(time_1_Fre) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
 
 v2_mother_prop_fre <- mom_long %>%
-  select(Visit_2_Fre, Visit_2_Eng) %>%
-  group_by(Visit_2_Fre) %>%
+  select(time_2_Fre, time_2_Eng) %>%
+  group_by(time_2_Fre) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
 
 
 v1_mother_prop_eng <- mom_long %>%
-  select(Visit_1_Fre, Visit_1_Eng) %>%
-  group_by(Visit_1_Eng) %>%
+  select(time_1_Fre, time_1_Eng) %>%
+  group_by(time_1_Eng) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
 
 v2_mother_prop_eng <- mom_long %>%
-  select(Visit_2_Fre, Visit_2_Eng) %>%
-  group_by(Visit_2_Eng) %>%
+  select(time_2_Fre, time_2_Eng) %>%
+  group_by(time_2_Eng) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
@@ -671,7 +671,7 @@ dad_long<- FE_long_analyses %>% #this results in a dataframe that has one row pe
                                             l2=="French"~care2_l2)) %>%
     mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
                                             l2=="English"~care2_l2),
-           visit = paste0("Visit_", visit)) %>%
+           visit = paste0("time_", visit)) %>%
   rename("Fre" = caregiver_2_french_use,
          "Eng" = caregiver_2_english_use) %>%
   select(-care2_l1, -care2_l2, -l1, -l2) %>%
@@ -681,50 +681,50 @@ dad_long<- FE_long_analyses %>% #this results in a dataframe that has one row pe
   drop_na()
 
 dad_long_french<- dad_long %>%
-  select(anon_baby_id, length_between_visits, Visit_1_Fre, Visit_2_Fre) %>%
-mutate(Visit_1_Fre = case_when(Visit_1_Fre == "NA"~"never",
-                               TRUE~ Visit_1_Fre))
+  select(anon_baby_id, length_between_visits, time_1_Fre, time_2_Fre) %>%
+mutate(time_1_Fre = case_when(time_1_Fre == "NA"~"never",
+                               TRUE~ time_1_Fre))
 
 dad_long_english<- dad_long %>%
-  select(anon_baby_id, length_between_visits, Visit_1_Eng, Visit_2_Eng)
+  select(anon_baby_id, length_between_visits, time_1_Eng, time_2_Eng)
 
 dad_long_fre_s <- dad_long_french %>%
-  make_long("Visit_1_Fre","Visit_2_Fre") 
+  make_long("time_1_Fre","time_2_Fre") 
 
 dad_long_fre_s$node <- factor(dad_long_fre_s$node, levels= c("never","sometimes", "regularly"))
 dad_long_fre_s$next_node <- factor(dad_long_fre_s$next_node, levels= c("never","sometimes","regularly"))
 
 dad_long_eng_s <- dad_long_english %>%
-  make_long("Visit_1_Eng", "Visit_2_Eng")
+  make_long("time_1_Eng", "time_2_Eng")
 
 dad_long_eng_s$node <- factor(dad_long_eng_s$node, levels= c("never","sometimes", "regularly"))
 dad_long_eng_s$next_node <- factor(dad_long_eng_s$next_node, levels= c("never","sometimes","regularly"))
 
 v1_dad_prop_fre <- dad_long %>%
-  select(Visit_1_Fre, Visit_1_Eng) %>%
-  group_by(Visit_1_Fre) %>%
+  select(time_1_Fre, time_1_Eng) %>%
+  group_by(time_1_Fre) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
 
 v2_dad_prop_fre <- dad_long %>%
-  select(Visit_2_Fre, Visit_2_Eng) %>%
-  group_by(Visit_2_Fre) %>%
+  select(time_2_Fre, time_2_Eng) %>%
+  group_by(time_2_Fre) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
 
 
 v1_dad_prop_eng <- dad_long %>%
-  select(Visit_1_Fre, Visit_1_Eng) %>%
-  group_by(Visit_1_Eng) %>%
+  select(time_1_Fre, time_1_Eng) %>%
+  group_by(time_1_Eng) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
 
 v2_dad_prop_eng <- dad_long %>%
-  select(Visit_2_Fre, Visit_2_Eng) %>%
-  group_by(Visit_2_Eng) %>%
+  select(time_2_Fre, time_2_Eng) %>%
+  group_by(time_2_Eng) %>%
   tally(name = "n_first_visit")%>%
   mutate(proportion_first_visit = n_first_visit/sum(n_first_visit)) %>%
   mutate(percentage_first_visit= proportion_first_visit*100)
@@ -761,16 +761,16 @@ ggsave(file="Figure_4.png", width=25, height=12, dpi=300)
 ### Parents' Logistic model
 
 for_mother_glmer <- mom_long  %>%
-  mutate(French_change = case_when(Visit_1_Fre == Visit_2_Fre ~ "No change",
+  mutate(French_change = case_when(time_1_Fre == time_2_Fre ~ "No change",
                                    TRUE~ "change")) %>%
-  mutate(English_change = case_when(Visit_1_Eng == Visit_2_Eng ~ "No change",
+  mutate(English_change = case_when(time_1_Eng == time_2_Eng ~ "No change",
                                    TRUE~ "change"))
 
 
 for_father_glmer <- dad_long  %>%
-  mutate(French_change = case_when(Visit_1_Fre == Visit_2_Fre ~ "No change",
+  mutate(French_change = case_when(time_1_Fre == time_2_Fre ~ "No change",
                                    TRUE~ "change")) %>%
-  mutate(English_change = case_when(Visit_1_Eng == Visit_2_Eng ~ "No change",
+  mutate(English_change = case_when(time_1_Eng == time_2_Eng ~ "No change",
                                    TRUE~ "change"))
 
 
@@ -1531,18 +1531,18 @@ FE_mother_father_long <- FE_mother_father_long %>%
   mutate(visit_a = visit) %>%#need two visit columns to give the df the appropriate shape for the sankey graph
  mutate(visit_b= visit) %>%
    pivot_wider(names_from = visit, values_from = strategy) %>%
-  rename("Visit_1_FLS" = "1") %>%
-  rename("Visit_2_FLS" = "2") 
+  rename("time_1_FLS" = "1") %>%
+  rename("time_2_FLS" = "2") 
 
 FE_mother_father_long <- FE_mother_father_long %>%
  pivot_wider(names_from = visit_a, values_from = individual_strategy_mother) %>% 
- rename("Visit_1_Mom" = "1") %>%
-  rename("Visit_2_Mom" = "2") 
+ rename("time_1_Mom" = "1") %>%
+  rename("time_2_Mom" = "2") 
    
  FE_mother_father_long <- FE_mother_father_long %>%
    pivot_wider(names_from = visit_b, values_from = individual_strategy_father) %>%
-  rename("Visit_1_Dad" = "1") %>%
-  rename("Visit_2_Dad" = "2") 
+  rename("time_1_Dad" = "1") %>%
+  rename("time_2_Dad" = "2") 
  
   FE_mother_father_long <- FE_mother_father_long %>%
    group_by(anon_baby_id)%>%
@@ -1553,7 +1553,7 @@ FE_mother_father_long <- FE_mother_father_long %>%
 ##Make sankey graph
 
 FE_mom_for_sankey <- FE_mother_father_long %>%
-  make_long("Visit_1_FLS","Visit_1_Mom", "Visit_2_Mom", "Visit_2_FLS") 
+  make_long("time_1_FLS","time_1_Mom", "time_2_Mom", "time_2_FLS") 
 
 FE_indi_mom_p1<- ggplot(FE_mom_for_sankey , aes(x = x, 
                next_x = next_x, 
@@ -1567,7 +1567,7 @@ FE_indi_mom_p1<- ggplot(FE_mom_for_sankey , aes(x = x,
   theme(legend.position = "none")
 
 FE_dad_for_sankey <- FE_mother_father_long %>%
-  make_long("Visit_1_FLS","Visit_1_Dad", "Visit_2_Dad", "Visit_2_FLS") 
+  make_long("time_1_FLS","time_1_Dad", "time_2_Dad", "time_2_FLS") 
 
 FE_indi_dad_p1<- ggplot(FE_dad_for_sankey , aes(x = x, 
                next_x = next_x, 
