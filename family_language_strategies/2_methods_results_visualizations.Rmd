@@ -52,6 +52,10 @@ load(here("anonymized_data/final_data_no_exc.Rda"))
 load(here("anonymized_data/final_data_strat.Rda"))
 load(here("anonymized_data/longitudinal_data.Rda"))
 
+SES_info<- readxl::read_xlsx("anonymized_data/SES_and_ethicity_info.xlsx") %>%
+  select(-c(...8, ...9))
+
+
 #Saving my palette to use in visualizations
 my_yellow<-"#FFC107"
 my_orange<- "#D95F02"
@@ -173,6 +177,60 @@ max_exp_range <-final_data_strat %>%
   select(exp_l1) %>%
   max()
 
+###JOINING SES INFO TO CLEAN DATA
+
+FEH <- FEH %>%
+  right_join(SES_info, FEH, by=c("unique_id", "study", "anon_baby_id"))
+
+##MATERNAL EDUCATION French-English sample
+ FE_maternal_education <- FEH %>%
+  filter(bilingual_type=="fre-eng") %>%
+  group_by(maternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+ ##Paternal EDUCATION French-English sample
+ FE_paternal_education <- FEH %>%
+  filter(bilingual_type=="fre-eng") %>%
+  group_by(paternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+ ##Child ethnicity French-English sample
+  FE_child_ethicity <- FEH %>%
+  filter(bilingual_type=="fre-eng") %>%
+  group_by(child_ethnicity) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+  
+  ##MATERNAL EDUCATION heritage sample
+ her_maternal_education <- FEH %>%
+  filter(!bilingual_type=="fre-eng") %>%
+  group_by(maternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+ ##Paternal EDUCATION heritage sample
+ her_paternal_education <- FEH %>%
+  filter(!bilingual_type=="fre-eng") %>%
+  group_by(paternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+
+ ##Child ethnicity her sample
+  her_child_ethicity <- FEH %>%
+  filter(!bilingual_type=="fre-eng") %>%
+  group_by(child_ethnicity) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+  
 #Prepping longitudinal data excluding irrelevant cases
 
 

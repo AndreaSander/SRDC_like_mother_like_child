@@ -17,6 +17,7 @@ library(broom)
 library(janitor)
 library(knitr)
 library(patchwork)
+library(readxl)
 ```
 
 
@@ -75,7 +76,6 @@ LEQ_data <-
 ```{r merge demographics and LEQ data}
 final_data <-
   right_join(demographic_data, LEQ_data ,  by= c("unique_id", "study", "anon_baby_id"))
-
 
 #clean date of birth error in one participant
 final_data <- final_data %>%
