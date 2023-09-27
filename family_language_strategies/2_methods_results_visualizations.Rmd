@@ -53,7 +53,7 @@ load(here("anonymized_data/final_data_strat.Rda"))
 load(here("anonymized_data/longitudinal_data.Rda"))
 
 SES_info<- readxl::read_xlsx("anonymized_data/SES_and_ethicity_info.xlsx") %>%
-  select(-c(...8, ...9))
+  select(-c(...9, ...10))
 
 
 #Saving my palette to use in visualizations
@@ -223,7 +223,7 @@ FEH <- FEH %>%
  her_paternal_education <- FEH %>%
   filter(!bilingual_type=="fre-eng") %>%
   group_by(paternal_education) %>%
-   drop_na(paternal_education) %>%
+  drop_na(paternal_education) %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
@@ -1283,7 +1283,7 @@ her_tukey_her<- TukeyHSD (her_anova_model_heritage)
 # where exposure for a given language equals 100. Since exposure is on a 0-100 scale and the beta distributions 
 # works with values ranging from 0-1, exposure is divided by 100. 
 
-for_beta <- FE_for_blc_anova %>% 
+for_beta <- FE_for_anovas %>% 
   select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2) %>% 
   mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
                               TRUE ~ care1_l2)) %>%  #2023-07 going to need to fix this NAs in the cleaning script
