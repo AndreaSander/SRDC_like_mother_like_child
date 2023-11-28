@@ -1455,6 +1455,25 @@ summary(her_parents_aditive_her)
 ```
 
 
+```{r Other visualization}
+library(sjPlot)
+library(sjlabelled)
+library(sjmisc)
+
+ov1<- plot_model(lm_parents_aditive_eng, show.values = TRUE, value.offset = .3)+ theme_bw()
+ov2<- plot_model(lm_parents_aditive_fre, show.values = TRUE, value.offset = .3)+ theme_bw()
+
+ov3<- plot_model(her_lm_parents_aditive_eng, show.values = TRUE, value.offset = .3)+ theme_bw()
+ov4<- plot_model(her_lm_parents_aditive_fre, show.values = TRUE, value.offset = .3)+ theme_bw()
+ov5<- plot_model(her_lm_parents_aditive_her, show.values = TRUE, value.offset = .3)+ theme_bw()
+
+other_visualization<- ov1+ov2+ov3+ov4+ov5
+
+print(other_visualization)
+```
+
+
+
 ```{r EXTRA CODE}
 
 ## Extra code
