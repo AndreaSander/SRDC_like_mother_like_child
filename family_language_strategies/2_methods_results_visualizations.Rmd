@@ -1460,14 +1460,19 @@ library(sjPlot)
 library(sjlabelled)
 library(sjmisc)
 
-ov1<- plot_model(lm_parents_aditive_eng, show.values = TRUE, value.offset = .3)+ theme_bw()
-ov2<- plot_model(lm_parents_aditive_fre, show.values = TRUE, value.offset = .3)+ theme_bw()
+ov1_labels<- c("mother use sometimes", "mother use regularly", "father use sometimes", "father use regularly", "mother use sometimes", "mother use regularly","father use sometimes", "father use regularly")
 
-ov3<- plot_model(her_lm_parents_aditive_eng, show.values = TRUE, value.offset = .3)+ theme_bw()
-ov4<- plot_model(her_lm_parents_aditive_fre, show.values = TRUE, value.offset = .3)+ theme_bw()
-ov5<- plot_model(her_lm_parents_aditive_her, show.values = TRUE, value.offset = .3)+ theme_bw()
+ov1<- plot_models(lm_parents_aditive_eng, lm_parents_aditive_fre, show.values = TRUE, show.p = T, title = "A.Individual Parents' Contributions Model Estimates- French-English Sample", axis.labels = ov1_labels)+ theme_bw() +
+   theme(axis.text.y = element_text(size=15))
 
-other_visualization<- ov1+ov2+ov3+ov4+ov5
+
+ov2_labels<- c("mother use sometimes", "mother use regularly", "father use sometimes", "father use regularly", "mother use sometimes", "mother use regularly","father use sometimes", "father use regularly", "mother use sometimes", "mother use regularly","father use sometimes", "father use regularly")
+
+
+ov2<- plot_models(her_lm_parents_aditive_eng, her_lm_parents_aditive_fre, her_lm_parents_aditive_her, show.values = T, show.p = T, title = "B.Individual Parents' Contributions Model Estimates- Heritage Sample", axis.labels = ov2_labels)+ theme_bw()
+
+
+other_visualization<- ov1+ov2
 
 print(other_visualization)
 ```
