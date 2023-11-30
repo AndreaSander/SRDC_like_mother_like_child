@@ -1462,14 +1462,15 @@ library(sjmisc)
 
 ov1_labels<- c("mother use sometimes", "mother use regularly", "father use sometimes", "father use regularly", "mother use sometimes", "mother use regularly","father use sometimes", "father use regularly")
 
-ov1<- plot_models(lm_parents_aditive_eng, lm_parents_aditive_fre, show.values = TRUE, show.p = T, title = "A.Individual Parents' Contributions Model Estimates- French-English Sample", axis.labels = ov1_labels)+ theme_bw() +
-   theme(axis.text.y = element_text(size=15))
+ov1<- plot_models(lm_parents_aditive_eng, lm_parents_aditive_fre, show.values = TRUE, show.p = T, title = "A.Individual Parents' Contributions Model Estimates- French-English Sample", axis.labels = ov1_labels, axis.lim = c(-1,1), vline.color = "black", colors = c(my_blue, "red"), m.labels= c("Eng exp", "Fre exp"))+ theme_bw() +
+   theme(axis.text.y = element_text(size=13), axis.title.x = element_text(size=13), legend.text = element_text(size=13), legend.title = element_text(size=13)) 
 
 
 ov2_labels<- c("mother use sometimes", "mother use regularly", "father use sometimes", "father use regularly", "mother use sometimes", "mother use regularly","father use sometimes", "father use regularly", "mother use sometimes", "mother use regularly","father use sometimes", "father use regularly")
 
 
-ov2<- plot_models(her_lm_parents_aditive_eng, her_lm_parents_aditive_fre, her_lm_parents_aditive_her, show.values = T, show.p = T, title = "B.Individual Parents' Contributions Model Estimates- Heritage Sample", axis.labels = ov2_labels)+ theme_bw()
+ov2<- plot_models(her_lm_parents_aditive_eng, her_lm_parents_aditive_fre, her_lm_parents_aditive_her, show.values = T, show.p = T, title = "B.Individual Parents' Contributions Model Estimates- Heritage Sample", axis.labels = ov2_labels, axis.lim = c(-1,1), vline.color = "black", colors = c(my_green, my_blue, "red"), m.labels= c("Eng exp", "Fre exp", "Heritage exp"))+ theme_bw()+
+  theme(axis.text.y = element_text(size=13), axis.title.x = element_text(size=13), legend.text = element_text(size=13), legend.title = element_text(size=13)) 
 
 
 other_visualization<- ov1+ov2
