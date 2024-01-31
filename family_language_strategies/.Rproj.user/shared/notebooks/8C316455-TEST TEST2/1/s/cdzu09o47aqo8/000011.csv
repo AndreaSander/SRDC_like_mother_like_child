@@ -1,0 +1,4 @@
+"0","min<- min(cars$speed)"
+"0","max<- max(cars$speed)"
+"0",""
+"0","diff<- max-min"
