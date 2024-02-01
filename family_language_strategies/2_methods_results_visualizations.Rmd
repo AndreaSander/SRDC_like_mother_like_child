@@ -45,6 +45,7 @@ library(bbmle)
 library(performance)
 library(see)
 library(writexl)
+library(ggtext)
 
 
 load(here("anonymized_data/final_merged_data.Rda"))
@@ -305,7 +306,10 @@ prop_strategy_FE<- prop_strategy_FE %>%
 V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
 figure_1<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, size=0.6)+
-  theme(legend.text= element_text(size=12),legend.title= element_text(size=12))
+    annotate("richtext", x=c(4,11,15), y=8, label=c("52%", "24%", "19%")) +
+  annotate("richtext", x=17, y=6, label= "3%")+
+  annotate("richtext", x=17, y=10, label= "2%")+
+ theme(legend.text= element_text(size=12),legend.title= element_text(size=12)) 
 
 ggsave(file="Figure_1.png", width=25, height=7, dpi=300)
 
@@ -903,7 +907,10 @@ her_prop_strategy<- her_prop_strategy %>%
 #Waffle plot
 her_V1<- setNames(her_prop_strategy$n, c( "one-parent-bilingual","both-parents-bilingual","one-parent-one-lanaguage",  "single-parent", "one-language-at-home"))
 
-figure_5 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, size=0.6)
+figure_5 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, size=0.6) + annotate("richtext", x=c(2,6,9), y=4, label=c("40%", "30%", "20%")) +
+  annotate("richtext", x=10, y=2, label= "7%")+
+  annotate("richtext", x=10, y=6, label= "3%")+
+ theme(legend.text= element_text(size=12),legend.title= element_text(size=12)) 
 
 ```
 
@@ -1534,7 +1541,7 @@ perc_one_language_at_home<- round(one_parent_biling$perc, 1)
 #Waffle plot
 V1<- setNames(prop_strategy$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
-figure_1<- waffle(parts = V1, rows=20, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "Proportion of Use of Family Strategies", size=0.6)
+figure_1<- waffle(parts = V1, rows=20, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, title = "Proportion of Use of Family Strategies", size=0.6) 
 
 
 #Making a figure of most used strategies divided by lang exposure
