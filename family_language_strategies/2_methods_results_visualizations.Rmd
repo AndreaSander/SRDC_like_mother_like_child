@@ -608,6 +608,8 @@ FE_for_sankey <- FE_for_sankey %>%
   mutate(node= fct_relevel (node, "both-parents-bilingual", "one-parent-bilingual", "one-language-at-home", "one-parent-one-lang")) 
 
 
+
+
 FE_p1<- ggplot(FE_for_sankey, aes(x = x, 
                next_x = next_x, 
                node = node, 
@@ -615,12 +617,24 @@ FE_p1<- ggplot(FE_for_sankey, aes(x = x,
                fill = factor(node), label=node )) +
   geom_sankey() 
 
+FE_node_counts <- FE_for_sankey %>%
+  filter(x=="time 1") %>%
+  group_by(node) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+FE_next_node_counts <- FE_for_sankey %>%
+  group_by(next_node) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
 figure_2 <- FE_p1+ 
       scale_fill_manual(name= "x", values = c(my_orange, my_yellow, my_blue))
 
-figure_2<- figure_2 + 
+figure_2<- figure_2 +
   geom_sankey_label(size=10, color="black", fill="white")+
   theme_bw()+
+    annotate("richtext", x=c(1,1,1), y=c(10,1,-5), label=FE_node_counts$count)+
   theme(axis.text.x = element_text(size=35),axis.title = element_text(size=25), plot.title = element_text(size=25), legend.position = "none", axis.ticks = element_blank(), axis.text.y = element_blank())
 
 
