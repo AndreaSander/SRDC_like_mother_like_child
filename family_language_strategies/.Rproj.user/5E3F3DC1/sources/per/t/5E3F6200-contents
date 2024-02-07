@@ -178,10 +178,38 @@ max_exp_range <-final_data_strat %>%
   select(exp_l1) %>%
   max()
 
-###JOINING SES INFO TO CLEAN DATA
+#### JOINING SES INFO TO CLEAN DATA
 
 FEH <- FEH %>%
   right_join(SES_info, FEH, by=c("unique_id", "study", "anon_baby_id"))
+
+## Calculate percentages of overall maternal education by strategy
+
+ ALL_maternal_education <- FEH %>%
+  group_by(strategy, maternal_education) %>%
+   drop_na(maternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+ sup_figure_1<- ggplot(ALL_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
+   geom_col(position = "fill")
+ 
+  ALL_paternal_education <- FEH %>%
+  group_by(strategy, paternal_education) %>%
+   drop_na(maternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+  #No graphs for this one as there are too many categories
+   ALL_ethnicity <- FEH %>%
+  group_by(strategy, child_ethnicity) %>%
+   drop_na(child_ethnicity) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) 
+  
 
 ##MATERNAL EDUCATION French-English sample
  FE_maternal_education <- FEH %>%
@@ -237,6 +265,9 @@ FEH <- FEH %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
+  
+  
+  
   
 #Prepping longitudinal data excluding irrelevant cases
 

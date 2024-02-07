@@ -178,10 +178,38 @@ max_exp_range <-final_data_strat %>%
   select(exp_l1) %>%
   max()
 
-###JOINING SES INFO TO CLEAN DATA
+#### JOINING SES INFO TO CLEAN DATA
 
 FEH <- FEH %>%
   right_join(SES_info, FEH, by=c("unique_id", "study", "anon_baby_id"))
+
+## Calculate percentages of overall maternal education by strategy
+
+ ALL_maternal_education <- FEH %>%
+  group_by(strategy, maternal_education) %>%
+   drop_na(maternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+ sup_figure_1<- ggplot(ALL_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
+   geom_col(position = "fill")
+ 
+  ALL_paternal_education <- FEH %>%
+  group_by(strategy, paternal_education) %>%
+   drop_na(maternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+  #No graphs for this one as there are too many categories
+   ALL_ethnicity <- FEH %>%
+  group_by(strategy, child_ethnicity) %>%
+   drop_na(child_ethnicity) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) 
+  
 
 ##MATERNAL EDUCATION French-English sample
  FE_maternal_education <- FEH %>%
@@ -237,6 +265,9 @@ FEH <- FEH %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
+  
+  
+  
   
 #Prepping longitudinal data excluding irrelevant cases
 
@@ -743,8 +774,8 @@ figure_3_a <- ggplot(mom_long_fre_s , aes(x = x,
   theme_bw()+
   theme(axis.text.x = element_text(size=30),legend.position = "none", plot.title = element_text(size=35)) +
   labs(title= "A. Mothers' change of language use French")+
-      annotate("richtext", x=c(1,1,1), y=c(4,-10,-22), label=mom_fre_node_counts$count, size=5)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(4,-10,-22), label=mom_fre_next_node_counts$count, size=5) #Adding the N at time 2
+      annotate("richtext", x=c(1,1,1), y=c(6,-10,-22), label=mom_fre_node_counts$count, size=8)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(6,-10,-22), label=mom_fre_next_node_counts$count, size=8) #Adding the N at time 2
 
 mom_eng_node_counts <- mom_long_eng_s %>%
     filter(x=="time 1") %>%
@@ -770,8 +801,8 @@ figure_3_b <- ggplot(mom_long_eng_s , aes(x = x,
   theme_bw()+
   theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35))+
   labs(title= "B. Mothers' change of language use English")+
-      annotate("richtext", x=c(1,1,1), y=c(4,-12,-22), label=mom_eng_node_counts$count, size=5)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(4,-12,-22), label=mom_eng_next_node_counts$count, size=5) #Adding the N at time 2
+      annotate("richtext", x=c(1,1,1), y=c(4,-12,-22), label=mom_eng_node_counts$count, size=8)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(4,-13,-22), label=mom_eng_next_node_counts$count, size=8) #Adding the N at time 2
 
 
 figure_3<- figure_3_a + figure_3_b
@@ -877,8 +908,8 @@ figure_4_a <- ggplot(dad_long_fre_s , aes(x = x,
   theme_bw()+
   theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35))+
   labs(title= "A. Fathers' change of language use French")+
-      annotate("richtext", x=c(1,1,1), y=c(4,-11,-22), label=dad_fre_node_counts$count)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(4,-11,-22), label=dad_fre_next_node_counts$count) #Adding the N at time 2
+      annotate("richtext", x=c(1,1,1), y=c(4,-11,-22), label=dad_fre_node_counts$count, size=8)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(4,-11,-22), label=dad_fre_next_node_counts$count, size=8) #Adding the N at time 2
 
 
 dad_eng_node_counts <- mom_long_eng_s %>%
@@ -905,8 +936,8 @@ figure_4_b <- ggplot(dad_long_eng_s , aes(x = x,
   theme_bw()+
   theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35))+
   labs(title= "B. Fathers' change of language use English")+
-      annotate("richtext", x=c(1,1,1), y=c(4,-10,-22), label=dad_eng_node_counts$count)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(4,-10,-22), label=dad_eng_next_node_counts$count) #Adding the N at time 2
+      annotate("richtext", x=c(1,1,1), y=c(4,-10,-22), label=dad_eng_node_counts$count, size=8)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(4,-10,-22), label=dad_eng_next_node_counts$count, size=8) #Adding the N at time 2
 
 
 figure_4<- figure_4_a + figure_4_b
