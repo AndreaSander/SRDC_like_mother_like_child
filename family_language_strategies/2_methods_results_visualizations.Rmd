@@ -54,8 +54,8 @@ load(here("anonymized_data/final_data_no_exc.Rda"))
 load(here("anonymized_data/final_data_strat.Rda"))
 load(here("anonymized_data/longitudinal_data.Rda"))
 
-SES_info<- readxl::read_xlsx("anonymized_data/SES_and_ethicity_info.xlsx") %>%
-  select(-c(...9, ...10))
+SES_info<- readxl::read_xlsx("anonymized_data/SES_and_ethicity_info.xlsx")
+
 
 
 #Saving my palette to use in visualizations
