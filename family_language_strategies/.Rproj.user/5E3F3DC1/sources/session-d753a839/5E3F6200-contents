@@ -46,6 +46,7 @@ library(performance)
 library(see)
 library(writexl)
 library(ggtext)
+library(kableExtra)
 
 
 load(here("anonymized_data/final_merged_data.Rda"))
@@ -183,34 +184,81 @@ max_exp_range <-final_data_strat %>%
 FEH <- FEH %>%
   right_join(SES_info, FEH, by=c("unique_id", "study", "anon_baby_id"))
 
-## Calculate percentages of overall maternal education by strategy
+## Calculate percentages of overall maternal education by strategy for supplementary materials
+library(RColorBrewer)
 
- ALL_maternal_education <- FEH %>%
+ FE_maternal_education <- FEH %>%
+  filter(bilingual_type=="fre-eng") %>%
   group_by(strategy, maternal_education) %>%
    drop_na(maternal_education) %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
  
- sup_figure_1<- ggplot(ALL_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
-   geom_col(position = "fill")
+ sup_figure_1<- ggplot(FE_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "French-English sample maternal education by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
  
-  ALL_paternal_education <- FEH %>%
-  group_by(strategy, paternal_education) %>%
+ 
+  HER_maternal_education <- FEH %>%
+  filter(bilingual_type %in% c("fre-her", "eng-her")) %>%
+  group_by(strategy, maternal_education) %>%
    drop_na(maternal_education) %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
  
+ sup_figure_2<- ggplot(HER_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2") +
+   labs(title= "Heritage sample maternal education by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+ 
+ 
+ 
+  FE_paternal_education <- FEH %>%
+      filter(bilingual_type=="fre-eng") %>%
+  group_by(strategy, paternal_education) %>%
+   drop_na(paternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+  
+  sup_figure_3<- ggplot(FE_paternal_education, aes(y=perc, x=strategy, fill=paternal_education)) +
+   geom_col(position = "fill")  +
+    scale_fill_brewer(palette="Dark2") +
+   labs(title= "French-English sample paternal education by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+  
+   HER_paternal_education <- FEH %>%
+  filter(bilingual_type %in% c("fre-her", "eng-her")) %>%
+  group_by(strategy, paternal_education) %>%
+   drop_na(paternal_education) %>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+  
+  sup_figure_4<- ggplot(HER_paternal_education, aes(y=perc, x=strategy, fill=paternal_education)) +
+   geom_col(position = "fill")+
+    scale_fill_brewer(palette="Dark2") +
+   labs(title= "Heritage sample paternal education by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+ 
   #No graphs for this one as there are too many categories
-   ALL_ethnicity <- FEH %>%
+   FE_ethnicity <- FEH %>%
+     filter(bilingual_type=="fre-eng")%>%
   group_by(strategy, child_ethnicity) %>%
    drop_na(child_ethnicity) %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100) 
   
+   
 
+######## SES and ethnicity stats not by strategy   
+   
 ##MATERNAL EDUCATION French-English sample
  FE_maternal_education <- FEH %>%
   filter(bilingual_type=="fre-eng") %>%
@@ -310,6 +358,10 @@ max_visit_l <- round(max(visit_length$length_between_visits),2)
 sd_visit_l <- round(sd(visit_length$length_between_visits),2)
 ```
 
+ 
+```{r}
+kable(FE_ethnicity)
+```
 
 ## Study 1: French-English data analyses
 
@@ -362,6 +414,7 @@ ggplot(for_breakdown, aes(x=l1, y=n, fill=strategy)) +
   scale_fill_manual (name = "Family Strategy", values =c(my_orange, my_yellow, my_blue, "#91bfdb", "#e0f3f8"))
 
 ```
+
 
 
 ```{r Study 1: Goodness of fit analysis, include=FALSE}
