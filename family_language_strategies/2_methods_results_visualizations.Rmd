@@ -55,6 +55,7 @@ load(here("anonymized_data/final_data_strat.Rda"))
 load(here("anonymized_data/longitudinal_data.Rda"))
 
 SES_info<- readxl::read_xlsx("anonymized_data/SES_and_ethicity_info.xlsx")
+SES_info<-clean_names(SES_info)
 
 
 
@@ -124,6 +125,11 @@ num_visits <- final_data_strat %>%
 
 #French-English-Heritage bilingual percentages
 
+#### JOINING SES INFO TO CLEAN DATA
+##Do antijoin to make sure everything is fine!
+first_visit_only<- first_visit_only %>%
+  right_join(SES_info, first_visit_only, by=c("study","unique_id", "anon_baby_id", "l1", "l2"))
+
 FEH <- first_visit_only %>%
   mutate(l1 = case_when(l1=="French" ~ "French",
                         l1=="English" ~ "English",
@@ -134,6 +140,8 @@ FEH <- first_visit_only %>%
   mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
                                     l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
                                     l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
+
+
 
 #Exporting the final data set that we used in all analyses and visualizations
 #write_xlsx(FEH,"anonymized_data\\fam_Str_cross_sectional.xlsx")
@@ -179,10 +187,8 @@ max_exp_range <-final_data_strat %>%
   select(exp_l1) %>%
   max()
 
-#### JOINING SES INFO TO CLEAN DATA
 
-FEH <- FEH %>%
-  right_join(SES_info, FEH, by=c("unique_id", "study", "anon_baby_id"))
+
 
 ## Calculate percentages of overall maternal education by strategy for supplementary materials
 library(RColorBrewer)
@@ -1045,6 +1051,132 @@ summary(father_english_change_model)
 ```
 
 
+## Study 1 supplementary analyses: linear models
+```{r}
+
+#Creating relevant variables for supplementary analyses
+
+for_sup <- FE_for_lms %>%
+mutate(mother_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_mother,
+                                      l1=="English"~ age_l2_acquired_mother)) %>%
+ mutate(mother_english_aoa = case_when (l1 == "English" ~ age_l1_acquired_mother,
+                                      l1=="French"~ age_l2_acquired_mother)) %>%
+  mutate(father_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_father,
+                                      l1=="English"~ age_l2_acquired_father)) %>%
+ mutate(father_english_aoa = case_when (l1 == "English" ~ age_l1_acquired_father,
+                                      l1=="French"~ age_l2_acquired_father)) %>%
+  mutate(mother_french_accent = case_when(l1=="French"~ l1_accent_mother,
+                                          l1=="English"~ l2_accent_mother))%>%
+   mutate(mother_english_accent = case_when(l1=="English"~ l1_accent_mother,
+                                          l1=="French"~ l2_accent_mother))%>% 
+    mutate(father_french_accent = case_when(l1=="French"~ l1_accent_father,
+                                          l1=="English"~ l2_accent_father))%>%
+   mutate(father_english_accent = case_when(l1=="English"~ l1_accent_father,
+                                          l1=="French"~ l2_accent_father)) 
+  
+
+#Selecting the necessary variables for the models
+for_sup_lms<- for_sup %>% 
+  select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2, type_of_family, mother_french_aoa, mother_english_aoa, father_french_aoa, father_english_aoa, mother_french_accent, mother_english_accent, father_french_accent, father_english_accent) %>% 
+  mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
+                              TRUE ~ care1_l2)) %>%  #2023-07 going to need to fix this NAs in the cleaning script
+    mutate(care2_l1 = case_when(care2_l1 =="NA" ~ "never",
+                              TRUE ~ care2_l1)) %>%
+      mutate(care2_l2 = case_when(care2_l2 =="NA" ~ "never",
+                              TRUE ~ care2_l2)) %>%
+  mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
+                                            l2=="French"~care1_l2)) %>%
+    mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
+                                            l2=="English"~care1_l2)) %>%
+    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
+                                            l2=="French"~ care2_l2)) %>%
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
+  filter(gender != "NA") %>%
+  filter(!strategy == "OneLanguageAtHome") %>%
+  mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, exp_l2 = exp_l2/100)  
+#Here we only have mother-family families left so no need to filter
+
+#Only proficiency models
+lm_aoa_fre<- lm(eng_exp ~  mother_english_aoa + father_english_aoa, data=for_sup_lms)
+lm_aoa_eng<- lm(fre_exp ~ mother_french_aoa + father_french_aoa, data=for_sup_lms)
+#Summary of proficiency models
+summary(lm_aoa_eng) #only mother
+summary(lm_aoa_fre) #both, but mother 3 times more
+
+
+#STRATEGY LINEAR MODELS (supplementary)
+lm_stratBYaoa_eng<- lm(eng_exp ~ strategy + mother_english_aoa + father_english_aoa, data=for_sup_lms)
+lm_stratBYaoa_fre <- lm(fre_exp ~ strategy + mother_french_aoa + father_french_aoa, data=for_sup_lms)
+
+lm_stratBYacc_eng<- lm(eng_exp ~ strategy + mother_english_accent + father_english_accent, data=for_sup_lms)
+lm_stratBYacc_fre <- lm(fre_exp ~ strategy + mother_french_accent + father_french_accent, data=for_sup_lms)
+
+#Summary of STRATEGY LINEAR models
+summary(lm_stratBYaoa_eng)  #mother english aoa does have a significant effect
+summary(lm_stratBYaoa_fre) # mother french aoa also has a significant effect
+summary(lm_stratBYacc_eng) #again mother accent is significant = when mother has a perceptible accent exp decreases 
+summary(lm_stratBYacc_fre) #Same, mother accent is significant. Not fathers
+
+#CAREGIVER LINEAR MODELS
+lm_parentsBYaoa_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use + mother_english_aoa + father_english_aoa, data=for_sup_lms)
+
+lm_parentsBYaoa_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use + mother_french_aoa + father_french_aoa, data=for_sup_lms)
+
+lm_parentsBYacc_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use + mother_english_accent + father_english_accent, data=for_sup_lms)
+
+lm_parentsBYacc_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use + mother_french_accent + father_french_accent, data=for_sup_lms)
+
+#summary of CAREGIVER Linear models
+summary(lm_parentsBYaoa_eng) #mother aoa still significant but not fathers'
+summary(lm_parentsBYaoa_fre) #no effect of proficiency
+summary(lm_parentsBYacc_eng) #mother acent is significant, but not fathers
+summary(lm_parentsBYacc_fre) #mother accent somewhat significant. Not fathers
+
+##Models comparison
+
+performance::compare_performance(lm_parents_aditive_fre, lm_strat_fre, lm_parentsBYaoa_fre, lm_stratBYaoa_fre)
+#Additive is still best fit, with proficiency it accounts for 2% more variance. 
+performance::compare_performance(lm_parents_aditive_eng, lm_strat_eng, lm_parentsBYacc_eng, lm_stratBYaoa_eng)
+#in english performance data does make it the best fitting model, also accounts for 2% more variance, but much much more variance accounted for strat w/proficiency than without
+
+
+## Can we make a model where language use is predicted by proficiency?? assign codes to language use 0 1 2?
+
+for_lang_use<- for_sup_lms %>%
+  mutate(caregiver_1_french_use = case_when(caregiver_1_french_use =="never"~ 0,
+                                            caregiver_1_french_use =="sometimes"~1,
+                                            caregiver_1_french_use =="regularly"~2))%>%
+    mutate(caregiver_2_french_use = case_when(caregiver_2_french_use =="never"~ 0,
+                                            caregiver_2_french_use =="sometimes"~1,
+                                            caregiver_2_french_use =="regularly"~2))%>%
+    mutate(caregiver_1_english_use = case_when(caregiver_1_english_use =="never"~ 0,
+                                            caregiver_1_english_use =="sometimes"~1,
+                                            caregiver_1_english_use =="regularly"~2))%>%
+      mutate(caregiver_2_english_use = case_when(caregiver_2_english_use =="never"~ 0,
+                                            caregiver_2_english_use =="sometimes"~1,
+                                            caregiver_2_english_use =="regularly"~2))
+
+  
+lm_use_mom_fre <- lm(caregiver_1_french_use ~ mother_french_aoa + father_french_aoa, data= for_lang_use)
+lm_use_mom_eng <- lm(caregiver_1_english_use ~ mother_english_aoa + father_english_aoa, data= for_lang_use)
+
+lm_use_dad_fre <- lm(caregiver_2_french_use ~ mother_french_aoa + father_french_aoa, data= for_lang_use)
+lm_use_dad_eng <- lm(caregiver_2_english_use ~ mother_english_aoa + father_english_aoa, data= for_lang_use)
+
+
+summary(lm_use_mom_fre)#The less proficient mother are the less likely they are to use that lang, independent of fathers.
+summary(lm_use_mom_eng)#same as avobe but also the less proficient fathers are the more mothers use english.
+
+summary(lm_use_dad_fre) #the less proficient fathers are the less they use fre, but the less proficient mothers are the more dads use french also
+summary(lm_use_dad_eng) #same pattern as above.
+
+
+```
+
+
+
+
 
 ## Study 2: French/English-- heritage data analyses
 
@@ -1312,6 +1444,140 @@ performance::compare_performance(her_lm_parents_aditive_her, her_lm_dad_her, her
 performance::compare_performance(her_lm_parents_aditive_fre, her_lm_strat_fre)
 performance::compare_performance(her_lm_parents_aditive_eng, her_lm_strat_eng)
 performance::compare_performance(her_lm_parents_aditive_her, her_lm_strat_her)
+
+```
+
+## Suplementary analyses study2
+```{r}
+
+her_for_sup <- her_for_lms %>%
+mutate(mother_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_mother,
+                                      l1 %in% c("English","Heritage")~ age_l2_acquired_mother)) %>%
+ mutate(mother_english_aoa = case_when (l1 == "English" ~ age_l1_acquired_mother,
+                                      l1%in% c("French","Heritage")~ age_l2_acquired_mother)) %>%
+   mutate(mother_heritage_aoa = case_when (l1 == "Heritage" ~ age_l1_acquired_mother,
+                                      l1%in% c("French","English")~ age_l2_acquired_mother)) %>%
+  mutate(father_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_father,
+                                      l1 %in% c("English","Heritage")~ age_l2_acquired_father)) %>%
+ mutate(father_english_aoa = case_when (l1 == "English" ~ age_l1_acquired_father,
+                                      l1%in% c("French","Heritage")~ age_l2_acquired_father)) %>%
+     mutate(father_heritage_aoa = case_when (l1 == "Heritage" ~ age_l1_acquired_father,
+                                      l1%in% c("French","English")~ age_l2_acquired_father)) %>%
+  mutate(mother_french_accent = case_when(l1=="French"~ l1_accent_mother,
+                                          l1 %in% c("English","Heritage")~ l2_accent_mother))%>%
+   mutate(mother_english_accent = case_when(l1=="English"~ l1_accent_mother,
+                                          l1%in% c("French","Heritage")~ l2_accent_mother))%>% 
+     mutate(mother_heritage_accent = case_when (l1 == "Heritage" ~ l1_accent_mother,
+                                      l1%in% c("French","English")~ l2_accent_mother))%>%
+    mutate(father_french_accent = case_when(l1=="French"~ l1_accent_father,
+                                          l1 %in% c("English","Heritage")~ l2_accent_father))%>%
+   mutate(father_english_accent = case_when(l1=="English"~ l1_accent_father,
+                                         l1%in% c("French","Heritage")~ l2_accent_father)) %>%
+       mutate(father_heritage_accent = case_when (l1 == "Heritage" ~ l1_accent_father,
+                                      l1%in% c("French","English")~ l2_accent_father))
+
+
+her_for_sup <- her_for_sup %>%
+    filter(!bilingual_type == "fre-eng") %>% 
+  mutate(care1_l2 = case_when(care1_l2 =="NA" ~ "never",
+                              TRUE ~ care1_l2)) %>%  
+    mutate(care2_l1 = case_when(care2_l1 =="NA" ~ "never",
+                              TRUE ~ care2_l1)) %>%
+      mutate(care2_l2 = case_when(care2_l2 =="NA" ~ "never",
+                              TRUE ~ care2_l2))  %>%
+  mutate(caregiver_1_french_use = case_when(l1=="French"~care1_l1,
+                                            l2=="French"~care1_l2)) %>%
+    mutate(caregiver_1_heritage_use = case_when(l1=="Heritage"~care1_l1,
+                                            l2=="Heritage"~care1_l2)) %>%
+    mutate(caregiver_1_english_use = case_when(l1=="English"~care1_l1,
+                                            l2=="English"~care1_l2)) %>%
+    mutate(caregiver_2_french_use = case_when(l1=="French"~ care2_l1,
+                                            l2=="French"~ care2_l2)) %>%
+      mutate(caregiver_2_heritage_use = case_when(l1=="Heritage"~ care2_l1,
+                                            l2=="Heritage"~ care2_l2)) %>%
+    mutate(caregiver_2_english_use = case_when(l1=="English"~care2_l1,
+                                            l2=="English"~care2_l2)) %>%
+  filter(gender != "NA") %>%
+  filter(!strategy %in% c("one-language-at-home", "single-parent")) %>%
+  mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, min_exp = min_exp/100)
+
+
+#STRATEGY LINEAR MODELS
+her_lm_stratBYaoa_eng<- lm(eng_exp ~ strategy + mother_english_aoa + father_english_aoa, data=her_for_sup)
+her_lm_stratBYaoa_fre <- lm(fre_exp ~ strategy + mother_french_aoa + father_french_aoa, data=her_for_sup)
+her_lm_stratBYaoa_her <- lm(min_exp ~ strategy + mother_heritage_aoa + father_heritage_aoa, data=her_for_sup)
+
+#Summary of STRATEGY LINEAR models
+summary(her_lm_stratBYaoa_eng) #no effect of proficiency
+summary(her_lm_stratBYaoa_fre) #no effect of proficiency though approaching with mother
+summary(her_lm_stratBYaoa_her) #no effect of proficiency 
+
+
+ parents_her_for_sup <- her_for_sup %>%
+  filter(type_of_family == "mother-father family")
+
+
+HERlm_parentsBYaoa_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use + mother_english_aoa + father_english_aoa, data=parents_her_for_sup)
+
+HERlm_parentsBYaoa_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use + mother_french_aoa + father_french_aoa, data=parents_her_for_sup)
+
+HERlm_parentsBYaoa_her<- lm(min_exp ~ caregiver_2_heritage_use + caregiver_1_heritage_use + mother_heritage_aoa + father_heritage_aoa, data=parents_her_for_sup)
+
+HERlm_parentsBYacc_eng<- lm(eng_exp ~ caregiver_2_english_use + caregiver_1_english_use + mother_english_accent + father_english_accent, data=parents_her_for_sup)
+
+HERlm_parentsBYacc_fre<- lm(fre_exp ~ caregiver_2_french_use + caregiver_1_french_use + mother_french_accent + father_french_accent, data=parents_her_for_sup)
+
+HERlm_parentsBYacc_her<- lm(min_exp ~ caregiver_2_heritage_use + caregiver_1_heritage_use + mother_heritage_accent + father_heritage_accent, data=parents_her_for_sup)
+
+#summary of CAREGIVER Linear models
+summary(HERlm_parentsBYaoa_eng) #Father proficiency approaching significance but in the direction of the less proficient the more children hear eng
+summary(HERlm_parentsBYaoa_fre) #no proficiency effect
+summary(HERlm_parentsBYaoa_her) #no proficiency effect
+
+
+summary(HERlm_parentsBYacc_eng) #no effect
+summary(HERlm_parentsBYacc_fre) #mother accent approaching significant more accented less exposure
+summary(HERlm_parentsBYacc_her) #no effect
+
+
+ ### language use model
+ 
+her_for_lang_use<- her_for_sup %>%
+  mutate(caregiver_1_french_use = case_when(caregiver_1_french_use =="never"~ 0,
+                                            caregiver_1_french_use =="sometimes"~1,
+                                            caregiver_1_french_use =="regularly"~2))%>%
+    mutate(caregiver_2_french_use = case_when(caregiver_2_french_use =="never"~ 0,
+                                            caregiver_2_french_use =="sometimes"~1,
+                                            caregiver_2_french_use =="regularly"~2))%>%
+    mutate(caregiver_1_english_use = case_when(caregiver_1_english_use =="never"~ 0,
+                                            caregiver_1_english_use =="sometimes"~1,
+                                            caregiver_1_english_use =="regularly"~2))%>%
+      mutate(caregiver_2_english_use = case_when(caregiver_2_english_use =="never"~ 0,
+                                            caregiver_2_english_use =="sometimes"~1,
+                                            caregiver_2_english_use =="regularly"~2)) %>%
+      mutate(caregiver_2_heritage_use = case_when(caregiver_2_heritage_use =="never"~ 0,
+                                            caregiver_2_heritage_use =="sometimes"~1,
+                                            caregiver_2_heritage_use =="regularly"~2)) %>%
+        mutate(caregiver_1_heritage_use = case_when(caregiver_1_heritage_use =="never"~ 0,
+                                            caregiver_1_heritage_use =="sometimes"~1,
+                                            caregiver_1_heritage_use =="regularly"~2))
+  
+HERlm_use_mom_fre <- lm(caregiver_1_french_use ~ mother_french_aoa + father_french_aoa, data= her_for_lang_use)
+HERlm_use_mom_eng <- lm(caregiver_1_english_use ~ mother_english_aoa + father_english_aoa, data= her_for_lang_use)
+HERlm_use_mom_HER <- lm(caregiver_1_heritage_use ~ mother_heritage_aoa + father_heritage_aoa, data= her_for_lang_use)
+
+HERlm_use_dad_fre <- lm(caregiver_2_french_use ~ mother_french_aoa + father_french_aoa, data= her_for_lang_use)
+HERlm_use_dad_eng <- lm(caregiver_2_english_use ~ mother_english_aoa + father_english_aoa, data= her_for_lang_use)
+HERlm_use_dad_HER <- lm(caregiver_2_heritage_use ~ mother_heritage_aoa + father_heritage_aoa, data= her_for_lang_use)
+
+summary(HERlm_use_mom_fre) #mother proficiency significant the less proficient the less they use
+summary(HERlm_use_mom_eng) #father proficiency significant the less proficient fathers are the less mothers use eng but not very significant small effect
+summary(HERlm_use_mom_HER) # proficiency not correlated with use. Which does go in line with the idea that mothers take on the role of transmitting heritage language regardless of their proficiency.
+
+
+summary(HERlm_use_dad_fre) #correlated, the less proficient the less use
+summary(HERlm_use_dad_eng) #not correlated
+summary(HERlm_use_dad_HER) #no proficiency effect
 
 ```
 
