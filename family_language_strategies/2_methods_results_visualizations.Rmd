@@ -195,11 +195,19 @@ library(RColorBrewer)
 
  FE_maternal_education <- FEH %>%
   filter(bilingual_type=="fre-eng") %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
   group_by(strategy, maternal_education) %>%
-   drop_na(maternal_education) %>%
+   drop_na(maternal_education)%>%
+ mutate(maternal_education = case_when(maternal_education %in% c("highschool", "less_than_highschool")~"highschool or less",
+                                         maternal_education %in% c("cgep", "university", "trade_school_diploma", "professional_degree") ~ "post-secondary education",
+                                        maternal_education %in% c("masters", "more_than_masters")~"post-graduate education")) %>%
+ 
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
+ 
+ FE_maternal_education$maternal_education <- factor(FE_maternal_education$maternal_education, levels= c("post-graduate education", "post-secondary education", "highschool or less"))
  
  sup_figure_1<- ggplot(FE_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
    geom_col(position = "fill") +
@@ -210,11 +218,18 @@ library(RColorBrewer)
  
   HER_maternal_education <- FEH %>%
   filter(bilingual_type %in% c("fre-her", "eng-her")) %>%
+       filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
   group_by(strategy, maternal_education) %>%
    drop_na(maternal_education) %>%
+ mutate(maternal_education = case_when(maternal_education %in% c("highschool", "less_than_highschool")~"highschool or less",
+                                         maternal_education %in% c("cgep", "university", "trade_school_diploma", "professional_degree") ~ "post-secondary education",
+                                        maternal_education %in% c("masters", "more_than_masters")~"post-graduate education")) %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
+  
+   HER_maternal_education$maternal_education <- factor(HER_maternal_education$maternal_education, levels=c("post-graduate education", "post-secondary education", "highschool or less"))
  
  sup_figure_2<- ggplot(HER_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
    geom_col(position = "fill") +
@@ -226,11 +241,18 @@ library(RColorBrewer)
  
   FE_paternal_education <- FEH %>%
       filter(bilingual_type=="fre-eng") %>%
+       filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
   group_by(strategy, paternal_education) %>%
    drop_na(paternal_education) %>%
+     mutate(paternal_education = case_when(paternal_education %in% c("highschool", "less_than_highschool")~"highschool or less",
+                                         paternal_education %in% c("cgep", "university", "trade_school_diploma", "professional_degree") ~ "post-secondary education",
+                                        paternal_education %in% c("masters", "more_than_masters")~"post-graduate education")) %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
+  
+     FE_paternal_education$paternal_education <- factor(FE_paternal_education$paternal_education, levels=c("post-graduate education", "post-secondary education", "highschool or less"))
   
   sup_figure_3<- ggplot(FE_paternal_education, aes(y=perc, x=strategy, fill=paternal_education)) +
    geom_col(position = "fill")  +
@@ -240,11 +262,17 @@ library(RColorBrewer)
   
    HER_paternal_education <- FEH %>%
   filter(bilingual_type %in% c("fre-her", "eng-her")) %>%
+       filter(!strategy == "single-parent")%>%
   group_by(strategy, paternal_education) %>%
    drop_na(paternal_education) %>%
+          mutate(paternal_education = case_when(paternal_education %in% c("highschool", "less_than_highschool")~"highschool or less",
+                                         paternal_education %in% c("cgep", "university", "trade_school_diploma", "professional_degree") ~ "post-secondary education",
+                                        paternal_education %in% c("masters", "more_than_masters")~"post-graduate education")) %>%
   tally()%>%
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
+   
+        HER_paternal_education$paternal_education <- factor(HER_paternal_education$paternal_education, levels=c("post-graduate education", "post-secondary education", "highschool or less"))
   
   sup_figure_4<- ggplot(HER_paternal_education, aes(y=perc, x=strategy, fill=paternal_education)) +
    geom_col(position = "fill")+
@@ -830,10 +858,10 @@ figure_3_a <- ggplot(mom_long_fre_s , aes(x = x,
   geom_sankey(flow.color = "black") + 
   scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
   theme_bw()+
-  theme(axis.text.x = element_text(size=30),legend.position = "none", plot.title = element_text(size=35), axis.title=element_blank()) +
-  labs(title= "A. Mothers' change of language use French")+
-      annotate("richtext", x=c(1,1,1), y=c(6,-10,-22), label=mom_fre_node_counts$count, size=10)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(6,-10,-22), label=mom_fre_next_node_counts$count, size=10) #Adding the N at time 2
+  theme(axis.text.x = element_text(size=30),legend.position = "none", plot.title = element_text(size=35), axis.title=element_blank(), plot.subtitle = element_text(size = 20)) +
+  labs(title= "A. Mothers' change of language use", subtitle = "French")+
+      annotate("richtext", x=c(1,1,1), y=c(5,-9,-20), label=mom_fre_node_counts$count, size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(5,-9,-20), label=mom_fre_next_node_counts$count, size=10) #Adding the N at time 2
 
 mom_eng_node_counts <- mom_long_eng_s %>%
     filter(x=="time 1") %>%
@@ -856,10 +884,10 @@ figure_3_b <- ggplot(mom_long_eng_s , aes(x = x,
   geom_sankey(flow.color = "black") +
     scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"), name= "language use with child frequency")+
   theme_bw()+
-  theme(axis.text.x = element_text(size=30), plot.title = element_text(size=35), axis.title = element_blank(), legend.text = element_text(size=30), legend.title = element_text(size=30))+
-  labs(title= "B. Mothers' change of language use English")+
-      annotate("richtext", x=c(1,1,1), y=c(5,-11,-21), label=mom_eng_node_counts$count, size=8)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(5,-12,-21), label=mom_eng_next_node_counts$count, size=8) #Adding the N at time 2
+  theme(axis.text.x = element_text(size=30), plot.title = element_text(size=35), axis.title = element_blank(), legend.text = element_text(size=30), legend.title = element_text(size=30), plot.subtitle = element_text(size = 20))+
+  labs(title= "B. Mothers' change of language use", subtitle = "English")+
+      annotate("richtext", x=c(1,1,1), y=c(6,-10,-20), label=mom_eng_node_counts$count, size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(5,-10,-20), label=mom_eng_next_node_counts$count, size=10) #Adding the N at time 2
 
 
 figure_3<- figure_3_a + figure_3_b
@@ -962,10 +990,10 @@ figure_4_a <- ggplot(dad_long_fre_s , aes(x = x,
   geom_sankey(flow.color = "black") +
     scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
   theme_bw()+
-  theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35))+
-  labs(title= "A. Fathers' change of language use French")+
-      annotate("richtext", x=c(1,1,1), y=c(4,-11,-22), label=dad_fre_node_counts$count, size=10)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(4,-11,-22), label=dad_fre_next_node_counts$count, size=10) #Adding the N at time 2
+  theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35), plot.subtitle = element_text(size = 20))+
+  labs(title= "A. Fathers' change of language use", subtitle = "French")+
+      annotate("richtext", x=c(1,1,1), y=c(5,-10,-20), label=dad_fre_node_counts$count, size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(5,-10,-20), label=dad_fre_next_node_counts$count, size=10) #Adding the N at time 2
 
 
 dad_eng_node_counts <- mom_long_eng_s %>%
@@ -989,10 +1017,10 @@ figure_4_b <- ggplot(dad_long_eng_s , aes(x = x,
   geom_sankey(flow.color = "black") + 
     scale_fill_manual(values =c("#dac291","#41ae76", "#75638b"), name="language use with child frequency")+
   theme_bw()+
-  theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35))+
-  labs(title= "B. Fathers' change of language use English")+
-      annotate("richtext", x=c(1,1,1), y=c(4,-10,-22), label=dad_eng_node_counts$count, size=8)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(4,-10,-22), label=dad_eng_next_node_counts$count, size=8) #Adding the N at time 2
+  theme(axis.text.x = element_text(size=30), plot.title = element_text(size=35), axis.title = element_blank(), legend.text = element_text(size=30), legend.title = element_text(size=30), plot.subtitle = element_text(size = 20))+
+  labs(title= "B. Fathers' change of language use", subtitle = "English")+
+      annotate("richtext", x=c(1,1,1), y=c(4,-10,-22), label=dad_eng_node_counts$count, size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(4,-10,-22), label=dad_eng_next_node_counts$count, size=10) #Adding the N at time 2
 
 
 figure_4<- figure_4_a + figure_4_b
