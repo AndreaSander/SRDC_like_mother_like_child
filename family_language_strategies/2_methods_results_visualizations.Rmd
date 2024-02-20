@@ -290,7 +290,7 @@ library(RColorBrewer)
   mutate(perc= prop*100) 
   
    
-
+   
 ######## SES and ethnicity stats not by strategy   
    
 ##MATERNAL EDUCATION French-English sample
@@ -1097,8 +1097,95 @@ mutate(mother_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_mother,
                                           l1=="English"~ l2_accent_father))%>%
    mutate(father_english_accent = case_when(l1=="English"~ l1_accent_father,
                                           l1=="French"~ l2_accent_father)) 
-  
+  #histogram of proficiency distribution 
 
+##  French
+
+hist(for_sup$mother_french_aoa)
+hist(for_sup$father_french_aoa)
+
+
+## English
+hist(for_sup$mother_english_aoa)
+hist(for_sup$father_english_aoa)
+
+
+## By strategy accent
+##### proficiency (accent) by strategy
+   
+    French_mother_proficiency <- for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, mother_french_accent) %>%
+   drop_na(mother_french_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+    
+        French_father_proficiency <- for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, father_french_accent) %>%
+   drop_na(father_french_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+    English_mother_proficiency <- for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, mother_english_accent) %>%
+   drop_na(mother_english_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+    
+        English_father_proficiency <- for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, father_english_accent) %>%
+   drop_na(father_english_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+         
+        
+ggplot(French_mother_proficiency, aes(y=perc, x=strategy, fill=mother_french_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "French-English sample maternal french proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+ 
+ggplot(French_father_proficiency, aes(y=perc, x=strategy, fill=father_french_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "French-English sample paternall french proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+
+ggplot(English_mother_proficiency, aes(y=perc, x=strategy, fill=mother_english_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "French-English sample maternal english proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+ 
+ggplot(English_father_proficiency, aes(y=perc, x=strategy, fill=father_english_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "French-English sample paternal english proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+
+### proficiency by strategy scatter plots
+ggplot(for_sup, aes(x= strategy, y = mother_french_aoa))+
+  geom_jitter()
+ggplot(for_sup, aes(x= strategy, y = father_french_aoa))+
+  geom_jitter()
+ggplot(for_sup, aes(x= strategy, y = mother_english_aoa))+
+  geom_jitter()
+ggplot(for_sup, aes(x= strategy, y = father_english_aoa))+
+  geom_jitter()
+
+
+############ Statistical models for proficiency
 #Selecting the necessary variables for the models
 for_sup_lms<- for_sup %>% 
   select(gender, anon_baby_id, age, exp_l2, fre_exp, eng_exp, strategy, care1_l1, care1_l2, care2_l1, care2_l2, l1, l2, type_of_family, mother_french_aoa, mother_english_aoa, father_french_aoa, father_english_aoa, mother_french_accent, mother_english_accent, father_french_accent, father_english_accent) %>% 
@@ -1165,7 +1252,7 @@ performance::compare_performance(lm_parents_aditive_eng, lm_strat_eng, lm_parent
 #in english performance data does make it the best fitting model, also accounts for 2% more variance, but much much more variance accounted for strat w/proficiency than without
 
 
-## Can we make a model where language use is predicted by proficiency?? assign codes to language use 0 1 2?
+## Model where language use is predicted by proficiency. assign codes to language use 0 1 2.
 
 for_lang_use<- for_sup_lms %>%
   mutate(caregiver_1_french_use = case_when(caregiver_1_french_use =="never"~ 0,
@@ -1180,8 +1267,31 @@ for_lang_use<- for_sup_lms %>%
       mutate(caregiver_2_english_use = case_when(caregiver_2_english_use =="never"~ 0,
                                             caregiver_2_english_use =="sometimes"~1,
                                             caregiver_2_english_use =="regularly"~2))
+## AOA Scatter plots
+ggplot(for_lang_use, aes(x= caregiver_1_french_use, y = mother_french_aoa))+
+  geom_jitter()
 
-  
+ggplot(for_lang_use, aes(x= caregiver_1_french_use, y = father_french_aoa))+
+  geom_jitter()
+
+ggplot(for_lang_use, aes(x= caregiver_2_french_use, y = mother_french_aoa))+
+  geom_jitter()
+
+ggplot(for_lang_use, aes(x= caregiver_2_french_use, y = father_french_aoa))+
+  geom_jitter()
+
+ggplot(for_lang_use, aes(x= caregiver_1_english_use, y = mother_english_aoa))+
+  geom_jitter()
+
+ggplot(for_lang_use, aes(x= caregiver_1_english_use, y = father_english_aoa))+
+  geom_jitter()
+
+ggplot(for_lang_use, aes(x= caregiver_2_english_use, y = mother_english_aoa))+
+  geom_jitter()
+
+ggplot(for_lang_use, aes(x= caregiver_2_english_use, y = father_english_aoa))+
+  geom_jitter()
+
 lm_use_mom_fre <- lm(caregiver_1_french_use ~ mother_french_aoa + father_french_aoa, data= for_lang_use)
 lm_use_mom_eng <- lm(caregiver_1_english_use ~ mother_english_aoa + father_english_aoa, data= for_lang_use)
 
@@ -1526,6 +1636,129 @@ her_for_sup <- her_for_sup %>%
   mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, min_exp = min_exp/100)
 
 
+##  French aoa
+hist(her_for_sup$mother_french_aoa)
+hist(her_for_sup$father_french_aoa)
+
+
+## English aoa
+hist(her_for_sup$mother_english_aoa)
+hist(her_for_sup$father_english_aoa)
+
+## heritage aoa
+hist(her_for_sup$mother_heritage_aoa)
+hist(her_for_sup$father_heritage_aoa)
+
+
+## By strategy accent
+##### proficiency (accent) by strategy
+   
+    her_French_mother_proficiency <- her_for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, mother_french_accent) %>%
+   drop_na(mother_french_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+    
+        her_French_father_proficiency <- her_for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, father_french_accent) %>%
+   drop_na(father_french_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+ 
+    her_English_mother_proficiency <- her_for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, mother_english_accent) %>%
+   drop_na(mother_english_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+    
+        her_English_father_proficiency <- her_for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, father_english_accent) %>%
+   drop_na(father_english_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+         
+            her_heritahe_mother_proficiency <- her_for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, mother_heritage_accent) %>%
+   drop_na(mother_heritage_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+    
+        her_heritage_father_proficiency <- her_for_sup %>%
+   filter(!strategy == "single-parent")%>%
+   drop_na(strategy)%>%
+  group_by(strategy, father_heritage_accent) %>%
+   drop_na(father_heritage_accent)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100)
+        
+ggplot(her_French_mother_proficiency, aes(y=perc, x=strategy, fill=mother_french_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "Heriatge sample maternal french proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+ 
+ggplot(her_French_father_proficiency, aes(y=perc, x=strategy, fill=father_french_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "Heritage sample paternall french proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+
+ggplot(her_English_mother_proficiency, aes(y=perc, x=strategy, fill=mother_english_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "Heritage sample maternal english proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+ 
+ggplot(her_English_father_proficiency, aes(y=perc, x=strategy, fill=father_english_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "Heritage sample paternal english proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+
+ggplot(her_heritage_mother_proficiency, aes(y=perc, x=strategy, fill=mother_heritage_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "Heritage sample maternal heritage proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+ 
+ggplot(her_heritage_father_proficiency, aes(y=perc, x=strategy, fill=father_heritage_accent)) +
+   geom_col(position = "fill") +
+   scale_fill_brewer(palette="Dark2")+
+   labs(title= "Heritage sample paternal heritage proficiency by strategy")+
+   theme(axis.text.x = element_text(angle = 25))
+
+### proficiency by strategy scatter plots
+ggplot(her_for_sup, aes(x= strategy, y = mother_french_aoa))+
+  geom_jitter()
+ggplot(her_for_sup, aes(x= strategy, y = father_french_aoa))+
+  geom_jitter()
+ggplot(her_for_sup, aes(x= strategy, y = mother_english_aoa))+
+  geom_jitter()
+ggplot(her_for_sup, aes(x= strategy, y = father_english_aoa))+
+  geom_jitter()
+ggplot(her_for_sup, aes(x= strategy, y = mother_heritage_aoa))+
+  geom_jitter()
+ggplot(her_for_sup, aes(x= strategy, y = father_heritage_aoa))+
+  geom_jitter()
+
+
+######### Proficiency statistical models
 #STRATEGY LINEAR MODELS
 her_lm_stratBYaoa_eng<- lm(eng_exp ~ strategy + mother_english_aoa + father_english_aoa, data=her_for_sup)
 her_lm_stratBYaoa_fre <- lm(fre_exp ~ strategy + mother_french_aoa + father_french_aoa, data=her_for_sup)
@@ -1585,6 +1818,32 @@ her_for_lang_use<- her_for_sup %>%
         mutate(caregiver_1_heritage_use = case_when(caregiver_1_heritage_use =="never"~ 0,
                                             caregiver_1_heritage_use =="sometimes"~1,
                                             caregiver_1_heritage_use =="regularly"~2))
+#AOA scatter plots
+ggplot(her_for_lang_use, aes(x= caregiver_1_french_use, y = mother_french_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_1_french_use, y = father_french_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_2_french_use, y = mother_french_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_2_french_use, y = father_french_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_1_english_use, y = mother_english_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_1_english_use, y = father_english_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_2_english_use, y = mother_english_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_2_english_use, y = father_english_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_1_heritage_use, y = mother_heritage_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_1_heritage_use, y = father_heritage_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_2_heritage_use, y = mother_heritage_aoa))+
+  geom_jitter()
+ggplot(her_for_lang_use, aes(x= caregiver_2_heritage_use, y = father_heritage_aoa))+
+  geom_jitter()
+
   
 HERlm_use_mom_fre <- lm(caregiver_1_french_use ~ mother_french_aoa + father_french_aoa, data= her_for_lang_use)
 HERlm_use_mom_eng <- lm(caregiver_1_english_use ~ mother_english_aoa + father_english_aoa, data= her_for_lang_use)
