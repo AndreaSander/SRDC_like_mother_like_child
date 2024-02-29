@@ -146,6 +146,90 @@ FEH <- first_visit_only %>%
 #Exporting the final data set that we used in all analyses and visualizations
 #write_xlsx(FEH,"anonymized_data\\fam_Str_cross_sectional.xlsx")
   
+FEH_prof<- FEH %>%
+  mutate(mother_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_mother,
+                                      l1 %in% c("English","Heritage")~ age_l2_acquired_mother)) %>%
+ mutate(mother_english_aoa = case_when (l1 == "English" ~ age_l1_acquired_mother,
+                                      l1%in% c("French","Heritage")~ age_l2_acquired_mother)) %>%
+   mutate(mother_heritage_aoa = case_when (l1 == "Heritage" ~ age_l1_acquired_mother,
+                                      l1%in% c("French","English")~ age_l2_acquired_mother)) %>%
+  mutate(father_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_father,
+                                      l1 %in% c("English","Heritage")~ age_l2_acquired_father)) %>%
+ mutate(father_english_aoa = case_when (l1 == "English" ~ age_l1_acquired_father,
+                                      l1%in% c("French","Heritage")~ age_l2_acquired_father)) %>%
+     mutate(father_heritage_aoa = case_when (l1 == "Heritage" ~ age_l1_acquired_father,
+                                      l1%in% c("French","English")~ age_l2_acquired_father)) %>%
+  mutate(mother_french_aoa = case_when(mother_french_aoa <= 5 ~ "early_acquisition",
+                                       mother_french_aoa >5 ~ "older_than_5",
+                                       is.na(mother_french_aoa)~ NA)) %>%
+    mutate(mother_english_aoa = case_when(mother_english_aoa <= 5 ~ "early_acquisition",
+                                       mother_english_aoa >5 ~ "older_than_5",
+                                      is.na(mother_english_aoa) ~ NA)) %>%
+    mutate(mother_heritage_aoa = case_when(mother_heritage_aoa <= 5 ~ "early_acquisition",
+                                       mother_heritage_aoa >5 ~ "older_than_5",
+                                        is.na(mother_heritage_aoa)~ NA)) %>%
+    mutate(father_french_aoa = case_when(father_french_aoa <= 5 ~ "early_acquisition",
+                                       father_french_aoa >5 ~ "older_than_5",
+                                        is.na(father_french_aoa)~ NA)) %>%
+      mutate(father_english_aoa = case_when(father_english_aoa <= 5 ~ "early_acquisition",
+                                       father_english_aoa >5 ~ "older_than_5",
+                                        is.na(father_english_aoa)~ NA)) %>%
+        mutate(father_heritage_aoa = case_when(father_heritage_aoa <= 5 ~ "early_acquisition",
+                                       father_heritage_aoa >5 ~ "older_than_5",
+                                        is.na(father_english_aoa)~ NA)) 
+  
+  
+  
+
+
+
+## Mothers proficiency distribution
+   mothers_fre_prof <- FEH_prof%>%
+     group_by(mother_french_aoa)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) %>% 
+     ungroup() 
+   
+    mothers_eng_prof <- FEH_prof%>%
+     group_by(mother_english_aoa)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) %>% 
+     ungroup() 
+    
+    mothers_her_prof <- FEH_prof%>%
+     group_by(mother_heritage_aoa)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) %>% 
+     ungroup() 
+     
+   #Fathers proficiency distribution
+
+     fathers_fre_prof <- FEH_prof%>%
+     group_by(father_french_aoa)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) %>% 
+     ungroup() 
+   
+    fathers_eng_prof <- FEH_prof%>%
+     group_by(father_english_aoa)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) %>% 
+     ungroup() 
+    
+    fathers_her_prof <- FEH_prof%>%
+     group_by(father_heritage_aoa)%>%
+  tally()%>%
+    mutate(prop = n/sum(n)) %>%
+  mutate(perc= prop*100) %>% 
+     ungroup()   
+    
+
+
 FEH_perc<- FEH %>%
   group_by(bilingual_type) %>%
   tally()%>%
@@ -1097,7 +1181,13 @@ mutate(mother_french_aoa = case_when (l1 == "French" ~ age_l1_acquired_mother,
                                           l1=="English"~ l2_accent_father))%>%
    mutate(father_english_accent = case_when(l1=="English"~ l1_accent_father,
                                           l1=="French"~ l2_accent_father)) 
-  #histogram of proficiency distribution 
+  
+
+#How bilingual mothers versus father were, and how proficient in their bilingualism, and by strategy.
+
+
+
+#histogram of proficiency distribution 
 
 ##  French
 
@@ -1521,16 +1611,34 @@ her_for_lms <- FEH %>%
   filter(!strategy %in% c("one-language-at-home", "single-parent")) %>%
   mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, min_exp = min_exp/100) 
 
+#French-Heritage models
+freher_for_lms <- her_for_lms %>%
+  filter(bilingual_type == "fre-her")
+
+engher_for_lms <- her_for_lms %>%
+  filter(bilingual_type == "eng-her")
+
 
 #STRATEGY LINEAR MODELS
 her_lm_strat_eng<- lm(eng_exp ~ strategy, data=her_for_lms)
 her_lm_strat_fre <- lm(fre_exp ~ strategy, data=her_for_lms)
 her_lm_strat_her <- lm(min_exp ~ strategy, data=her_for_lms)
 
+#With the new datasets
+
+engher_lm_strat_eng<- lm(eng_exp ~ strategy, data=engher_for_lms )
+freher_lm_strat_fre <- lm(fre_exp ~ strategy, data=freher_for_lms)
+engher_lm_strat_her <- lm(min_exp ~ strategy, data=engher_for_lms)
+freher_lm_strat_her <- lm(min_exp ~ strategy, data=freher_for_lms)
+
+
 #Summary of STRATEGY LINEAR models
 summary(her_lm_strat_eng) #Slightly different, one parent bilingual is just a tad significant here and not for beta. 
 summary(her_lm_strat_fre) #Same as above, one parent bilingual is significant and not for beta.
 summary(her_lm_strat_her) 
+
+summary(engher_lm_strat_eng)
+summary(freher_lm_strat_fre)
 
 ###### Careviver models 
  her_parents_for_lms <- her_for_lms %>%
@@ -1636,18 +1744,26 @@ her_for_sup <- her_for_sup %>%
   mutate(fre_exp = fre_exp/100, eng_exp = eng_exp/100, min_exp = min_exp/100)
 
 
+engher_for_sup <- her_for_sup %>%
+  filter(bilingual_type == "eng-her")
+
+freher_for_sup <- her_for_sup %>%
+  filter(bilingual_type == "fre-her")
+
 ##  French aoa
-hist(her_for_sup$mother_french_aoa)
-hist(her_for_sup$father_french_aoa)
+hist(freher_for_sup$mother_french_aoa)
+hist(freher_for_sup$father_french_aoa)
 
 
 ## English aoa
-hist(her_for_sup$mother_english_aoa)
-hist(her_for_sup$father_english_aoa)
+hist(engher_for_sup$mother_english_aoa)
+hist(engher_for_sup$father_english_aoa)
 
 ## heritage aoa
-hist(her_for_sup$mother_heritage_aoa)
-hist(her_for_sup$father_heritage_aoa)
+hist(engher_for_sup$mother_heritage_aoa)
+hist(engher_for_sup$father_heritage_aoa)
+hist(freher_for_sup$mother_heritage_aoa)
+hist(freher_for_sup$father_heritage_aoa)
 
 
 ## By strategy accent
@@ -1689,7 +1805,7 @@ hist(her_for_sup$father_heritage_aoa)
     mutate(prop = n/sum(n)) %>%
   mutate(perc= prop*100)
          
-            her_heritahe_mother_proficiency <- her_for_sup %>%
+            her_heritage_mother_proficiency <- her_for_sup %>%
    filter(!strategy == "single-parent")%>%
    drop_na(strategy)%>%
   group_by(strategy, mother_heritage_accent) %>%
@@ -1861,6 +1977,10 @@ summary(HERlm_use_mom_HER) # proficiency not correlated with use. Which does go 
 summary(HERlm_use_dad_fre) #correlated, the less proficient the less use
 summary(HERlm_use_dad_eng) #not correlated
 summary(HERlm_use_dad_HER) #no proficiency effect
+
+
+
+
 
 ```
 
