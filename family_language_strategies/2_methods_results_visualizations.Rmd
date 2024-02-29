@@ -126,7 +126,8 @@ num_visits <- final_data_strat %>%
 #French-English-Heritage bilingual percentages
 
 #### JOINING SES INFO TO CLEAN DATA
-##Do antijoin to make sure everything is fine!
+## Make sure 5718960_cogmisp24 6517080_segment8 have the right languages on the SES sheet
+
 first_visit_only<- first_visit_only %>%
   right_join(SES_info, first_visit_only, by=c("study","unique_id", "anon_baby_id", "l1", "l2"))
 
@@ -507,10 +508,10 @@ prop_strategy_FE<- prop_strategy_FE %>%
 V1_FE<- setNames(prop_strategy_FE$n, c("both-parents-bilingual", "one-parent-bilingual", "one-parent-one-lanaguage", "one-language-at-home", "single-parent"))
 
 figure_1<- waffle(parts = V1_FE, rows=13, colors = c(my_orange, my_yellow, my_blue, my_green, my_purple), keep = T, size=0.6)+
-    annotate("richtext", x=c(4,11,15), y=8, label=c("52%", "24%", "19%"), size=10) +
-  annotate("richtext", x=17, y=6, label= "3%", size=10)+
-  annotate("richtext", x=17, y=10, label= "2%", size=10)+
- theme(legend.text= element_text(size=12),legend.title= element_text(size=12)) 
+    annotate("richtext", x=c(4,11,15), y=8, label=c("114", "54", "41"), size=10) +
+  annotate("richtext", x=17, y=6, label= "7", size=10)+
+  annotate("richtext", x=17, y=10, label= "5", size=10)+
+ theme(legend.text= element_text(size=18),legend.title= element_text(size=18)) 
 
 ggsave(file="Figure_1.png", width=25, height=7, dpi=300)
 
@@ -1423,10 +1424,12 @@ her_prop_strategy<- her_prop_strategy %>%
 #Waffle plot
 her_V1<- setNames(her_prop_strategy$n, c( "one-parent-bilingual","both-parents-bilingual","one-parent-one-lanaguage",  "single-parent", "one-language-at-home"))
 
-figure_5 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, size=0.6) + annotate("richtext", x=c(2,6,9), y=4, label=c("40%", "30%", "20%")) +
-  annotate("richtext", x=10, y=2, label= "7%")+
-  annotate("richtext", x=10, y=6, label= "3%")+
- theme(legend.text= element_text(size=12),legend.title= element_text(size=12)) 
+figure_5 <- waffle(parts = her_V1, rows=6, colors = c(my_yellow, my_orange, my_blue, my_purple, my_green), keep = T, size=0.6) + annotate("richtext", x=c(2,6,9), y=4, label=c("24", "18", "12"), size=10) +
+  annotate("richtext", x=10, y=2, label= "4", size=10)+
+  annotate("richtext", x=10, y=6, label= "2", size=10)+
+ theme(legend.text= element_text(size=18),legend.title= element_text(size=18)) 
+
+ggsave(file="Figure_5.png", width=25, height=7, dpi=300)
 
 ```
 
