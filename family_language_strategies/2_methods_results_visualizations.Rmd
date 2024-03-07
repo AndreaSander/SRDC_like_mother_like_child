@@ -832,14 +832,18 @@ FE_next_node_counts <- FE_for_sankey %>%
   summarise(count = n()) %>%
   ungroup()
 
+FE_p1$data$node<- factor(FE_p1$data$node, levels= c("one-parent-one-lang","one-parent-bilingual", "both-parents-bilingual"))
+FE_p1$data$next_node <- factor(FE_p1$data$next_node, levels= c("one-parent-one-lang","one-parent-bilingual", "both-parents-bilingual"))
+
 figure_2 <- FE_p1+ 
-      scale_fill_manual(name= "Family Language Strategies", values = c(my_orange, my_yellow, my_blue))
+      scale_fill_manual(name= "Family Language Strategies", values = c(my_blue, my_yellow, my_orange))
+
 
 figure_2<- figure_2 +
  # geom_sankey_label(size=10, color="black", fill="white")+
   theme_bw()+
-    annotate("richtext", x=c(1,1,1), y=c(15,5,-8), label=FE_node_counts$count, size=10)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(15,6,-8), label=FE_next_node_counts$count, size=10)+ #Adding the N at time 2
+    annotate("richtext", x=c(1,1,1), y=c(12,-3,-15), label=FE_node_counts$count, size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(12,-5,-15), label=FE_next_node_counts$count, size=10)+ #Adding the N at time 2
   theme(axis.text.x = element_text(size=35), axis.title = element_blank(), plot.title = element_text(size=35), axis.ticks = element_blank(), axis.text.y = element_blank(), legend.text = element_text(size=35), legend.title = element_text(size=35))
 
 
@@ -935,6 +939,7 @@ mom_fre_next_node_counts <-  mom_long_fre_s %>%
   summarise(count = n()) %>%
   ungroup()
 
+
 figure_3_a <- ggplot(mom_long_fre_s , aes(x = x, 
                next_x = next_x, 
                node = node, 
@@ -942,11 +947,12 @@ figure_3_a <- ggplot(mom_long_fre_s , aes(x = x,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") + 
   scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
-  theme_bw()+
-  theme(axis.text.x = element_text(size=30),legend.position = "none", plot.title = element_text(size=35), axis.title=element_blank(), plot.subtitle = element_text(size = 20)) +
+  theme_bw() +
   labs(title= "A. Mothers' change of language use", subtitle = "French")+
-      annotate("richtext", x=c(1,1,1), y=c(5,-9,-20), label=mom_fre_node_counts$count, size=10)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(5,-9,-20), label=mom_fre_next_node_counts$count, size=10) #Adding the N at time 2
+  theme(axis.text.x = element_text(size=30),legend.position = "none", plot.title = element_text(size=35),
+        plot.subtitle = element_text(size=30), axis.title=element_blank())+
+      annotate("richtext", x=c(1,1,1), y=c(5,-9,-20), label=c(20,11,5), size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(5,-9,-20), label=c(16,17,3), size=10) #Adding the N at time 2
 
 mom_eng_node_counts <- mom_long_eng_s %>%
     filter(x=="time 1") %>%
@@ -966,13 +972,14 @@ figure_3_b <- ggplot(mom_long_eng_s , aes(x = x,
                node = node, 
                next_node = next_node,
                fill = factor(node), label=node)) +
-  geom_sankey(flow.color = "black") +
-    scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"), name= "language use with child frequency")+
-  theme_bw()+
-  theme(axis.text.x = element_text(size=30), plot.title = element_text(size=35), axis.title = element_blank(), legend.text = element_text(size=30), legend.title = element_text(size=30), plot.subtitle = element_text(size = 20))+
-  labs(title= "B. Mothers' change of language use", subtitle = "English")+
-      annotate("richtext", x=c(1,1,1), y=c(6,-10,-20), label=mom_eng_node_counts$count, size=10)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(5,-10,-20), label=mom_eng_next_node_counts$count, size=10) #Adding the N at time 2
+  geom_sankey(flow.color = "black") + 
+  scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
+  theme_bw() +
+  labs(title= "A. Mothers' change of language use", subtitle = "English")+
+  theme(axis.text.x = element_text(size=30),legend.position = "none", plot.title = element_text(size=35),
+        plot.subtitle = element_text(size=30), axis.title=element_blank())+
+      annotate("richtext", x=c(1,1,1), y=c(6,-10,-20), label=c(24, 8, 4), size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(5,-10,-20), label=c(26,7,3), size=10) #Adding the N at time 2
 
 
 figure_3<- figure_3_a + figure_3_b
