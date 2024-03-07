@@ -973,16 +973,16 @@ figure_3_b <- ggplot(mom_long_eng_s , aes(x = x,
                next_node = next_node,
                fill = factor(node), label=node)) +
   geom_sankey(flow.color = "black") + 
-  scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
+  scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"), name="language use with child frequency")+
   theme_bw() +
   labs(title= "A. Mothers' change of language use", subtitle = "English")+
-  theme(axis.text.x = element_text(size=30),legend.position = "none", plot.title = element_text(size=35),
+  theme(axis.text.x = element_text(size=30),legend.text = element_text(size=30),legend.title = element_text(size=30), plot.title = element_text(size=35),
         plot.subtitle = element_text(size=30), axis.title=element_blank())+
       annotate("richtext", x=c(1,1,1), y=c(6,-10,-20), label=c(24, 8, 4), size=10)+ #Adding the N at time 1
   annotate("richtext", x=c(2,2,2), y=c(5,-10,-20), label=c(26,7,3), size=10) #Adding the N at time 2
 
-
-figure_3<- figure_3_a + figure_3_b
+library(cowplot)
+figure_3<- plot_grid(figure_3_a, figure_3_b, ncol=2, rel_widths = c(2,3))
 
 ggsave(file="Figure_3.png", width=25, height=12, dpi=300)
 
@@ -1082,10 +1082,10 @@ figure_4_a <- ggplot(dad_long_fre_s , aes(x = x,
   geom_sankey(flow.color = "black") +
     scale_fill_manual(values = c("#dac291","#41ae76", "#75638b"))+
   theme_bw()+
-  theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35), plot.subtitle = element_text(size = 20))+
+  theme(axis.text.x = element_text(size=30), legend.position = "none", plot.title = element_text(size=35), plot.subtitle = element_text(size = 30))+
   labs(title= "A. Fathers' change of language use", subtitle = "French")+
-      annotate("richtext", x=c(1,1,1), y=c(5,-10,-20), label=dad_fre_node_counts$count, size=10)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(5,-10,-20), label=dad_fre_next_node_counts$count, size=10) #Adding the N at time 2
+      annotate("richtext", x=c(1,1,1), y=c(5,-10,-20), label=c(22, 8, 6), size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(5,-10,-20), label=c(23,8,5), size=10) #Adding the N at time 2
 
 
 dad_eng_node_counts <- mom_long_eng_s %>%
@@ -1109,13 +1109,13 @@ figure_4_b <- ggplot(dad_long_eng_s , aes(x = x,
   geom_sankey(flow.color = "black") + 
     scale_fill_manual(values =c("#dac291","#41ae76", "#75638b"), name="language use with child frequency")+
   theme_bw()+
-  theme(axis.text.x = element_text(size=30), plot.title = element_text(size=35), axis.title = element_blank(), legend.text = element_text(size=30), legend.title = element_text(size=30), plot.subtitle = element_text(size = 20))+
+  theme(axis.text.x = element_text(size=30), plot.title = element_text(size=35), axis.title = element_blank(), legend.text = element_text(size=30), legend.title = element_text(size=30), plot.subtitle = element_text(size = 30))+
   labs(title= "B. Fathers' change of language use", subtitle = "English")+
-      annotate("richtext", x=c(1,1,1), y=c(4,-10,-22), label=dad_eng_node_counts$count, size=10)+ #Adding the N at time 1
-  annotate("richtext", x=c(2,2,2), y=c(4,-10,-22), label=dad_eng_next_node_counts$count, size=10) #Adding the N at time 2
+      annotate("richtext", x=c(1,1,1), y=c(4,-10,-22), label=c(24,8,4), size=10)+ #Adding the N at time 1
+  annotate("richtext", x=c(2,2,2), y=c(4,-10,-22), label=c(20,9,7), size=10) #Adding the N at time 2
 
 
-figure_4<- figure_4_a + figure_4_b
+figure_4<- plot_grid(figure_4_a, figure_4_b, ncol=2, rel_widths = c(2,3))
 
 ggsave(file="Figure_4.png", width=25, height=12, dpi=300)
 
