@@ -27,7 +27,7 @@ library(readxl)
 
 load(here("anonymized_data/LEQ_data.Rda"))
 
- load(here("anonymized_data/demographic_data.Rda"))
+load(here("anonymized_data/demographic_data.Rda"))
  
 #rename
  LEQ_data <- final_fam_str
@@ -77,21 +77,24 @@ LEQ_data <-
 final_data <-
   right_join(demographic_data, LEQ_data ,  by= c("unique_id", "study", "anon_baby_id"))
 
-#clean date of birth error in one participant
-final_data <- final_data %>%
-  mutate(leq_date = as.character(leq_date))
 
-final_data$leq_date[final_data$leq_date== "2016-08-07"] <- "2017-03-28"
+#DO NOT RUN ANYMORE--COLUMS DELETED FOR ANONYMIZATION PURPOSES
+# #clean date of birth error in one participant
+# final_data <- final_data %>%
+#   mutate(leq_date = as.character(leq_date))
+# 
+# final_data$leq_date[final_data$leq_date== "2016-08-07"] <- "2017-03-28"
 ```
 
 
 ```{r create an age column and save before exclusions}
 
-final_data$do_birth<-as.Date(as.character(final_data$do_birth))
-final_data$leq_date<-as.Date(as.character(final_data$leq_date))
-final_data <- final_data %>%
-  mutate(age= interval(start= do_birth, end=leq_date)/                      
-           duration(n=1, unit="months"))
+#This chunk was used to calculate age, but it won't run anymore as the DoB column has been removed for anonymization purposes.
+# final_data$do_birth<-as.Date(as.character(final_data$do_birth))
+# final_data$leq_date<-as.Date(as.character(final_data$leq_date))
+# final_data <- final_data %>%
+#   mutate(age= interval(start= do_birth, end=leq_date)/
+#            duration(n=1, unit="months"))
 
 #Create a type of family column. NOTE this column was created after thoroughly reviewing parents' answers and it reflects the places where it was explicitly noted that a child had two same-gender caregivers, or where it is obvious by the parents answers that the child has a single caregiver. Otherwise it was assumed that the child had a mother and a father, and that mothers' answers were entered in the caregiver 1 slot, as it is explicitly instructed in the questionnaire.
 
@@ -106,7 +109,12 @@ final_data <- final_data %>%
 
 final_data_no_exc<- final_data
 
-save(final_data_no_exc, file=here("anonymized_data/final_data_no_exc.Rda"))
+final_data_no_exc <- final_data_no_exc %>% 
+  select(-c(do_birth, leq_date, part_id))
+#once the age column was created the data was commented out and the DoB and other columns problematic for anonymization were excluded and the data was saved. 
+
+#DO NOT SAVE THIS DATAFRAME AGAIN OR YOU WILL LOOSE THE AGE COLUMN
+#save(final_data_no_exc, file=here("anonymized_data/final_data_no_exc.Rda"))
 ```
 
 
@@ -118,9 +126,13 @@ final_data <- final_data %>%
   group_by(unique_id, exp_l1, exp_l2)%>%
    mutate(total_l1_l2_exp=(sum(exp_l1,exp_l2,na.rm = T))) %>%
   ungroup() %>%
-  filter(total_l1_l2_exp>=90) #59 exclusions for more than 10% exposure to a third language
+  filter(total_l1_l2_exp>=90) %>% #59 exclusions for more than 10% exposure to a third language
 
-save(final_data, file=here("anonymized_data/final_merged_data.Rda"))
+  select(-c(do_birth, leq_date, part_id))
+#once the age column was created the data was commented out and the DoB and other columns problematic for anonymization were excluded and the data was saved. 
+
+#DO NOT SAVE THIS DATAFRAME AGAIN OR YOU WILL LOOSE THE AGE COLUMN
+#save(final_data, file=here("anonymized_data/final_merged_data.Rda"))
 ```
 
 ```{r creating the french, english, and heritage exposure variables}
@@ -243,7 +255,7 @@ final_data_strat <-
   filter(exp_l1 <95) %>%
   filter(exp_l2 >5)
 
-save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
+#save(final_data_strat, file=here("anonymized_data/final_data_strat.Rda"))
 
 ```
 
@@ -253,7 +265,7 @@ longitudinal_data<- final_data_strat %>%
   add_count(anon_baby_id, name = "num_visits") %>%
   filter(num_visits>1) 
 
-save(longitudinal_data, file=here("anonymized_data/longitudinal_data.Rda"))
+#save(longitudinal_data, file=here("anonymized_data/longitudinal_data.Rda"))
 
 
 ```
