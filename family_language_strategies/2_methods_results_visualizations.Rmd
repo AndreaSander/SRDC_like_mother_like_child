@@ -436,28 +436,32 @@ library(RColorBrewer)
   
 #Prepping longitudinal data excluding irrelevant cases
 
+#DO NOT RUN THIS ANYMORE, LEQ DATES WERE REMOVED FROM DATASETS FOR ANONYMIZATION PURPOSES
+# longitudinal_data_analyses <- longitudinal_data %>% 
+#   arrange(anon_baby_id, age) %>%
+#   group_by(anon_baby_id) %>%
+#   mutate(visit = row_number()) %>%
+#   ungroup() %>% 
+#   mutate(first_visit_date = case_when(visit == 1 ~ leq_date)) %>%
+#   mutate(second_visit_date = case_when(visit == 2 ~ leq_date)) %>%
+#   group_by(anon_baby_id) %>%
+#   fill(first_visit_date, second_visit_date, .direction="updown") %>% #to collapse the rows and be able to calculate visit
+#   ungroup() %>%
+#   mutate(length_between_visits = abs(interval(start= first_visit_date, end=second_visit_date)/ duration (n=1, unit="days" ))) %>%
+#   filter(! length_between_visits < 15) %>%
+#   mutate(l1 = case_when(l1=="French" ~ "French",
+#                         l1=="English" ~ "English",
+#                         TRUE ~ "Heritage")) %>%
+#     mutate(l2 = case_when(l2=="French" ~ "French",
+#                         l2=="English" ~ "English",
+#                         TRUE ~ "Heritage")) %>%
+#   mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
+#                                     l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
+#                                     l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
+# 
+# save(longitudinal_data_analyses, file=here("anonymized_data/longitudinal_data_visitnum.Rda"))
 
-longitudinal_data_analyses <- longitudinal_data %>% 
-  arrange(anon_baby_id, age) %>%
-  group_by(anon_baby_id) %>%
-  mutate(visit = row_number()) %>%
-  ungroup() %>% 
-  mutate(first_visit_date = case_when(visit == 1 ~ leq_date)) %>%
-  mutate(second_visit_date = case_when(visit == 2 ~ leq_date)) %>%
-  group_by(anon_baby_id) %>%
-  fill(first_visit_date, second_visit_date, .direction="updown") %>% #to collapse the rows and be able to calculate visit
-  ungroup() %>%
-  mutate(length_between_visits = abs(interval(start= first_visit_date, end=second_visit_date)/ duration (n=1, unit="days" ))) %>%
-  filter(! length_between_visits < 15) %>%
-  mutate(l1 = case_when(l1=="French" ~ "French",
-                        l1=="English" ~ "English",
-                        TRUE ~ "Heritage")) %>%
-    mutate(l2 = case_when(l2=="French" ~ "French",
-                        l2=="English" ~ "English",
-                        TRUE ~ "Heritage")) %>%
-  mutate(bilingual_type = case_when(l1 %in% c("French", "English") & l2 %in% c("French", "English") ~ "fre-eng",
-                                    l1 %in% c("French", "Heritage") & l2 %in% c("French", "Heritage") ~ "fre-her",
-                                    l1 %in% c("Heritage", "English") & l2 %in% c("Heritage", "English") ~ "eng-her")) 
+load(here("anonymized_data/longitudinal_data_visitnum.Rda"))
 
 #Longitudinal data set n
 n_long <-longitudinal_data_analyses %>% 
