@@ -296,7 +296,10 @@ library(RColorBrewer)
    geom_col(position = "fill") +
    scale_fill_brewer(palette="Dark2")+
    labs(title= "French-English sample maternal education by strategy")+
-   theme(axis.text.x = element_text(angle = 25))
+   theme(axis.text.x = element_text(angle = 25, size=18))+
+ theme(legend.text= element_text(size=18),legend.title= element_text(size=18), axis.title= element_text(size=18), plot.title= element_text(size=18))
+ 
+ ggsave(file="Figure_S1.png", width=25, height=12, dpi=300)
  
  
   HER_maternal_education <- FEH %>%
@@ -317,10 +320,11 @@ library(RColorBrewer)
  sup_figure_2<- ggplot(HER_maternal_education, aes(y=perc, x=strategy, fill=maternal_education)) +
    geom_col(position = "fill") +
    scale_fill_brewer(palette="Dark2") +
-   labs(title= "Heritage sample maternal education by strategy")+
-   theme(axis.text.x = element_text(angle = 25))
+   labs(title= "Heritage sample maternal education by strategy") +
+   theme(axis.text.x = element_text(angle = 25, size=18))+
+ theme(legend.text= element_text(size=18),legend.title= element_text(size=18), axis.title= element_text(size=18), plot.title= element_text(size=18))
  
- 
+ ggsave(file="Figure_S2.png", width=25, height=12, dpi=300)
  
   FE_paternal_education <- FEH %>%
       filter(bilingual_type=="fre-eng") %>%
@@ -341,8 +345,11 @@ library(RColorBrewer)
    geom_col(position = "fill")  +
     scale_fill_brewer(palette="Dark2") +
    labs(title= "French-English sample paternal education by strategy")+
-   theme(axis.text.x = element_text(angle = 25))
-  
+    theme(axis.text.x = element_text(angle = 25, size=18))+
+ theme(legend.text= element_text(size=18),legend.title= element_text(size=18), axis.title= element_text(size=18), plot.title= element_text(size=18))
+
+  ggsave(file="Figure_S3.png", width=25, height=12, dpi=300)
+    
    HER_paternal_education <- FEH %>%
   filter(bilingual_type %in% c("fre-her", "eng-her")) %>%
        filter(!strategy == "single-parent")%>%
@@ -361,8 +368,11 @@ library(RColorBrewer)
    geom_col(position = "fill")+
     scale_fill_brewer(palette="Dark2") +
    labs(title= "Heritage sample paternal education by strategy")+
-   theme(axis.text.x = element_text(angle = 25))
+       theme(axis.text.x = element_text(angle = 25, size=18))+
+ theme(legend.text= element_text(size=18),legend.title= element_text(size=18), axis.title= element_text(size=18), plot.title= element_text(size=18))
  
+  ggsave(file="Figure_S4.png", width=25, height=12, dpi=300)
+  
   #No graphs for this one as there are too many categories
    FE_ethnicity <- FEH %>%
      filter(bilingual_type=="fre-eng")%>%
